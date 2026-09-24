@@ -161,6 +161,9 @@ Item {
     readonly property real moundH: Math.min(bulbL * 0.16, (1 - bottomU) * bulbL * 0.9) * Math.min(1, (1 - shownProgress) * 6)
     // Sommet du monticule, depuis le goulot : longueur de la chute des grains.
     readonly property real fallLength: Math.max(4, (1 - bottomU) * bulbL + moundH * 0.35 - moundH - neck)
+    // Gel en 24 paliers : pendant la prise (0,9 s) et la fonte (0,7 s), le
+    // verre est redessiné 24 fois au plus, pas à chaque image.
+    readonly property int frostStep: Math.round(frost * 24)
     readonly property bool flowing: shownProgress > 0.0005 && shownProgress < 0.999 && !ringing && flipAngle === 0
 
     // --- Halos (dessinés une fois, animés en opacité)
@@ -179,7 +182,9 @@ Item {
             const g = ctx.createRadialGradient(r, r, 0, r, r, r);
             g.addColorStop(0, Qt.rgba(tint.r, tint.g, tint.b, 0.5));
             g.addColorStop(0.45, Qt.rgba(tint.r, tint.g, tint.b, 0.16));
-            g.addColorStop(1, Qt.rgba(tint.r, tint.g, tint.b, 0));
+            // Éteint à 85 % du rayon : même agrandie, l'aura reste dans le
+            // panneau (DMS rogne ce qui dépasse, ce qui ferait un bord net).
+            g.addColorStop(0.85, Qt.rgba(tint.r, tint.g, tint.b, 0));
             ctx.fillStyle = g;
             ctx.fillRect(0, 0, width, height);
         }
@@ -303,7 +308,7 @@ Item {
                 function onSandColorChanged() {
                     glass.requestPaint();
                 }
-                function onFrostChanged() {
+                function onFrostStepChanged() {
                     glass.requestPaint();
                 }
                 function onFlowingChanged() {

@@ -144,44 +144,92 @@ Column {
 
             Canvas {
                 id: mist
-                width: 300
-                height: 250
+                // Toute la largeur du panneau, du haut du panneau jusque sous
+                // le chrono : la brume passe derrière le texte (dessiné après,
+                // donc par-dessus) au lieu de s'arrêter sous le sablier.
+                width: pop.width
+                height: 360
                 x: (parent.width - width) / 2
-                y: (parent.height - height) / 2
+                y: -pop.topPadding
                 renderTarget: Canvas.FramebufferObject
                 onPaint: {
                     const ctx = getContext("2d");
                     ctx.reset();
                     const c = pop.frostColor;
                     // Nuages froids qui se chevauchent : une brume, pas un cercle.
-                    const blobs = [[0.5, 0.48, 0.42, 0.34], [0.34, 0.36, 0.26, 0.22], [0.68, 0.4, 0.28, 0.2], [0.38, 0.7, 0.26, 0.2], [0.64, 0.72, 0.3, 0.22], [0.5, 0.2, 0.22, 0.16], [0.5, 0.86, 0.3, 0.18]];
+                    // En pixels du canevas (340 × 360, sablier centré vers y = 118) ;
+                    // chaque nuage tient entier dans le canevas et s'éteint avant
+                    // son bord : aucun trait, sans masque (Qt ne gère pas
+                    // « destination-in »). [x, y, rayon, opacité au centre]
+                    const blobs = [[170, 130, 124, 0.34], [120, 95, 80, 0.22], [220, 100, 84, 0.2], [125, 190, 80, 0.2], [215, 195, 84, 0.22], [170, 250, 100, 0.2], [170, 62, 56, 0.16]];
+                    const sx = width / 340;
                     for (const b of blobs) {
-                        const x = b[0] * width, y = b[1] * height, r = b[2] * width;
+                        const x = b[0] * sx, y = b[1], r = b[2];
                         const g = ctx.createRadialGradient(x, y, 0, x, y, r);
                         g.addColorStop(0, Qt.rgba(c.r, c.g, c.b, b[3]));
+                        g.addColorStop(0.5, Qt.rgba(c.r, c.g, c.b, b[3] * 0.4));
+                        g.addColorStop(0.75, Qt.rgba(c.r, c.g, c.b, b[3] * 0.12));
                         g.addColorStop(1, Qt.rgba(c.r, c.g, c.b, 0));
                         ctx.fillStyle = g;
-                        ctx.fillRect(0, 0, width, height);
+                        // Seulement le carré du nuage : au-delà, il est transparent.
+                        ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
                     }
                 }
 
-                // La brume dérive à peine : l'air est presque immobile.
-                SequentialAnimation {
+                // La brume flotte doucement dans le fond : dérive de côté,
+                // monte et descend, respire. Périodes différentes (18 s, 13 s,
+                // 10 s) : le mouvement ne se répète jamais tout à fait. Chaque
+                // boucle part de la position actuelle : pas de saut à la reprise.
+                // Amplitudes prévues pour que les nuages restent dans le panneau.
+                readonly property real baseX: (mistHolder.width - width) / 2
+                readonly property real baseY: -pop.topPadding
+                ParallelAnimation {
                     running: mistHolder.visible && pop.shown && !pop.reducedMotion
                     loops: Animation.Infinite
-                    XAnimator {
-                        target: mist
-                        from: (mistHolder.width - mist.width) / 2 - 6
-                        to: (mistHolder.width - mist.width) / 2 + 6
-                        duration: 7000
-                        easing.type: Easing.InOutSine
+                    SequentialAnimation {
+                        XAnimator {
+                            target: mist
+                            to: mist.baseX + 10
+                            duration: 9000
+                            easing.type: Easing.InOutSine
+                        }
+                        XAnimator {
+                            target: mist
+                            from: mist.baseX + 10
+                            to: mist.baseX - 10
+                            duration: 9000
+                            easing.type: Easing.InOutSine
+                        }
                     }
-                    XAnimator {
-                        target: mist
-                        from: (mistHolder.width - mist.width) / 2 + 6
-                        to: (mistHolder.width - mist.width) / 2 - 6
-                        duration: 7000
-                        easing.type: Easing.InOutSine
+                    SequentialAnimation {
+                        YAnimator {
+                            target: mist
+                            to: mist.baseY + 6
+                            duration: 6500
+                            easing.type: Easing.InOutSine
+                        }
+                        YAnimator {
+                            target: mist
+                            from: mist.baseY + 6
+                            to: mist.baseY - 4
+                            duration: 6500
+                            easing.type: Easing.InOutSine
+                        }
+                    }
+                    SequentialAnimation {
+                        OpacityAnimator {
+                            target: mist
+                            to: 0.8
+                            duration: 5000
+                            easing.type: Easing.InOutSine
+                        }
+                        OpacityAnimator {
+                            target: mist
+                            from: 0.8
+                            to: 1
+                            duration: 5000
+                            easing.type: Easing.InOutSine
+                        }
                     }
                 }
             }
