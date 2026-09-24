@@ -21,6 +21,7 @@ Most timers make you click through a form. Sands gets out of the way:
 - **Zero clutter.** The bar pill only exists while a timer runs.
 - **Zero guessing.** A ring drains in the bar; the sand in the panel is synced to the real remaining time *by volume*, not by height.
 - **Delightful, yet light.** The hourglass floats, flips when you restart, and freezes when you pause — without redrawing anything it doesn't have to.
+- **Matches your theme.** Every color comes from your DMS theme — static or generated from your wallpaper — and updates live when it changes. The screenshots use a lime theme; on the default purple theme, Sands is purple.
 
 ## Use cases
 
@@ -65,6 +66,8 @@ The ring turns amber during the last minute and beats during the last ten second
 <td align="center"><img src="docs/images/tea.png" width="300"><br><b>Every timer has its color</b></td>
 </tr>
 </table>
+
+**Colors follow your DMS theme.** The first timer uses your accent color; each additional timer gets a harmonious hue derived from it, used everywhere for that timer: the sand, the ring in the bar, the main button, the dots and the list. Alerts use the theme's warning (last minute) and error (done) colors.
 
 - **A floating hourglass.** It levitates, tilts, and casts a breathing shadow.
 - **Sand synced by volume.** The bulbs' profile is integrated, so at half time exactly half the sand is left on top — a dip forms above, a mound grows below, grains stream through the neck.
