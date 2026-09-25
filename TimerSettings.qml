@@ -10,15 +10,15 @@ import "L10n.js" as L
 PluginSettings {
     id: root
 
-    // Langue de l'interface (réglage du plugin, réactif)
+    // UI language (plugin setting, reactive)
     readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     pluginId: "smartTimer"
 
     readonly property var daemon: PluginService.pluginDaemonInstances[pluginId] ?? null
 
-    // Sons installés sur la machine (thèmes de sons + ~/.local/share/sounds),
-    // sans les sons de test de canaux audio.
+    // Sounds installed on the machine (sound themes + ~/.local/share/sounds),
+    // without the audio channel test sounds.
     property var soundOptions: [
         {
             label: L.tr(root.lang, "Réveil (par défaut)"),
@@ -81,7 +81,7 @@ PluginSettings {
     }
 
     // ------------------------------------------------------------------
-    // Son
+    // Sound
     // ------------------------------------------------------------------
 
     StyledText {
@@ -178,7 +178,7 @@ PluginSettings {
     }
 
     // ------------------------------------------------------------------
-    // Lanceur
+    // Launcher
     // ------------------------------------------------------------------
 
     Item {

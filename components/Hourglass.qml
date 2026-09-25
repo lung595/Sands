@@ -1,19 +1,19 @@
 import QtQuick
 
-// Sablier flottant.
+// Floating hourglass.
 //
-// Léger par construction : le verre et le sable sont dessinés dans un Canvas
-// qui ne se redessine que si le niveau change (≈ 1 fois par seconde) ; tout ce
-// qui bouge à chaque image (flottement, inclinaison, retournement, grains) est
-// une simple transformation d'éléments, faite par le GPU, sans redessin.
+// Light by design: the glass and the sand are drawn in a Canvas
+// that only repaints when the level changes (≈ once per second); everything
+// that moves every frame (float, tilt, flip, grains) is
+// a plain item transform, done by the GPU, with no repaint.
 //
-// Le sable suit le temps par VOLUME : on intègre le profil des bulbes
-// (section ∝ rayon²) pour trouver le niveau qui contient exactement la
-// fraction restante.
+// The sand follows time by VOLUME: the bulb profile is integrated
+// (cross-section ∝ radius²) to find the level that holds exactly the
+// remaining fraction.
 //
-// - progress : fraction restante en haut (1 = plein, 0 = vide)
-// - frost    : 0 → 1, gel (piloté par le panneau, qui gèle tout l'écran)
-// - flip()   : le sablier se retourne (quand on recommence)
+// - progress : remaining fraction at the top (1 = full, 0 = empty)
+// - frost    : 0 → 1, freeze (driven by the panel, which freezes the whole screen)
+// - flip()   : the hourglass turns over (when restarting)
 Item {
     id: root
 
@@ -22,9 +22,9 @@ Item {
     property bool paused: false
     property bool ringing: false
     property real frost: 0
-    // false quand le panneau est fermé : plus aucune image calculée.
+    // false when the panel is closed: no frame is computed anymore.
     property bool animate: true
-    // Réglage DMS « réduire les animations » : ni flottement ni retournement.
+    // DMS "reduce motion" setting: no floating and no flipping.
     property bool reducedMotion: false
 
     property color sandColor: "#e0b050"
@@ -36,7 +36,7 @@ Item {
     implicitWidth: 220
     implicitHeight: 250
 
-    // --- Horloge des mouvements : ralentit jusqu'à l'arrêt quand on gèle.
+    // --- Motion clock: slows down to a stop when freezing.
     property real speed: (paused || !running) ? 0 : 1
     Behavior on speed {
         NumberAnimation {
@@ -46,8 +46,8 @@ Item {
     }
     property real clock: 0
 
-    // Flottement : ne s'arrête jamais. Gelé, il ralentit et se resserre,
-    // comme au zéro absolu : presque immobile, mais pas tout à fait.
+    // Floating: never stops. Frozen, it slows down and tightens,
+    // as at absolute zero: almost still, but not quite.
     property real floatClock: 0
     property real floatSpeed: paused ? 0.3 : 1
     property real floatAmp: reducedMotion ? 0 : (paused ? 1.6 : 5)
@@ -73,12 +73,12 @@ Item {
         }
     }
 
-    // Sable affiché : suit `progress` en douceur, mais saute d'un coup lors
-    // d'un grand changement (recommencer : c'est le retournement qui anime).
+    // Displayed sand: follows `progress` smoothly, but jumps at once on
+    // a big change (restart: the flip is what animates).
     property real shownProgress: progress
     Behavior on shownProgress {
-        // Lissé seulement pour un vrai saut visible (+1 min, minuteur court) ;
-        // ni pour un pas invisible, ni pour un retournement (> 50 %).
+        // Smoothed only for a real visible jump (+1 min, short timer);
+        // neither for an invisible step nor for a flip (> 50%).
         enabled: Math.abs(root.progress - root.shownProgress) < 0.5 && Math.abs(root.progress - root.shownProgress) > 0.004
         NumberAnimation {
             duration: 700
@@ -86,8 +86,8 @@ Item {
         }
     }
 
-    // Retournement : le nouvel état (haut plein) part à l'envers et pivote
-    // jusqu'à l'endroit, comme un vrai sablier qu'on retourne.
+    // Flip: the new state (top full) starts upside down and rotates
+    // back upright, like a real hourglass being turned over.
     property real flipAngle: 0
     function flip() {
         if (!root.reducedMotion && root.animate)
@@ -105,7 +105,7 @@ Item {
         onFinished: root.flipAngle = 0
     }
 
-    // --- Géométrie (px), partagée par le dessin et les grains
+    // --- Geometry (px), shared by the drawing and the grains
     readonly property real hgH: Math.min(height * 0.8, width * 1.2)
     readonly property real hgW: hgH * 0.6
     readonly property real capH: Math.max(6, hgH * 0.05)
@@ -119,7 +119,7 @@ Item {
         return neck + (bulbR - neck) * Math.pow(1 - u * u, 1.45) * shoulder;
     }
 
-    // Table des volumes cumulés, recalculée seulement si la taille change.
+    // Cumulative volume table, recomputed only when the size changes.
     readonly property var volumes: {
         const N = 200, w = [];
         let total = 0;
@@ -135,8 +135,8 @@ Item {
         };
     }
 
-    // Niveau u contenant la fraction `frac`, en remplissant depuis le goulot
-    // (fromNeck) ou depuis le bord.
+    // Level u holding the fraction `frac`, filling from the neck
+    // (fromNeck) or from the rim.
     function level(frac, fromNeck) {
         const t = volumes, target = frac * t.total;
         let acc = 0;
@@ -151,22 +151,22 @@ Item {
         return fromNeck ? 0 : 1;
     }
 
-    // Niveaux de sable (recalculés quand le sable bouge, pas à chaque image)
+    // Sand levels (recomputed when the sand moves, not every frame)
     readonly property real topU: shownProgress > 0.0005 ? level(shownProgress, true) : 1
     readonly property real bottomU: shownProgress < 0.9995 ? level(1 - shownProgress, false) : 0
-    // Niveaux au quart de pixel : le verre n'est redessiné que si le sable a
-    // visiblement bougé (pas à chaque seconde d'un long minuteur).
+    // Levels at quarter-pixel precision: the glass is only repainted when the
+    // sand visibly moved (not every second of a long timer).
     readonly property real topPx: Math.round((1 - topU) * bulbL * 4)
     readonly property real bottomPx: Math.round((1 - bottomU) * bulbL * 4)
     readonly property real moundH: Math.min(bulbL * 0.16, (1 - bottomU) * bulbL * 0.9) * Math.min(1, (1 - shownProgress) * 6)
-    // Sommet du monticule, depuis le goulot : longueur de la chute des grains.
+    // Top of the mound, from the neck: length of the falling grains.
     readonly property real fallLength: Math.max(4, (1 - bottomU) * bulbL + moundH * 0.35 - moundH - neck)
-    // Gel en 24 paliers : pendant la prise (0,9 s) et la fonte (0,7 s), le
-    // verre est redessiné 24 fois au plus, pas à chaque image.
+    // Freeze in 24 steps: while setting (0.9 s) and melting (0.7 s), the
+    // glass is repainted at most 24 times, not every frame.
     readonly property int frostStep: Math.round(frost * 24)
     readonly property bool flowing: shownProgress > 0.0005 && shownProgress < 0.999 && !ringing && flipAngle === 0
 
-    // --- Halos (dessinés une fois, animés en opacité)
+    // --- Halos (drawn once, animated through opacity)
     component Halo: Canvas {
         property color tint: "white"
         anchors.centerIn: parent
@@ -182,16 +182,16 @@ Item {
             const g = ctx.createRadialGradient(r, r, 0, r, r, r);
             g.addColorStop(0, Qt.rgba(tint.r, tint.g, tint.b, 0.5));
             g.addColorStop(0.45, Qt.rgba(tint.r, tint.g, tint.b, 0.16));
-            // Éteint à 85 % du rayon : même agrandie, l'aura reste dans le
-            // panneau (DMS rogne ce qui dépasse, ce qui ferait un bord net).
+            // Fades out at 85% of the radius: even enlarged, the aura stays inside the
+            // panel (DMS clips whatever overflows, which would leave a hard edge).
             g.addColorStop(0.85, Qt.rgba(tint.r, tint.g, tint.b, 0));
             ctx.fillStyle = g;
             ctx.fillRect(0, 0, width, height);
         }
     }
 
-    // Halo de couleur. Les pulsations (sonnerie, aura glacée) sont des
-    // Animators : exécutés par le fil de rendu, sans travail JavaScript.
+    // Color halo. The pulses (alarm, frozen aura) are
+    // Animators: run by the render thread, with no JavaScript work.
     Item {
         anchors.fill: parent
         opacity: 1 - root.frost
@@ -222,7 +222,7 @@ Item {
         }
     }
 
-    // Aura glacée : respire lentement, même figée.
+    // Frozen aura: breathes slowly, even when frozen.
     Item {
         anchors.fill: parent
         opacity: root.frost
@@ -253,7 +253,7 @@ Item {
         }
     }
 
-    // --- Ombre au sol : se resserre quand le sablier monte
+    // --- Ground shadow: tightens when the hourglass rises
     readonly property real floatY: Math.sin(floatClock * 1.35) * floatAmp
     Canvas {
         id: shadow
@@ -282,7 +282,7 @@ Item {
         }
     }
 
-    // --- Le sablier : flotte, s'incline, se retourne (transformations GPU)
+    // --- The hourglass: floats, tilts, flips (GPU transforms)
     Item {
         id: body
         width: root.hgW
@@ -296,7 +296,7 @@ Item {
             anchors.fill: parent
             renderTarget: Canvas.FramebufferObject
 
-            // Redessin uniquement quand l'aspect change.
+            // Repaint only when the look changes.
             Connections {
                 target: root
                 function onTopPxChanged() {
@@ -349,7 +349,7 @@ Item {
                 const sandDark = mix(sand, Qt.rgba(0, 0, 0, 1), 0.22);
                 ctx.translate(width / 2, height / 2);
 
-                // Verre
+                // Glass
                 outline(ctx);
                 let g = ctx.createLinearGradient(-R, 0, R, 0);
                 g.addColorStop(0, rgba(root.glassColor, 0.07 + 0.06 * frost));
@@ -362,7 +362,7 @@ Item {
                 outline(ctx);
                 ctx.clip();
 
-                // Sable du haut, avec un creux au centre quand il coule (ou figé).
+                // Top sand, with a dip in the middle while it flows (or frozen).
                 if (root.shownProgress > 0.0005) {
                     const u = root.topU, yS = -(1 - u) * L;
                     const dip = root.shownProgress < 0.995 && !root.ringing ? Math.min(L * 0.1, (1 - u) * L * 0.5) : 0;
@@ -382,7 +382,7 @@ Item {
                     ctx.fill();
                 }
 
-                // Sable du bas : monticule
+                // Bottom sand: mound
                 if (root.shownProgress < 0.9995) {
                     const u = root.bottomU, rB = root.profile(u), m = root.moundH;
                     const flat = (1 - u) * L + m * 0.35;
@@ -401,7 +401,7 @@ Item {
                     ctx.fill();
                 }
 
-                // Givre dans le verre : voile froid + cristaux sur les parois
+                // Frost inside the glass: cold veil + crystals on the walls
                 if (frost > 0.01) {
                     ctx.fillStyle = rgba(root.frostColor, 0.2 * frost);
                     ctx.fillRect(-R - 4, -L - 4, 2 * R + 8, 2 * L + 8);
@@ -425,7 +425,7 @@ Item {
                 }
                 ctx.restore();
 
-                // Contour + reflets
+                // Outline + highlights
                 outline(ctx);
                 ctx.lineWidth = 1.4;
                 ctx.strokeStyle = rgba(mix(root.glassColor, root.frostColor, frost), 0.3 + 0.35 * frost);
@@ -443,7 +443,7 @@ Item {
                     ctx.stroke();
                 }
 
-                // Socles, avec un liseré d'accent côté verre
+                // Bases, with an accent rim on the glass side
                 const capW = root.hgW;
                 for (let s = -1; s <= 1; s += 2) {
                     const y = s < 0 ? -L - capH : L;
@@ -457,8 +457,8 @@ Item {
                     ctx.fillStyle = rgba(sand, 0.75);
                     ctx.fillRect(-capW / 2 + capH, s < 0 ? y + capH - 1.5 : y, capW - capH * 2, 1.5);
 
-                    // Givre qui prend sur le socle : dépôt irrégulier, comme du
-                    // frimas sur un rebord.
+                    // Frost settling on the base: an uneven deposit, like
+                    // rime on a ledge.
                     if (frost > 0.01) {
                         const edgeY = s < 0 ? y : y + capH;
                         ctx.fillStyle = rgba(root.frostColor, 0.85 * frost);
@@ -475,8 +475,8 @@ Item {
             }
         }
 
-        // --- Filet de grains : positions calculées, aucun redessin.
-        //     Gelé, l'horloge s'arrête : les grains restent suspendus.
+        // --- Stream of grains: computed positions, no repaint.
+        //     Frozen, the clock stops: the grains stay suspended.
         Rectangle {
             visible: root.flowing
             x: (parent.width - width) / 2

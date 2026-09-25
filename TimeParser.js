@@ -1,13 +1,13 @@
 .pragma library
 
-// Analyse de saisie libre (français / anglais) pour lancer un minuteur.
+// Free-form input parser (French / English) for starting a timer.
 //
-// parse("timer 1h30 pâtes", now, { keyword: false }) renvoie une liste de
-// candidats, le plus probable en premier :
+// parse("timer 1h30 pâtes", now, { keyword: false }) returns a list of
+// candidates, most likely first:
 //   [{ kind: "duration", ms: 5400000, label: "pâtes" }]
-//   [{ kind: "at", at: <epoch ms>, ms: <ms jusqu'à l'heure>, label: "" }]
-// Une liste vide signifie « ce n'est pas un minuteur » : le lanceur reste
-// alors silencieux sur toutes les autres recherches.
+//   [{ kind: "at", at: <epoch ms>, ms: <ms until that time>, label: "" }]
+// An empty list means "this is not a timer": the launcher then stays
+// silent for every other search.
 
 var MAX_MS = 100 * 3600 * 1000;
 
@@ -40,9 +40,9 @@ var HALF = "(?:\\s*(?:et|and)\\s*(demie?|quart|a half|half|a quarter|quarter))?"
 var RE_HOUR = new RegExp("^(?:" + U_HOUR + ")$");
 var RE_MIN = new RegExp("^(?:" + U_MIN + ")$");
 
-// Minuscules, sans accents, apostrophes droites. Chaque caractère donne
-// exactement un caractère : les positions restent alignées avec la saisie
-// d'origine, dont on extrait le libellé tel qu'il a été tapé.
+// Lowercase, no accents, straight apostrophes. Each character maps to
+// exactly one character, so positions stay aligned with the original
+// input, from which the label is extracted as it was typed.
 function normalize(text) {
     var out = "";
     for (var i = 0; i < text.length; i++) {
@@ -93,8 +93,8 @@ function nextOccurrence(h, m, now) {
     return d.getTime();
 }
 
-// Remplace une plage consommée par des \0 : plus rien ne pourra la relire,
-// et cleanLabel sait qu'elle ne fait pas partie du libellé.
+// Replaces a consumed range with \0: nothing can read it again,
+// and cleanLabel knows it is not part of the label.
 function consume(work, start, end) {
     return work.substring(0, start) + new Array(end - start + 1).join("\u0000") + work.substring(end);
 }
@@ -135,7 +135,7 @@ function parse(input, now, options) {
     var target = null;
     var clockLike = null;
 
-    // 1. Heure cible explicite : « à 18h », « à 18:30 », « at 6pm », « vers midi ».
+    // 1. Explicit target time: « à 18h », « à 18:30 », « at 6pm », « vers midi ».
     var atRe = /(?:^|[\s\u0000])(?:a|at|vers|until|jusqu'a|@)\s*(?:(midi|noon)|(minuit|midnight)|(\d{1,2})(?:\s*(h)\s*(\d{2})?|:(\d{2}))?\s*(am|pm)?)(?![\w:])/;
     m = atRe.exec(work);
     if (m && (m[1] || m[2] || m[4] || m[6] !== undefined || m[7])) {
@@ -209,11 +209,11 @@ function parse(input, now, options) {
             work = consume(work, qs, qs + m[1].length);
         }
 
-        // 4. « nombre + unité » : « 1h », « 30 min », « 2 heures et demie »,
-        //    avec le reste implicite : « 1h30 », « 2 heures 5 », « 5m30 ».
+        // 4. "number + unit": « 1h », « 30 min », « 2 heures et demie »,
+        //    with an implicit remainder: « 1h30 », « 2 heures 5 », « 5m30 ».
         var compRe = new RegExp("(?:^|[^a-z0-9.,'])" + NUM + "\\s*" + UNIT + "(?![a-z])" + HALF, "g");
         var chainRe = new RegExp("^\\s*" + NUM + "\\s*" + UNIT + "(?![a-z])" + HALF);
-        // Reste implicite, sauf s'il porte sa propre unité (« 1h 30min » est lu à part).
+        // Implicit remainder, unless it carries its own unit (« 1h 30min » is read separately).
         var restRe = new RegExp("^\\s*(\\d{1,2})(?![\\d.,:]|\\s*" + UNIT + "(?![a-z]))");
         var comps = [];
         var readComp = function (mm, start, end) {
@@ -224,7 +224,7 @@ function parse(input, now, options) {
             var extra = mm[3] ? (/quart|quarter/.test(mm[3]) ? 0.25 : 0.5) : 0;
             var ms = (value + extra) * u;
             var after = work.substring(end);
-            // Reste implicite : « 1h30 » → 30 min, « 5m30 » → 30 s.
+            // Implicit remainder: « 1h30 » → 30 min, « 5m30 » → 30 s.
             if (u > 1000 && !mm[3] && !chainRe.test(after)) {
                 var rest = restRe.exec(after);
                 if (rest) {
@@ -242,7 +242,7 @@ function parse(input, now, options) {
             var end = readComp(m, m.index + m[0].indexOf(m[1]), m.index + m[0].length);
             if (end < 0)
                 continue;
-            // Composantes collées : « 1h30m20s ».
+            // Glued components: « 1h30m20s ».
             var chained;
             while ((chained = chainRe.exec(work.substring(end)))) {
                 var cEnd = readComp(chained, end, end + chained[0].length);
@@ -262,7 +262,7 @@ function parse(input, now, options) {
         if (clockLike && clockLike.colon && comps.length > 0)
             clockLike = null;
 
-        // 5. Nombre seul après « timer » : des minutes (« timer 5 »).
+        // 5. Bare number after "timer": minutes (« timer 5 »).
         if (!found && hasKeyword) {
             m = /(?:^|[\s\u0000])(\d+(?:[.,]\d+)?)(?![\w:])/.exec(work);
             if (m) {
@@ -286,9 +286,9 @@ function parse(input, now, options) {
     if (total >= 1000 && total <= MAX_MS)
         results.push({ kind: "duration", ms: total, label: label });
 
-    // « 14h30 » ou « 18:00 » : proposer aussi l'heure cible (en premier pour
-    // « 14h30 », qui ressemble plus à un moment de la journée qu'à une durée).
-    // Sous 6 h (« 1h30 », « 1:30 »), c'est forcément une durée.
+    // « 14h30 » or « 18:00 »: also offer the target time (first for
+    // « 14h30 », which looks more like a time of day than a duration).
+    // Under 6 h (« 1h30 », « 1:30 ») it can only be a duration.
     if (clockLike) {
         var at = nextOccurrence(clockLike.h, clockLike.m, now);
         var alt = { kind: "at", at: at, ms: at - now, label: label };
@@ -303,15 +303,15 @@ function parse(input, now, options) {
 }
 
 // ---------------------------------------------------------------------------
-// Mise en forme
+// Formatting
 // ---------------------------------------------------------------------------
 
 function pad(n) {
     return n < 10 ? "0" + n : "" + n;
 }
 
-// Compte à rebours, arrondi à la seconde supérieure : 20:00 au départ, 0:00
-// pile à la sonnerie. Négatif = temps écoulé depuis la fin (« −0:12 »).
+// Countdown, rounded up to the next second: 20:00 at the start, 0:00
+// exactly when it rings. Negative = time elapsed since the end (« −0:12 »).
 function formatClock(ms) {
     var neg = ms < 0;
     var s = neg ? Math.floor(-ms / 1000) : Math.ceil(ms / 1000);
@@ -322,7 +322,7 @@ function formatClock(ms) {
     return (neg && s > 0 ? "−" : "") + txt;
 }
 
-// Durée lisible : « 1 h 30 », « 20 min », « 1 min 30 s », « 45 s ».
+// Readable duration: « 1 h 30 », « 20 min », « 1 min 30 s », « 45 s ».
 function formatHuman(ms) {
     var s = Math.round(ms / 1000);
     var h = Math.floor(s / 3600);
@@ -335,7 +335,7 @@ function formatHuman(ms) {
     return sec + " s";
 }
 
-// Durée arrondie à la minute, pour « dans 2 h 16 ».
+// Duration rounded to the minute, for « dans 2 h 16 » ("in 2 h 16").
 function formatRelative(ms) {
     var mnTotal = Math.round(ms / 60000);
     if (mnTotal < 1)
@@ -362,8 +362,8 @@ function isTomorrow(epoch, now) {
     return new Date(epoch).getDate() !== new Date(now || Date.now()).getDate();
 }
 
-// Gabarit à largeur fixe (chiffres remplacés par 0) : la pastille ne bouge
-// pas à chaque seconde.
+// Fixed-width template (digits replaced by 0) so the pill does not move
+// every second.
 function widthTemplate(text) {
     return text.replace(/\d/g, "0");
 }

@@ -7,12 +7,12 @@ import "./components"
 import "TimeParser.js" as TP
 import "L10n.js" as L
 
-// Pastille de barre + popout. L'état vit dans le daemon ; ce fichier ne fait
-// qu'afficher et relayer les actions.
+// Bar pill + popout. State lives in the daemon; this file only
+// displays it and forwards actions.
 PluginComponent {
     id: root
 
-    // Langue de l'interface (réglage du plugin, réactif)
+    // UI language (plugin setting, reactive)
     readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     pluginId: "smartTimer"
@@ -24,7 +24,7 @@ PluginComponent {
     readonly property var primary: daemon?.primary ?? null
     readonly property bool use24h: SettingsData.use24HourClock !== false
 
-    // Invisible au repos : la pastille apparaît (largeur + fondu) au premier minuteur.
+    // Invisible at rest: the pill appears (width + fade) with the first timer.
     function syncVisibility() {
         setVisibilityOverride(root.hasTimers);
         if (!root.hasTimers)
@@ -33,7 +33,7 @@ PluginComponent {
     onHasTimersChanged: syncVisibility()
     Component.onCompleted: syncVisibility()
 
-    // Raccourci clavier / IPC : ouvre le panneau sur l'écran actif.
+    // Keyboard shortcut / IPC: opens the panel on the active screen.
     Connections {
         target: root.daemon
         function onPanelRequested(screenName) {
@@ -42,8 +42,8 @@ PluginComponent {
         }
     }
 
-    // Clic gauche : ouvre le panneau.
-    // Clic droit : pause / reprise du plus proche ; pendant la sonnerie, l'arrête.
+    // Left click: opens the panel.
+    // Right click: pause / resume the nearest one; while ringing, stops it.
     pillRightClickAction: () => {
         if (!root.daemon)
             return;
@@ -53,21 +53,21 @@ PluginComponent {
             root.daemon.toggle(root.primary.id);
     }
 
-    // La barre peut ouvrir les panneaux au survol : pas pour le minuteur. Le
-    // survol affiche seulement son nom dans la pastille ; le panneau s'ouvre
-    // au clic. (DMS appelle cette fonction au survol ; on la neutralise.)
+    // The bar can open panels on hover: not for the timer. Hovering
+    // only shows its name in the pill; the panel opens
+    // on click. (DMS calls this function on hover; we neutralize it.)
     function triggerHoverPopout(widgetHostId) {
     }
 
     // ------------------------------------------------------------------
-    // Pastille
+    // Pill
     // ------------------------------------------------------------------
 
     horizontalBarPill: Component {
         Item {
             id: pill
 
-            // Juste après un lancement, on montre CE minuteur (nom + durée) 2 s.
+            // Right after a start, show THIS timer (name + duration) for 2 s.
             property int flashId: -1
             readonly property var flashTimer: flashId >= 0 && root.daemon ? root.daemon.find(flashId) : null
             readonly property var t: flashTimer || root.primary
@@ -75,9 +75,9 @@ PluginComponent {
             readonly property real rem: t && root.daemon ? root.daemon.remainingOf(t) : 0
             readonly property bool urgent: st === "running" && rem <= 60000
             readonly property bool finalCountdown: st === "running" && rem <= 10000
-            // Survol amorti : la pastille s'ouvre après 120 ms et ne se referme
-            // que 450 ms après la sortie. Sans ça, l'encoche qui se recentre en
-            // s'élargissant faisait entrer/sortir la souris en boucle (clignotement).
+            // Damped hover: the pill opens after 120 ms and only closes
+            // 450 ms after the pointer leaves. Without it, the notch re-centering while
+            // widening made the pointer enter/leave in a loop (flicker).
             property bool hoverOpen: false
             readonly property bool showLabel: st === "ringing" || flashTimer !== null || hoverOpen
 
@@ -136,7 +136,7 @@ PluginComponent {
                 }
             }
 
-            // Fond d'alerte qui respire pendant la sonnerie.
+            // Alert background that breathes while ringing.
             Rectangle {
                 id: alertBg
                 x: -pill.pad
@@ -148,7 +148,7 @@ PluginComponent {
                 visible: pill.st === "ringing"
                 opacity: 0.2
 
-                // Animators : exécutés par le fil de rendu.
+                // Animators: run on the render thread.
                 SequentialAnimation {
                     running: pill.st === "ringing"
                     loops: Animation.Infinite
@@ -167,8 +167,8 @@ PluginComponent {
                 }
             }
 
-            // Molette : ±1 min (sur un minuteur qui sonne, vers le haut = +1 min).
-            // Clic du milieu : annule. Gauche et droit passent au BasePill dessous.
+            // Wheel: ±1 min (on a ringing timer, up = +1 min).
+            // Middle click: cancel. Left and right go to the BasePill below.
             MouseArea {
                 x: -pill.pad
                 y: -pill.pad
@@ -211,7 +211,7 @@ PluginComponent {
                     width: Math.round(pill.textSize * 1.2)
                     height: width
 
-                    // Dix dernières secondes : un battement par seconde.
+                    // Last ten seconds: one beat per second.
                     SequentialAnimation {
                         running: pill.finalCountdown
                         loops: Animation.Infinite
@@ -299,7 +299,7 @@ PluginComponent {
                     }
                 }
 
-                // Nom du minuteur : se déplie au lancement, au survol et à la fin.
+                // Timer name: unfolds on start, on hover and at the end.
                 Item {
                     id: labelClip
                     anchors.verticalCenter: parent.verticalCenter
@@ -351,7 +351,7 @@ PluginComponent {
                     id: timeLabel
                     anchors.verticalCenter: parent.verticalCenter
                     text: pill.timeText
-                    // Largeur figée sur « 00:00 » : la pastille ne tremble pas à chaque seconde.
+                    // Width locked to « 00:00 »: the pill does not jitter every second.
                     width: pill.st === "ringing" ? implicitWidth : Math.ceil(metrics.advanceWidth)
                     horizontalAlignment: Text.AlignRight
                     wrapMode: Text.NoWrap
@@ -381,7 +381,7 @@ PluginComponent {
                     }
                 }
 
-                // Fin : ✕ explicite (tout clic sur la pastille arrête aussi).
+                // Finished: an explicit ✕ (any click on the pill also stops it).
                 DankIcon {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: pill.st === "ringing"
@@ -390,7 +390,7 @@ PluginComponent {
                     color: Theme.error
                 }
 
-                // « +2 » : autres minuteurs en cours.
+                // « +2 »: other running timers.
                 Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: pill.others > 0 && pill.st !== "ringing"
@@ -415,7 +415,7 @@ PluginComponent {
         }
     }
 
-    // Barre verticale : anneau + temps court (« 18m », « 42s »).
+    // Vertical bar: ring + short time (« 18m », « 42s »).
     verticalBarPill: Component {
         Column {
             id: vpill
@@ -462,7 +462,7 @@ PluginComponent {
     }
 
     // ------------------------------------------------------------------
-    // Panneau (popout native de DMS)
+    // Panel (native DMS popout)
     // ------------------------------------------------------------------
 
     popoutWidth: 356
@@ -483,7 +483,7 @@ PluginComponent {
                 width: pane.width
                 daemon: root.daemon
                 use24h: root.use24h
-                // Panneau fermé (DMS garde son contenu chargé) : plus d'animation.
+                // Panel closed (DMS keeps its content loaded): no more animation.
                 shown: pane.parentPopout ? pane.parentPopout.shouldBeVisible : true
             }
         }
