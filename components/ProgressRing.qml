@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Shapes
 
-// Anneau qui se vide dans le sens horaire depuis midi, bouts arrondis.
+// Ring that empties clockwise from twelve o'clock, rounded ends.
 Item {
     id: root
 
@@ -15,8 +15,8 @@ Item {
     implicitHeight: 16
 
     property real _shown: progress
-    // On n'anime que les vrais sauts (+1 min, minuteurs courts) : un pas
-    // invisible (< 0,4 %) est appliqué tel quel, sans repeindre 20 images.
+    // Only real jumps are animated (+1 min, short timers): an
+    // invisible step (< 0.4%) is applied as is, without repainting 20 frames.
     Behavior on _shown {
         enabled: root.animated && Math.abs(root.progress - root._shown) > 0.004
         NumberAnimation {

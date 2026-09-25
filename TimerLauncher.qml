@@ -4,13 +4,13 @@ import qs.Services
 import "TimeParser.js" as TP
 import "L10n.js" as L
 
-// Fournisseur du lanceur. Par défaut sans préfixe : il ne répond que si la
-// saisie ressemble à une durée (« timer 20 min », « 1h30 pâtes », « à 18h »),
-// et reste invisible pour toutes les autres recherches.
+// Launcher provider. No prefix by default: it only answers when the
+// input looks like a duration (« timer 20 min », « 1h30 pâtes », « à 18h »),
+// and stays invisible for every other search.
 Item {
     id: root
 
-    // Langue de l'interface (réglage du plugin, réactif)
+    // UI language (plugin setting, reactive)
     readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     property var pluginService: null
@@ -31,7 +31,7 @@ Item {
         const q = (query || "").trim();
         const withTrigger = _usesTrigger();
 
-        // Déclencheur seul (« timer ») : les minuteurs en cours, ou un exemple.
+        // Trigger alone ("timer"): running timers, or an example.
         if (q === "" || /^(timer|minuteur|minuterie|countdown)$/i.test(q)) {
             if (q === "" && !withTrigger)
                 return [];
@@ -70,8 +70,8 @@ Item {
         };
     }
 
-    // « timer » seul : tes durées habituelles (Entrée = la première), puis
-    // quelques classiques, puis les minuteurs en cours.
+    // Bare "timer": your usual durations (Enter = the first one), then
+    // a few classics, then the running timers.
     function _activeItems() {
         const d = daemon;
         const now = Date.now();

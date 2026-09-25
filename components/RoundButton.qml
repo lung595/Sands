@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 
-// Bouton rond à icône. `filled` : couleur d'accent (l'action principale).
+// Round icon button. `filled`: accent color (the primary action).
 Rectangle {
     id: root
 

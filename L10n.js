@@ -1,7 +1,7 @@
 .pragma library
 
-// Textes de l'interface. Réglage « Langue » : automatique (langue du
-// système), français ou anglais. Les clés sont les textes français.
+// UI strings. "Language" setting: automatic (system language),
+// French or English. Keys are the French strings.
 var fr = Qt.locale().name.indexOf("fr") === 0;
 
 var EN = {
@@ -72,7 +72,7 @@ var EN = {
     "timer 20 min · 1h30 pâtes · à 18h": "timer 20 min · 1h30 pasta · at 6pm"
 };
 
-// lang : "fr", "en" ou "auto" (langue du système).
+// lang: "fr", "en" or "auto" (system language).
 function tr(lang, s) {
     if (lang === "fr" || (lang !== "en" && fr))
         return s;

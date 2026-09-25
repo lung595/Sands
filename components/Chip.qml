@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 
-// Puce d'action secondaire : « +1 min », « Relancer »…
+// Secondary action chip: « +1 min », « Relancer » (restart)…
 Rectangle {
     id: root
 

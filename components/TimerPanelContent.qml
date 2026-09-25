@@ -4,18 +4,18 @@ import qs.Widgets
 import "../TimeParser.js" as TP
 import "../L10n.js" as L
 
-// Contenu du panneau : sablier, temps, réglages, autres minuteurs.
+// Panel content: hourglass, time, controls, other timers.
 Column {
     id: pop
 
-    // Langue de l'interface (réglage du plugin, réactif)
+    // UI language (plugin setting, reactive)
     readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     property var daemon: null
     property bool use24h: true
-    // 0 → 1 : gel (pause), piloté par le panneau
+    // 0 → 1: freeze (pause), driven by the panel
     readonly property color frostColor: Qt.rgba(0.78, 0.9, 1, 1)
-    // Gel : s'installe en ~0,9 s à la pause, fond en ~0,7 s à la reprise.
+    // Freeze: sets in ~0.9 s on pause, melts in ~0.7 s on resume.
     property real frost: st === "paused" ? 1 : 0
     Behavior on frost {
         NumberAnimation {
@@ -24,11 +24,11 @@ Column {
         }
     }
 
-    // false quand le panneau est fermé : toutes les animations s'arrêtent.
+    // false when the panel is closed: every animation stops.
     property bool shown: true
     readonly property bool reducedMotion: SettingsData.reduceMotion
 
-    // Minuteur affiché en grand : celui qu'on a choisi, sinon le plus proche.
+    // Timer shown large: the one picked, otherwise the nearest.
     property int selectedId: -1
     readonly property var d: pop.daemon
     readonly property var t: {
@@ -38,12 +38,12 @@ Column {
     readonly property string st: t ? t.state : "idle"
     readonly property real rem: (t && d) ? d.remainingOf(t) : 0
     readonly property var others: (d && t) ? d.sorted.filter(x => x.id !== t.id) : []
-    // Clé texte : ne change que si la liste change, pas à chaque tic d'horloge
-    // (sinon le Repeater recréerait ses lignes 4 fois par seconde).
+    // Text key: only changes when the list changes, not on every clock tick
+    // (otherwise the Repeater would recreate its rows 4 times per second).
     readonly property string othersKey: others.map(x => x.id).join(",")
     readonly property color accent: (d && t) ? d.colorFor(t) : Theme.primary
 
-    // --- Passer d'un minuteur à l'autre (glisser, molette horizontale, points)
+    // --- Switching between timers (swipe, horizontal wheel, dots)
     readonly property var ids: d ? d.sorted.map(x => x.id) : []
     readonly property int index: t ? ids.indexOf(t.id) : -1
     property real slide: 0
@@ -91,13 +91,13 @@ Column {
     topPadding: Theme.spacingS
     bottomPadding: Theme.spacingXS
 
-    // Ouvrir la popout coupe la sonnerie ; le minuteur reste « terminé »
-    // pour qu'on choisisse : arrêter, +1 min, relancer.
+    // Opening the popout silences the alarm; the timer stays "finished"
+    // so the user can choose: stop, +1 min, restart.
     Component.onCompleted: d?.silence()
     onVisibleChanged: if (visible)
         d?.silence()
 
-    // --- Sablier ---
+    // --- Hourglass ---
     Item {
         id: glassArea
         width: parent.width
@@ -122,7 +122,7 @@ Column {
             glassColor: Theme.surfaceText
             capColor: Theme.surfaceContainerHighest
 
-            // Recommencer : le sablier se retourne.
+            // Restart: the hourglass turns over.
             Connections {
                 target: pop.d
                 function onTimerStarted(id) {
@@ -132,9 +132,9 @@ Column {
             }
         }
 
-        // Gel autour du sablier : brume froide derrière, poussière de givre
-        // devant. Dessinés une fois ; leur lente dérive et le scintillement
-        // sont des Animators (fil de rendu) : aucun travail JavaScript.
+        // Frost around the hourglass: cold mist behind, frost dust
+        // in front. Drawn once; their slow drift and the sparkle
+        // are Animators (render thread): no JavaScript work.
         Item {
             id: mistHolder
             z: -1
@@ -144,9 +144,9 @@ Column {
 
             Canvas {
                 id: mist
-                // Toute la largeur du panneau, du haut du panneau jusque sous
-                // le chrono : la brume passe derrière le texte (dessiné après,
-                // donc par-dessus) au lieu de s'arrêter sous le sablier.
+                // Full panel width, from the top of the panel to below
+                // the clock: the mist passes behind the text (drawn afterwards,
+                // so on top) instead of stopping under the hourglass.
                 width: pop.width
                 height: 360
                 x: (parent.width - width) / 2
@@ -156,11 +156,11 @@ Column {
                     const ctx = getContext("2d");
                     ctx.reset();
                     const c = pop.frostColor;
-                    // Nuages froids qui se chevauchent : une brume, pas un cercle.
-                    // En pixels du canevas (340 × 360, sablier centré vers y = 118) ;
-                    // chaque nuage tient entier dans le canevas et s'éteint avant
-                    // son bord : aucun trait, sans masque (Qt ne gère pas
-                    // « destination-in »). [x, y, rayon, opacité au centre]
+                    // Overlapping cold clouds: a mist, not a circle.
+                    // In canvas pixels (340 × 360, hourglass centered around y = 118);
+                    // each cloud fits entirely in the canvas and fades out before
+                    // its edge: no seam, with no mask (Qt does not support
+                    // "destination-in"). [x, y, radius, opacity at the center]
                     const blobs = [[170, 130, 124, 0.34], [120, 95, 80, 0.22], [220, 100, 84, 0.2], [125, 190, 80, 0.2], [215, 195, 84, 0.22], [170, 250, 100, 0.2], [170, 62, 56, 0.16]];
                     const sx = width / 340;
                     for (const b of blobs) {
@@ -171,16 +171,16 @@ Column {
                         g.addColorStop(0.75, Qt.rgba(c.r, c.g, c.b, b[3] * 0.12));
                         g.addColorStop(1, Qt.rgba(c.r, c.g, c.b, 0));
                         ctx.fillStyle = g;
-                        // Seulement le carré du nuage : au-delà, il est transparent.
+                        // Only the cloud's square: beyond it, it is transparent.
                         ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
                     }
                 }
 
-                // La brume flotte doucement dans le fond : dérive de côté,
-                // monte et descend, respire. Périodes différentes (18 s, 13 s,
-                // 10 s) : le mouvement ne se répète jamais tout à fait. Chaque
-                // boucle part de la position actuelle : pas de saut à la reprise.
-                // Amplitudes prévues pour que les nuages restent dans le panneau.
+                // The mist floats gently in the background: drifts sideways,
+                // rises and falls, breathes. Different periods (18 s, 13 s,
+                // 10 s): the motion never quite repeats. Each
+                // loop starts from the current position: no jump on resume.
+                // Amplitudes chosen so the clouds stay inside the panel.
                 readonly property real baseX: (mistHolder.width - width) / 2
                 readonly property real baseY: -pop.topPadding
                 ParallelAnimation {
@@ -235,7 +235,7 @@ Column {
             }
         }
 
-        // Poussière de givre : de fins cristaux en suspension qui scintillent.
+        // Frost dust: fine suspended crystals that sparkle.
         Item {
             id: dust
             anchors.fill: parent
@@ -245,14 +245,14 @@ Column {
             Repeater {
                 model: 16
 
-                // Porteur positionné une fois ; le cristal bouge dedans.
+                // Carrier positioned once; the crystal moves inside it.
                 Item {
                     id: slot
                     required property int index
                     readonly property real h1: Math.abs(Math.sin(index * 91.7) * 43758.5) % 1
                     readonly property real h2: Math.abs(Math.sin(index * 17.3) * 24634.6) % 1
                     readonly property real h3: Math.abs(Math.sin(index * 53.1) * 12345.6) % 1
-                    // Répartis autour du sablier, pas dessus
+                    // Spread around the hourglass, not on it
                     readonly property real ang: index / 16 * Math.PI * 2 + h1 * 0.4
                     readonly property real dist: 0.34 + h2 * 0.14
                     x: dust.width / 2 + Math.cos(ang) * dust.height * dist * 0.85
@@ -310,8 +310,8 @@ Column {
             }
         }
 
-        // Gestes sur le sablier : clic = le retourner (recommencer),
-        // molette = ±1 min, glisser / molette horizontale = autre minuteur.
+        // Gestures on the hourglass: click = turn it over (restart),
+        // wheel = ±1 min, swipe / horizontal wheel = another timer.
         MouseArea {
             anchors.centerIn: parent
             width: 190
@@ -358,7 +358,7 @@ Column {
             }
         }
 
-        // Points : où l'on est parmi les minuteurs (couleur de chacun).
+        // Dots: where you are among the timers (each in its color).
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
@@ -399,7 +399,7 @@ Column {
         }
     }
 
-    // --- Temps ---
+    // --- Time ---
     Item {
         width: parent.width
         height: timeCol.implicitHeight
@@ -408,7 +408,7 @@ Column {
             x: pop.slide * 40
         }
 
-        // Halo froid derrière le chrono (dessiné une fois, opacité animée)
+        // Cold halo behind the clock (drawn once, animated opacity)
         Canvas {
             anchors.centerIn: parent
             width: 220
@@ -459,7 +459,7 @@ Column {
                     "tnum": 1
                 }
                 wrapMode: Text.NoWrap
-                // Gelé : les chiffres virent au bleu glace.
+                // Frozen: the digits turn ice blue.
                 color: pop.st === "ringing" ? Theme.error : Qt.tint(Theme.surfaceText, Qt.rgba(pop.frostColor.r, pop.frostColor.g, pop.frostColor.b, pop.frost * 0.85))
                 style: pop.frost > 0.01 ? Text.Outline : Text.Normal
                 styleColor: Qt.rgba(pop.frostColor.r, pop.frostColor.g, pop.frostColor.b, 0.25 * pop.frost)
@@ -518,7 +518,7 @@ Column {
         }
     }
 
-    // --- Ajustements ---
+    // --- Adjustments ---
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: Theme.spacingS
@@ -538,12 +538,12 @@ Column {
         }
     }
 
-    // --- Commandes ---
+    // --- Controls ---
     Item {
         width: parent.width
         height: 64
 
-        // En cours / en pause : annuler · pause/reprendre · recommencer.
+        // Running / paused: cancel · pause/resume · restart.
         Row {
             anchors.centerIn: parent
             spacing: Theme.spacingXL
@@ -560,7 +560,7 @@ Column {
                 anchors.verticalCenter: parent.verticalCenter
                 size: 64
                 filled: true
-                // Couleur du minuteur affiché ; texte foncé ou clair selon le fond.
+                // Color of the displayed timer; dark or light text depending on the background.
                 accent: pop.accent
                 accentText: (0.299 * pop.accent.r + 0.587 * pop.accent.g + 0.114 * pop.accent.b) > 0.6 ? "#1c1b1f" : "white"
                 iconName: pop.st === "paused" ? "play_arrow" : "pause"
@@ -576,7 +576,7 @@ Column {
             }
         }
 
-        // Terminé : une seule action évidente, et « relancer » à côté.
+        // Finished: one obvious action, and "restart" next to it.
         Row {
             anchors.centerIn: parent
             spacing: Theme.spacingM
@@ -636,7 +636,7 @@ Column {
         }
     }
 
-    // --- Autres minuteurs ---
+    // --- Other timers ---
     Column {
         width: parent.width
         spacing: 2

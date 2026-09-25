@@ -6,17 +6,17 @@ import qs.Services
 import "TimeParser.js" as TP
 import "L10n.js" as L
 
-// Moteur des minuteurs, instancié une seule fois. La barre et le lanceur le
-// retrouvent via PluginService.pluginDaemonInstances["smartTimer"].
+// Timer engine, instantiated once. The bar and the launcher
+// reach it through PluginService.pluginDaemonInstances["smartTimer"].
 //
-// Un minuteur en marche ne stocke pas un temps restant mais son heure de fin
-// (endAt) : rien ne dérive, et un redémarrage de DMS le retrouve pile où il en
-// est. Tout changement remplace le tableau `timers` (liaisons QML à jour) et
-// est sauvegardé dans l'état du plugin.
+// A running timer does not store a remaining time but its end time
+// (endAt): nothing drifts, and a DMS restart finds it exactly where it
+// was. Every change replaces the `timers` array (QML bindings update) and
+// is saved in the plugin state.
 Item {
     id: root
 
-    // Langue de l'interface (réglage du plugin, réactif)
+    // UI language (plugin setting, reactive)
     readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     property string pluginId: "smartTimer"
@@ -29,9 +29,9 @@ Item {
     property var timers: []
     property real now: Date.now()
 
-    // Ordre d'affichage : ce qui sonne, puis ce qui finit le plus tôt, puis
-    // les pauses. Ne dépend pas de l'heure (l'ordre des fins ne change pas
-    // avec le temps) : recalculé seulement quand la liste change.
+    // Display order: ringing first, then the soonest to finish, then
+    // paused ones. Does not depend on the clock (the order of end times does
+    // not change over time): recomputed only when the list changes.
     readonly property var sorted: {
         const rank = t => t.state === "ringing" ? 0 : (t.state === "running" ? 1 : 2);
         const key = t => t.state === "running" ? t.endAt : (t.state === "paused" ? t.remaining : t.finishedAt);
@@ -43,14 +43,14 @@ Item {
     readonly property bool ringing: timers.some(t => t.state === "ringing")
     property bool soundActive: false
 
-    // Durées déjà utilisées, les plus fréquentes et récentes en premier :
-    // [{ ms, label, uses, last }]. Nourrit « timer » seul dans le lanceur.
+    // Durations used before, most frequent and recent first:
+    // [{ ms, label, uses, last }]. Feeds a bare "timer" in the launcher.
     property var recents: []
 
-    // Émis quand un minuteur démarre ou redémarre : la pastille affiche
-    // alors brièvement son nom (effet « île dynamique »).
+    // Emitted when a timer starts or restarts: the pill then briefly
+    // shows its name ("dynamic island" effect).
     signal timerStarted(int id)
-    // Ouvre/ferme le panneau sur l'écran actif (raccourci clavier, IPC).
+    // Opens/closes the panel on the active screen (keyboard shortcut, IPC).
     signal panelRequested(string screenName)
 
     property int _nextId: 1
@@ -65,7 +65,7 @@ Item {
     }
 
     // ------------------------------------------------------------------
-    // Lecture
+    // Queries
     // ------------------------------------------------------------------
 
     function remainingOf(t, n) {
@@ -159,8 +159,8 @@ Item {
             pluginService.savePluginState(pluginId, "recents", list);
     }
 
-    // « Frécence » : souvent utilisé ET récemment. Un minuteur lancé 10 fois
-    // le mois dernier passe après celui d'hier, pas après celui d'il y a un an.
+    // "Frecency": used often AND recently. A timer started 10 times
+    // last month ranks below yesterday's, not below one from a year ago.
     function _rankRecents(list) {
         const t0 = Date.now();
         const score = r => (r.uses || 1) / (1 + (t0 - (r.last || 0)) / 86400000 / 3);
@@ -191,9 +191,9 @@ Item {
         return id;
     }
 
-    // Couleur propre à chaque minuteur (sable, anneau, liste) : le premier
-    // prend la couleur d'accent, les suivants des teintes voisines. On
-    // réutilise la première teinte libre, pour rester stable.
+    // Each timer has its own color (sand, ring, list): the first
+    // takes the accent color, the next ones neighboring hues. The first
+    // free hue is reused, so colors stay stable.
     readonly property int hueCount: 6
     function _freeHue() {
         for (let h = 0; h < hueCount; h++) {
@@ -213,7 +213,7 @@ Item {
         return Qt.hsla(h, Math.max(0.45, base.hslSaturation), Math.min(0.78, Math.max(0.55, base.hslLightness)), 1);
     }
 
-    // Même syntaxe que le lanceur : startText("12 min pâtes").
+    // Same syntax as the launcher: startText("12 min pâtes").
     function startText(text) {
         const res = TP.parse(text, Date.now(), { keyword: true });
         if (res.length === 0)
@@ -254,8 +254,8 @@ Item {
         return dismiss(id);
     }
 
-    // Ajoute (ou retire) du temps. Sur un minuteur qui sonne : relance pour
-    // cette durée (« +1 min » = répéter).
+    // Adds (or removes) time. On a ringing timer: restarts it for
+    // that duration ("+1 min" = repeat).
     function adjust(id, deltaMs) {
         const t0 = Date.now();
         return _update(id, t => {
@@ -319,7 +319,7 @@ Item {
     }
 
     // ------------------------------------------------------------------
-    // Horloge
+    // Clock
     // ------------------------------------------------------------------
 
     function _tick() {
@@ -336,7 +336,7 @@ Item {
                 remaining: 0
             });
         });
-        // Tic-tac discret sur les 10 dernières secondes (option).
+        // Subtle ticking during the last 10 seconds (optional).
         if (!fired && setting("tick", false) && !_muted() && list.some(t => t.state === "running" && t.endAt - t0 > 0 && t.endAt - t0 <= 10050))
             _playTick();
         if (fired) {
@@ -348,10 +348,10 @@ Item {
     }
 
     // ------------------------------------------------------------------
-    // Notification de fin, avec actions (utile en plein écran, barre cachée)
+    // End notification with actions (useful in fullscreen, bar hidden)
     // ------------------------------------------------------------------
 
-    // id du minuteur → { proc, notifId }
+    // timer id → { proc, notifId }
     property var _notifiers: ({})
 
     function _notify(t) {
@@ -371,7 +371,7 @@ Item {
         proc.running = true;
     }
 
-    // Ferme les notifications des minuteurs qui ne sonnent plus.
+    // Closes the notifications of timers that are no longer ringing.
     function _syncNotifications(list) {
         for (const key in _notifiers) {
             const id = parseInt(key);
@@ -421,8 +421,8 @@ Item {
         }
     }
 
-    // Réveil calé sur le prochain changement de seconde affichée (≈ 1 fois
-    // par seconde), et aucun réveil quand tout est en pause.
+    // Wake-up aligned on the next change of the displayed second (≈ once
+    // per second), and no wake-up at all when everything is paused.
     function _schedule() {
         const t0 = Date.now();
         let next = -1;
@@ -456,7 +456,7 @@ Item {
     }
 
     // ------------------------------------------------------------------
-    // Son
+    // Sound
     // ------------------------------------------------------------------
 
     property real _ringStartedAt: 0
@@ -482,7 +482,7 @@ Item {
         return ["pw-play", "--volume=" + volume.toFixed(2), path];
     }
 
-    // « Ne pas déranger » : la pastille pulse, mais aucun son.
+    // "Do not disturb": the pill pulses, but no sound.
     function _muted() {
         return setting("respectDnd", true) && SessionData.doNotDisturb;
     }
@@ -501,7 +501,7 @@ Item {
     function _playOnce() {
         if (!soundActive)
             return;
-        // Sonnerie qui monte : 30 %, 65 %, puis plein volume.
+        // Rising alarm: 30%, 65%, then full volume.
         const ramp = setting("rampUp", true) ? Math.min(1, 0.3 + 0.35 * _ringCount) : 1;
         _ringCount++;
         ringPlayer.command = _command(soundPath(), _volume() * ramp);
@@ -509,8 +509,8 @@ Item {
         ringPlayer.running = true;
     }
 
-    // Coupe le son ; le minuteur reste « terminé » (la pastille pulse) tant
-    // qu'on ne l'a pas arrêté ou relancé.
+    // Silences the sound; the timer stays "finished" (the pill pulses) until
+    // it is stopped or restarted.
     function silence() {
         soundActive = false;
         ringGap.stop();
@@ -530,7 +530,7 @@ Item {
         onExited: (exitCode, exitStatus) => {
             if (!root.soundActive)
                 return;
-            // pw-play absent ou en échec immédiat : on bascule sur paplay.
+            // pw-play missing or failing right away: fall back to paplay.
             if (exitCode !== 0 && !root._useFallbackPlayer && Date.now() - startedAt < 1500) {
                 root._useFallbackPlayer = true;
                 root._playOnce();
@@ -567,15 +567,15 @@ Item {
     }
 
     // ------------------------------------------------------------------
-    // Persistance et démarrage
+    // Persistence and startup
     // ------------------------------------------------------------------
 
     Component.onCompleted: {
         if (!pluginService)
             return;
 
-        // Le lanceur fonctionne sans préfixe par défaut (« 20 min » suffit).
-        // Sans ce réglage explicite, DMS retomberait sur le déclencheur « ! ».
+        // The launcher works without a prefix by default (« 20 min » is enough).
+        // Without this explicit setting, DMS would fall back to the "!" trigger.
         if (pluginService.loadPluginData(pluginId, "noTrigger", null) === null)
             pluginService.savePluginData(pluginId, "noTrigger", true);
 
@@ -589,7 +589,7 @@ Item {
                 copy.state = "ringing";
                 copy.finishedAt = copy.endAt;
                 copy.remaining = 0;
-                // Fini pendant l'arrêt : on sonne seulement si c'est tout récent.
+                // Finished while the shell was off: ring only if it just happened.
                 if (t0 - copy.endAt < 60000)
                     ringNow = true;
             }
@@ -614,7 +614,7 @@ Item {
     }
 
     // ------------------------------------------------------------------
-    // IPC : dms ipc call smartTimer <fonction> [arguments]
+    // IPC: dms ipc call smartTimer <function> [arguments]
     // ------------------------------------------------------------------
 
     IpcHandler {
@@ -628,7 +628,7 @@ Item {
             return L.tr(root.lang, "Lancé : ") + (r.label || (r.kind === "at" ? L.tr(root.lang, "Alarme") : L.tr(root.lang, "Minuteur"))) + " — " + (r.kind === "at" ? L.tr(root.lang, "à ") + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms));
         }
 
-        // Met en pause / relance le minuteur le plus proche ; arrête la sonnerie.
+        // Pauses / resumes the nearest timer; stops the alarm.
         function toggle(): string {
             if (root.ringing) {
                 root.dismissRinging();
@@ -650,7 +650,7 @@ Item {
             return "OK";
         }
 
-        // Arrête ce qui sonne, sinon annule le minuteur le plus proche.
+        // Stops whatever is ringing, otherwise cancels the nearest timer.
         function stop(): string {
             if (root.ringing) {
                 root.dismissRinging();
@@ -662,7 +662,7 @@ Item {
             return L.tr(root.lang, "Minuteur annulé");
         }
 
-        // dms ipc call smartTimer add 5  → +5 min au minuteur le plus proche
+        // dms ipc call smartTimer add 5  → +5 min on the nearest timer
         function add(minutes: int): string {
             if (!root.primary)
                 return L.tr(root.lang, "Aucun minuteur");
@@ -670,7 +670,7 @@ Item {
             return "OK";
         }
 
-        // dms ipc call smartTimer lang fr   (fr, en ou auto)
+        // dms ipc call smartTimer lang fr   (fr, en or auto)
         function lang(code: string): string {
             if (["fr", "en", "auto"].indexOf(code) < 0)
                 return "fr, en, auto";
@@ -678,7 +678,7 @@ Item {
             return "OK";
         }
 
-        // À lier à un raccourci : ouvre / ferme le panneau sur l'écran actif.
+        // Bind to a shortcut: opens / closes the panel on the active screen.
         function panel(): string {
             const scr = CompositorService.getFocusedScreen();
             root.panelRequested(scr ? scr.name : "");

@@ -1,5 +1,5 @@
-// Tests de TimeParser.js — lancer avec : gjs -m tests/parser.test.js
-// (ou : gjs tests/parser.test.js depuis la racine du plugin)
+// TimeParser.js tests — run with: gjs -m tests/parser.test.js
+// (or: gjs tests/parser.test.js from the plugin root)
 const GLib = imports.gi.GLib;
 
 const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/parser.test.js", GLib.get_current_dir())));
@@ -7,7 +7,7 @@ const [, bytes] = GLib.file_get_contents(dir + "/TimeParser.js");
 const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
 const TP = new Function(src + "; return { parse, formatClock, formatHuman, formatRelative, formatTimeOfDay };")();
 
-// Mercredi 24 sept. 2026, 21:47:00 heure locale
+// Wednesday, Sept 24 2026, 21:47:00 local time
 const NOW = new Date(2026, 8, 24, 21, 47, 0, 0).getTime();
 const MIN = 60000, H = 3600000, S = 1000;
 
@@ -26,7 +26,7 @@ function check(input, expected, opts) {
     }
 }
 
-// Durées simples
+// Simple durations
 check("timer 20 min", [{ ms: 20 * MIN, label: "" }]);
 check("timer 20min", [{ ms: 20 * MIN, label: "" }]);
 check("20 min", [{ ms: 20 * MIN, label: "" }]);
@@ -52,7 +52,7 @@ check("5", [], {});
 check("5", [{ ms: 5 * MIN, label: "" }], { keyword: true });
 check("30 min", [{ ms: 30 * MIN, label: "" }], { keyword: true });
 
-// En toutes lettres
+// Spelled out
 check("timer une demi-heure", [{ ms: 30 * MIN, label: "" }]);
 check("minuteur demi heure", [{ ms: 30 * MIN, label: "" }]);
 check("timer un quart d'heure", [{ ms: 15 * MIN, label: "" }]);
@@ -67,7 +67,7 @@ check("timer an hour and a half", [{ ms: 90 * MIN, label: "" }]);
 check("timer a minute", [{ ms: MIN, label: "" }]);
 check("timer twenty five minutes", [{ ms: 25 * MIN, label: "" }]);
 
-// Libellés
+// Labels
 check("timer 12 min pâtes", [{ ms: 12 * MIN, label: "pâtes" }]);
 check("timer pâtes 12 min", [{ ms: 12 * MIN, label: "pâtes" }]);
 check("timer pâtes pour 12 min", [{ ms: 12 * MIN, label: "pâtes" }]);
@@ -81,7 +81,7 @@ check("timer 3 min œufs", [{ ms: 3 * MIN, label: "œufs" }]);
 check("timer 8 min - riz", [{ ms: 8 * MIN, label: "riz" }]);
 check("timer 5 min sel et poivre", [{ ms: 5 * MIN, label: "sel et poivre" }]);
 
-// Heure cible
+// Target time
 check("timer à 18:00", [{ at: "18:00", label: "" }]);
 check("timer à 18h", [{ at: "18:00", label: "" }]);
 check("timer a 18h30", [{ at: "18:30", label: "" }]);
@@ -94,7 +94,7 @@ check("timer 14h30", [{ at: "14:30", label: "" }, { ms: 14 * H + 30 * MIN, label
 check("timer 18:00", [{ ms: 18 * MIN, label: "" }, { at: "18:00", label: "" }]);
 
 
-// Exemples cités dans le README
+// Examples quoted in the README
 check("25m focus", [{ ms: 25 * MIN, label: "focus" }]);
 check("4m tea", [{ ms: 4 * MIN, label: "tea" }]);
 check("at 18:30 train", [{ at: "18:30", label: "train" }]);
@@ -106,7 +106,7 @@ check("1h laundry", [{ ms: H, label: "laundry" }]);
 check("timer 50 min meeting", [{ ms: 50 * MIN, label: "meeting" }]);
 check("90 min", [{ ms: 90 * MIN, label: "" }]);
 
-// Ce qui n'est pas un minuteur
+// What is not a timer
 check("firefox", []);
 check("timer", []);
 check("minuteur pâtes", []);
@@ -115,7 +115,7 @@ check("mes 2 chats", []);
 check("= 2+2", []);
 check("timer 0 min", []);
 
-// Mise en forme
+// Formatting
 function eq(a, b) {
     count++;
     if (a !== b) {
