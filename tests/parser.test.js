@@ -22,7 +22,7 @@ function check(input, expected, opts) {
     const ok = JSON.stringify(got) === JSON.stringify(expected);
     if (!ok) {
         failures++;
-        print("✗ " + JSON.stringify(input) + "\n    attendu : " + JSON.stringify(expected) + "\n    obtenu  : " + JSON.stringify(got));
+        print("✗ " + JSON.stringify(input) + "\n    expected: " + JSON.stringify(expected) + "\n    got:      " + JSON.stringify(got));
     }
 }
 
@@ -120,7 +120,7 @@ function eq(a, b) {
     count++;
     if (a !== b) {
         failures++;
-        print("✗ format : attendu " + JSON.stringify(b) + ", obtenu " + JSON.stringify(a));
+        print("✗ format: expected " + JSON.stringify(b) + ", got " + JSON.stringify(a));
     }
 }
 eq(TP.formatClock(20 * MIN), "20:00");
@@ -139,5 +139,5 @@ eq(TP.formatRelative(2 * H + 16 * MIN), "2 h 16");
 eq(TP.formatTimeOfDay(new Date(2026, 8, 24, 22, 4).getTime(), true), "22:04");
 eq(TP.formatTimeOfDay(new Date(2026, 8, 24, 22, 4).getTime(), false), "10:04 PM");
 
-print(failures === 0 ? "✓ " + count + " tests réussis" : "\n" + failures + " / " + count + " échecs");
+print(failures === 0 ? "✓ " + count + " tests passed" : "\n" + failures + " / " + count + " failed");
 imports.system.exit(failures === 0 ? 0 : 1);

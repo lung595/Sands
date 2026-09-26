@@ -79,8 +79,10 @@ Item {
         }
     }
 
+    // With Reduce motion the hourglass does not float, so frames are only
+    // needed while the grains fall.
     FrameAnimation {
-        running: root.visible && root.animate
+        running: root.visible && root.animate && (!root.reducedMotion || root.speed > 0.001)
         onTriggered: {
             root.floatClock += frameTime * root.floatSpeed;
             if (root.speed > 0.001)
