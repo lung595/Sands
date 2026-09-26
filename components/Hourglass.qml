@@ -1,11 +1,13 @@
 import QtQuick
+import "Motion.js" as Motion
 
 // Floating hourglass.
 //
 // Light by design: the glass and the sand are drawn in a Canvas
 // that only repaints when the level changes (≈ once per second); everything
-// that moves every frame (float, tilt, flip, grains) is
-// a plain item transform, done by the GPU, with no repaint.
+// that moves (float, tilt, flip, grains) is a plain item transform, done by
+// the GPU, with no repaint. Motion is driven by a plain Timer, not by a QML
+// animation: see `motion` below.
 //
 // The sand follows time by VOLUME: the bulb profile is integrated
 // (cross-section ∝ radius²) to find the level that holds exactly the
@@ -79,14 +81,33 @@ Item {
         }
     }
 
-    // With Reduce motion the hourglass does not float, so frames are only
-    // needed while the grains fall.
-    FrameAnimation {
-        running: root.visible && root.animate && (!root.reducedMotion || root.speed > 0.001)
+    // Effects clock (s): drives the pulses here and the frost mist and
+    // crystals of the panel (Motion.js).
+    property real fxTime: 0
+
+    // One Timer moves everything. A FrameAnimation (or any looping QML
+    // animation) would make every DMS window redraw at the display rate:
+    // measured, the open panel cost 87 % of a core, 106 % when paused. A Timer
+    // only redraws the panel: 60 Hz while grains fall, 30 Hz for the slow
+    // float, mist and pulses. With Reduce motion nothing floats, so it only
+    // runs while grains fall or the alarm pulses.
+    readonly property bool motionNeeded: !root.reducedMotion || root.speed > 0.001 || root.ringing
+    Timer {
+        id: motion
+        interval: root.speed > 0.001 ? 16 : 33
+        repeat: true
+        running: root.visible && root.animate && root.motionNeeded
+        property real last: 0
+        onRunningChanged: last = 0
         onTriggered: {
-            root.floatClock += frameTime * root.floatSpeed;
+            const now = Date.now();
+            // Real elapsed time, capped so a late tick does not jump.
+            const dt = last > 0 ? Math.min(0.1, (now - last) / 1000) : interval / 1000;
+            last = now;
+            root.fxTime += dt;
+            root.floatClock += dt * root.floatSpeed;
             if (root.speed > 0.001)
-                root.clock += frameTime * root.speed;
+                root.clock += dt * root.speed;
         }
     }
 
@@ -226,39 +247,20 @@ Item {
         }
     }
 
-    // Color halo. The pulses (alarm, frozen aura) are
-    // Animators: run by the render thread, with no JavaScript work.
+    // Color halo. The pulses (alarm, frozen aura) follow the effects clock.
     Item {
         anchors.fill: parent
         opacity: 1 - root.frost
 
         Halo {
             id: glow
-            opacity: 0.4
+            // Ringing: breathes between 0.3 and 1 every 1.2 s.
+            opacity: root.ringing ? Motion.wave(root.fxTime, 1.2, 0.3, 1) : 0.4
             tint: root.sandColor
-
-            SequentialAnimation {
-                running: root.ringing && root.visible && root.animate
-                loops: Animation.Infinite
-                onRunningChanged: if (!running)
-                    glow.opacity = 0.4
-                OpacityAnimator {
-                    target: glow
-                    to: 1
-                    duration: 600
-                    easing.type: Easing.InOutSine
-                }
-                OpacityAnimator {
-                    target: glow
-                    to: 0.3
-                    duration: 600
-                    easing.type: Easing.InOutSine
-                }
-            }
         }
     }
 
-    // Frozen aura: breathes slowly, even when frozen.
+    // Frozen aura: breathes slowly, even when frozen (still with Reduce motion).
     Item {
         anchors.fill: parent
         opacity: root.frost
@@ -268,24 +270,7 @@ Item {
             id: aura
             tint: root.frostColor
             scale: 1.12
-            opacity: 0.85
-
-            SequentialAnimation {
-                running: root.frost > 0.5 && root.visible && root.animate
-                loops: Animation.Infinite
-                OpacityAnimator {
-                    target: aura
-                    to: 1
-                    duration: 2200
-                    easing.type: Easing.InOutSine
-                }
-                OpacityAnimator {
-                    target: aura
-                    to: 0.7
-                    duration: 2200
-                    easing.type: Easing.InOutSine
-                }
-            }
+            opacity: root.reducedMotion ? 0.85 : Motion.wave(root.fxTime, 4.4, 0.7, 1)
         }
     }
 
