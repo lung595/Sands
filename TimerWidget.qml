@@ -5,15 +5,11 @@ import qs.Widgets
 import qs.Modules.Plugins
 import "./components"
 import "TimeParser.js" as TP
-import "L10n.js" as L
 
 // Bar pill + popout. State lives in the daemon; this file only
 // displays it and forwards actions.
 PluginComponent {
     id: root
-
-    // UI language (plugin setting, reactive)
-    readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     pluginId: "smartTimer"
     pluginService: PluginService
@@ -83,7 +79,7 @@ PluginComponent {
 
             readonly property real textSize: Theme.barTextSize(root.barThickness, root.barConfig?.fontScale, root.barConfig?.maximizeWidgetText)
             readonly property real pad: (root.barConfig?.removeWidgetPadding ?? false) ? 0 : (root.barConfig?.widgetPadding ?? 12) * (root.widgetThickness / 30)
-            readonly property string timeText: st === "ringing" ? L.tr(root.lang, "Terminé") : TP.formatClock(rem)
+            readonly property string timeText: st === "ringing" ? "Done" : TP.formatClock(rem)
             readonly property int others: Math.max(0, (root.daemon?.count ?? 0) - 1)
             readonly property color accent: st === "ringing" ? Theme.error : (urgent ? Theme.warning : (root.daemon && t ? root.daemon.colorFor(t) : Theme.primary))
 

@@ -2,16 +2,12 @@ import QtQuick
 import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
-import "L10n.js" as L
 
 // Launcher provider. No prefix by default: it only answers when the
 // input looks like a duration (« timer 20 min », « 1h30 pâtes », « à 18h »),
 // and stays invisible for every other search.
 Item {
     id: root
-
-    // UI language (plugin setting, reactive)
-    readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     property var pluginService: null
     property string pluginId: "smartTimer"
@@ -50,11 +46,11 @@ Item {
         const tomorrow = TP.isTomorrow(r.at || now + r.ms, now);
         let name, comment;
         if (r.kind === "at") {
-            name = (r.label ? r.label + " — " : L.tr(root.lang, "Alarme ")) + L.tr(root.lang, "à ") + end + (tomorrow ? L.tr(root.lang, " (demain)") : "");
-            comment = L.tr(root.lang, "Sonne dans ") + TP.formatRelative(r.ms);
+            name = (r.label ? r.label + " — " : "Alarm ") + "at " + end + (tomorrow ? " (tomorrow)" : "");
+            comment = "Rings in " + TP.formatRelative(r.ms);
         } else {
-            name = (r.label ? r.label + " — " : L.tr(root.lang, "Minuteur ")) + TP.formatHuman(r.ms);
-            comment = L.tr(root.lang, "Sonne à ") + end + (tomorrow ? L.tr(root.lang, " demain") : "");
+            name = (r.label ? r.label + " — " : "Timer ") + TP.formatHuman(r.ms);
+            comment = "Rings at " + end + (tomorrow ? " tomorrow" : "");
         }
         return {
             name: name,
@@ -102,12 +98,12 @@ Item {
 
         if (d && d.hasTimers) {
             d.sorted.forEach(t => {
-                const state = t.state === "paused" ? L.tr(root.lang, "En pause") : (t.state === "ringing" ? L.tr(root.lang, "Terminé") : L.tr(root.lang, "Sonne à ") + TP.formatTimeOfDay(t.endAt, use24h));
-                const verb = t.state === "running" ? L.tr(root.lang, "Entrée : pause") : (t.state === "paused" ? L.tr(root.lang, "Entrée : reprendre") : L.tr(root.lang, "Entrée : arrêter"));
+                const state = t.state === "paused" ? "Paused" : (t.state === "ringing" ? "Done" : "Rings at " + TP.formatTimeOfDay(t.endAt, use24h));
+                const verb = t.state === "running" ? "Enter: pause" : (t.state === "paused" ? "Enter: resume" : "Enter: stop");
                 items.push({
                     name: d.displayLabel(t) + " \u2014 " + TP.formatClock(d.remainingOf(t)),
                     icon: t.state === "ringing" ? "material:alarm" : (t.state === "paused" ? "material:pause_circle" : "material:timelapse"),
-                    comment: L.tr(root.lang, "En cours · ") + state + " · " + verb,
+                    comment: "Running · " + state + " · " + verb,
                     action: "toggle:" + t.id,
                     categories: ["Minuteur"]
                 });
@@ -125,7 +121,7 @@ Item {
         const d = daemon;
         if (!d) {
             if (typeof ToastService !== "undefined")
-                ToastService.showError(L.tr(root.lang, "Minuteur"), L.tr(root.lang, "Le module minuteur n'est pas démarré"));
+                ToastService.showError("Timer", "The timer service isn't running");
             return;
         }
         switch (type) {

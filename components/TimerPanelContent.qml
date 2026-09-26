@@ -2,14 +2,10 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 import "../TimeParser.js" as TP
-import "../L10n.js" as L
 
 // Panel content: hourglass, time, controls, other timers.
 Column {
     id: pop
-
-    // UI language (plugin setting, reactive)
-    readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     property var daemon: null
     property bool use24h: true
@@ -504,11 +500,11 @@ Column {
                         if (!pop.t)
                             return "";
                         if (pop.st === "paused")
-                            return L.tr(pop.lang, "En pause");
+                            return "Paused";
                         if (pop.st === "ringing")
-                            return L.tr(pop.lang, "Terminé");
+                            return "Done";
                         const end = TP.formatTimeOfDay(pop.t.endAt, pop.use24h);
-                        return TP.isTomorrow(pop.t.endAt, pop.d.now) ? L.tr(pop.lang, "Demain ") + end : end;
+                        return TP.isTomorrow(pop.t.endAt, pop.d.now) ? "Tomorrow " + end : end;
                     }
                     font.pixelSize: Theme.fontSizeMedium
                     font.features: {
@@ -527,7 +523,7 @@ Column {
 
         Chip {
             visible: pop.st !== "ringing" && pop.rem > 61000
-            text: L.tr(pop.lang, "−1 min")
+            text: "−1 min"
             onClicked: pop.d.adjust(pop.t.id, -60000)
         }
         Chip {
@@ -554,7 +550,7 @@ Column {
             RoundButton {
                 anchors.verticalCenter: parent.verticalCenter
                 iconName: "close"
-                tooltip: L.tr(pop.lang, "Annuler le minuteur")
+                tooltip: "Cancel timer"
                 onClicked: pop.d.remove(pop.t.id)
             }
 
@@ -566,14 +562,14 @@ Column {
                 accent: pop.accent
                 accentText: (0.299 * pop.accent.r + 0.587 * pop.accent.g + 0.114 * pop.accent.b) > 0.6 ? "#1c1b1f" : "white"
                 iconName: pop.st === "paused" ? "play_arrow" : "pause"
-                tooltip: pop.st === "paused" ? L.tr(pop.lang, "Reprendre") : L.tr(pop.lang, "Mettre en pause")
+                tooltip: pop.st === "paused" ? "Resume" : "Pause"
                 onClicked: pop.d.toggle(pop.t.id)
             }
 
             RoundButton {
                 anchors.verticalCenter: parent.verticalCenter
                 iconName: "replay"
-                tooltip: L.tr(pop.lang, "Recommencer (") + (pop.t ? TP.formatHuman(pop.t.total) : "") + ")"
+                tooltip: "Restart (" + (pop.t ? TP.formatHuman(pop.t.total) : "") + ")"
                 onClicked: pop.d.restart(pop.t.id)
             }
         }
@@ -612,7 +608,7 @@ Column {
                     }
                     StyledText {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: L.tr(pop.lang, "Arrêter")
+                        text: "Stop"
                         font.pixelSize: Theme.fontSizeLarge
                         font.weight: Font.DemiBold
                         color: Theme.errorText
@@ -632,7 +628,7 @@ Column {
                 anchors.verticalCenter: parent.verticalCenter
                 size: 56
                 iconName: "replay"
-                tooltip: L.tr(pop.lang, "Relancer ") + (pop.t ? TP.formatHuman(pop.t.total) : "")
+                tooltip: "Restart " + (pop.t ? TP.formatHuman(pop.t.total) : "")
                 onClicked: pop.d.restart(pop.t.id)
             }
         }

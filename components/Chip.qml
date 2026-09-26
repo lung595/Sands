@@ -2,7 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 
-// Secondary action chip: « +1 min », « Relancer » (restart)…
+// Secondary action chip: « +1 min », « Restart »…
 Rectangle {
     id: root
 
