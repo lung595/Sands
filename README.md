@@ -13,7 +13,33 @@ Pause it and the whole thing freezes over.
 
 **New in 1.2.1:** *Reduce motion* is honored everywhere, and a *Privacy* section explains what Sands runs and stores. See the [changelog](#changelog) and the [roadmap](#roadmap).
 
+**Contents:** [Install](#install) · [Quick start](#quick-start) · [Features](#features) · [Syntax](#syntax) · [Settings](#settings) · [Command line](#command-line--keybindings) · [Privacy](#privacy) · [Changelog](#changelog) · [Roadmap](#roadmap)
+
 ---
+
+## Install
+
+From the DMS plugin browser: **Settings → Plugins**, search for **Sands**, install and enable it. Or from a terminal:
+
+```sh
+dms plugins install smartTimer
+```
+
+Then add it to the bar: **Settings → Appearance → DankBar Layout → Sands** (the center looks best).
+
+Manual install: clone [the repository](https://github.com/lung595/Sands) into `~/.config/DankMaterialShell/plugins/`, then **Settings → Plugins → *Scan for plugins*** and enable **Sands**.
+
+Requires DankMaterialShell ≥ 1.6 and `pw-play` (PipeWire; `paplay` is used as a fallback).
+
+
+## Quick start
+
+1. **Open the launcher and type a duration**, with an optional name: `timer 20 min pasta`, `1h30 oven`, `at 6pm`. No prefix needed.
+2. **Watch the pill** in the bar: a ring drains until it rings. Scroll on it for ±1 minute, right-click to pause.
+3. **Click the pill** for the floating hourglass: pause freezes it, restart flips it over.
+
+Timers survive a DMS restart: they are stored as end times, not countdowns.
+
 
 ## Why Sands
 
@@ -162,16 +188,6 @@ bind = SUPER, T, exec, dms ipc call launcher openQuery "timer "
 bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 ```
 
-## Install
-
-Requires DankMaterialShell ≥ 1.6 and `pw-play` (PipeWire; `paplay` is used as a fallback).
-
-1. Put this folder in `~/.config/DankMaterialShell/plugins/`.
-2. Settings → Plugins → *Scan for plugins*, then enable **Sands**.
-3. Settings → Appearance → DankBar Layout → add **Sands** to a section (the center looks best).
-
-Timers survive a DMS restart: they are stored as end times, not countdowns.
-
 ## Privacy
 
 - No network access, no telemetry.
@@ -188,27 +204,6 @@ Sands is built to cost nothing while you are not looking at it.
 - **Pulses, glints, mist, ringing:** Qt Quick *Animators* — they run on the render thread, with zero JavaScript per frame.
 - **Closed panel:** every animation stops.
 - **Reduce motion:** the hourglass stops floating and flipping, the pill no longer beats or shakes, and the frost crystals stay still.
-
-## Project layout
-
-```
-plugin.json                 manifest (composite: daemon + bar widget + launcher)
-TimerDaemon.qml             engine: timers, persistence, sound, notifications, IPC
-TimerWidget.qml             bar pill + native DMS popout
-TimerLauncher.qml           launcher provider
-TimerSettings.qml           settings page
-TimeParser.js               natural-language parser + formatting (tested)
-L10n.js                     English / French strings
-components/
-  TimerPanelContent.qml     panel: hourglass, time, controls, other timers
-  Hourglass.qml             the floating, volume-synced hourglass
-  ProgressRing.qml          the ring used in the pill and lists
-  RoundButton.qml, Chip.qml
-tests/parser.test.js        gjs tests/parser.test.js
-docs/images/                screenshots and animations
-```
-
-> The plugin id is `smartTimer` (settings, IPC target and saved state use it); the display name is **Sands**.
 
 ## Changelog
 
@@ -231,6 +226,27 @@ Ideas, not promises, and no dates. Sands stays a simple timer: no network, nothi
 - **Lighter open panel**: the floating hourglass redraws in sync with the display while the panel is open; move its slow float to a plain timer, measured before and after (the same work already done for Orbit Bluetooth).
 - **Light theme**: check every state with a light DMS theme.
 - **Easier to read code**: split the largest files (`TimerPanelContent.qml`, `Hourglass.qml`, `TimerDaemon.qml`) by role, without changing behavior.
+
+## Project layout
+
+```
+plugin.json                 manifest (composite: daemon + bar widget + launcher)
+TimerDaemon.qml             engine: timers, persistence, sound, notifications, IPC
+TimerWidget.qml             bar pill + native DMS popout
+TimerLauncher.qml           launcher provider
+TimerSettings.qml           settings page
+TimeParser.js               natural-language parser + formatting (tested)
+L10n.js                     English / French strings
+components/
+  TimerPanelContent.qml     panel: hourglass, time, controls, other timers
+  Hourglass.qml             the floating, volume-synced hourglass
+  ProgressRing.qml          the ring used in the pill and lists
+  RoundButton.qml, Chip.qml
+tests/parser.test.js        gjs tests/parser.test.js
+docs/images/                screenshots and animations
+```
+
+> The plugin id is `smartTimer` (settings, IPC target and saved state use it); the display name is **Sands**.
 
 ## License
 
