@@ -73,6 +73,9 @@ The ring turns amber during the last minute and beats during the last ten second
 - **Sand synced by volume.** The bulbs' profile is integrated, so at half time exactly half the sand is left on top — a dip forms above, a mound grows below, grains stream through the neck.
 - **Freeze on pause.** Time slows to a stop, grains hang mid-air, the hourglass keeps floating — slower, like at absolute zero. Frost settles on the glass and the caps, a cold mist drifts, the digits turn ice-blue. It thaws just as smoothly.
 - **Flip to restart.** The hourglass turns over and starts again.
+- **Two hourglasses.** The classic one, or **Glass of Time** — a nod to Steven Universe: the glass floats in a cyan sphere with a gold ring around its waist. Only the frame changes; the sand, the freeze and the flip behave exactly the same.
+
+![Glass of Time, running and frozen](docs/images/glass-of-time.png)
 
 | Pause → freeze → thaw | Restart → flip |
 |---|---|
@@ -115,6 +118,7 @@ Settings → Plugins → **Sands**
 | Setting | Default |
 |---|---|
 | Language — automatic, English, Français | automatic |
+| Hourglass — Classic or Glass of Time | Classic |
 | Sound — any installed sound theme file, or your own `.oga/.ogg/.wav/.mp3/.flac` (with *Preview*) | alarm clock |
 | Volume | 80 % |
 | Alarm duration — the sound stops by itself, the pill keeps pulsing | 60 s |

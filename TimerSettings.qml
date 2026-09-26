@@ -80,6 +80,24 @@ PluginSettings {
         defaultValue: "auto"
     }
 
+    SelectionSetting {
+        settingKey: "hourglassStyle"
+        label: L.tr(root.lang, "Sablier")
+        description: L.tr(root.lang, "Seul le sablier change : le sable, le gel et le retournement restent identiques")
+        options: [
+            {
+                label: L.tr(root.lang, "Classique"),
+                value: "classic"
+            },
+            {
+                // A nod to Steven Universe; the name is the same in both languages
+                label: "Glass of Time",
+                value: "glassOfTime"
+            }
+        ]
+        defaultValue: "classic"
+    }
+
     // ------------------------------------------------------------------
     // Sound
     // ------------------------------------------------------------------

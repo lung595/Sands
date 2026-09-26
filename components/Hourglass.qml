@@ -14,6 +14,9 @@ import QtQuick
 // - progress : remaining fraction at the top (1 = full, 0 = empty)
 // - frost    : 0 → 1, freeze (driven by the panel, which freezes the whole screen)
 // - flip()   : the hourglass turns over (when restarting)
+// - style    : "classic", or "glassOfTime" (a nod to the Hourglass of Steven
+//              Universe: glass in a cyan sphere, a gold ring around the waist).
+//              Only the frame changes; sand, freeze and flip behave the same.
 Item {
     id: root
 
@@ -32,6 +35,18 @@ Item {
     property color capColor: "#2a2a2a"
     property color frostColor: Qt.rgba(0.8, 0.9, 1, 1)
     property color shadowColor: "black"
+    property string style: "classic"
+    readonly property bool gotStyle: style === "glassOfTime"
+
+    // "Glass of Time" palette: fixed on purpose, it is the look of the
+    // object being referenced (frost still tints it like the rest).
+    readonly property color gotSphere: "#7fe3ec"
+    readonly property color gotGold: "#e8b442"
+    readonly property color gotGoldLight: "#fbe070"
+    readonly property color gotGoldLine: "#7a6428"
+    readonly property color gotOlive: "#8f9a48"
+    readonly property color gotMint: "#bfe9c8"
+    readonly property color gotTeal: "#1f6f7a"
 
     implicitWidth: 220
     implicitHeight: 250
@@ -106,12 +121,15 @@ Item {
     }
 
     // --- Geometry (px), shared by the drawing and the grains
-    readonly property real hgH: Math.min(height * 0.8, width * 1.2)
+    // Glass of Time: a bit smaller, so the sphere around it fits the panel
+    readonly property real hgH: gotStyle ? Math.min(height * 0.7, width * 0.78) : Math.min(height * 0.8, width * 1.2)
     readonly property real hgW: hgH * 0.6
     readonly property real capH: Math.max(6, hgH * 0.05)
     readonly property real bulbL: hgH / 2 - capH - 1
     readonly property real bulbR: hgW / 2 - hgW * 0.07
     readonly property real neck: Math.max(2.2, hgW * 0.028)
+    // Glass of Time: sphere radius (the gold caps are its top and bottom)
+    readonly property real sphereR: bulbL + capH * 2.4
 
     function profile(u) {
         u = Math.max(0, Math.min(1, u));
@@ -291,6 +309,65 @@ Item {
         y: root.height / 2 - 8 - height / 2 + root.floatY
         rotation: root.flipAngle + Math.sin(root.floatClock * 0.85) * 1.6 * root.floatAmp / 5
 
+        // --- Glass of Time layers: the sphere and the ring's inner face
+        //     behind the glass, the gold band, caps and sphere rim in front.
+        //     Repainted only on resize, style or freeze step.
+        component GotLayer: Canvas {
+            visible: root.gotStyle
+            width: root.sphereR * 2 + 8
+            height: width
+            x: (body.width - width) / 2
+            y: (body.height - height) / 2
+            renderTarget: Canvas.FramebufferObject
+            onWidthChanged: requestPaint()
+            onVisibleChanged: if (visible)
+                requestPaint()
+            Connections {
+                target: root
+                function onFrostStepChanged() {
+                    requestPaint();
+                }
+            }
+            function rgba(c, a) {
+                return Qt.rgba(c.r, c.g, c.b, a);
+            }
+            function cold(c, k) {
+                const f = root.frost * k;
+                return Qt.rgba(c.r + (root.frostColor.r - c.r) * f, c.g + (root.frostColor.g - c.g) * f, c.b + (root.frostColor.b - c.b) * f, 1);
+            }
+            // Ring geometry, shared by both layers (sphere-centered)
+            readonly property real ringRx: root.sphereR
+            readonly property real ringRy: root.sphereR * 0.2
+            readonly property real ringTop: -root.sphereR * 0.14
+            readonly property real ringBottom: root.sphereR * 0.14
+        }
+
+        GotLayer {
+            id: gotBack
+            onPaint: {
+                const ctx = getContext("2d");
+                ctx.reset();
+                ctx.translate(width / 2, height / 2);
+                const S = root.sphereR;
+                // Translucent sphere
+                const g = ctx.createRadialGradient(-S * 0.3, -S * 0.35, S * 0.1, 0, 0, S);
+                g.addColorStop(0, rgba(cold(root.gotSphere, 0.5), 0.16));
+                g.addColorStop(1, rgba(cold(root.gotSphere, 0.5), 0.34));
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(0, 0, S, 0, Math.PI * 2);
+                ctx.fill();
+                // Inner face of the ring, seen through the glass
+                ctx.beginPath();
+                ctx.ellipse(-ringRx, ringBottom - ringRy, ringRx * 2, ringRy * 2);
+                ctx.fillStyle = rgba(cold(root.gotOlive, 0.5), 0.95);
+                ctx.fill();
+                ctx.lineWidth = Math.max(1.5, S * 0.012);
+                ctx.strokeStyle = rgba(cold(root.gotGoldLine, 0.4), 1);
+                ctx.stroke();
+            }
+        }
+
         Canvas {
             id: glass
             anchors.fill: parent
@@ -312,6 +389,9 @@ Item {
                     glass.requestPaint();
                 }
                 function onFlowingChanged() {
+                    glass.requestPaint();
+                }
+                function onStyleChanged() {
                     glass.requestPaint();
                 }
             }
@@ -352,9 +432,10 @@ Item {
                 // Glass
                 outline(ctx);
                 let g = ctx.createLinearGradient(-R, 0, R, 0);
-                g.addColorStop(0, rgba(root.glassColor, 0.07 + 0.06 * frost));
-                g.addColorStop(0.5, rgba(root.glassColor, 0.025 + 0.04 * frost));
-                g.addColorStop(1, rgba(root.glassColor, 0.06 + 0.06 * frost));
+                const tint = root.gotStyle ? mix(root.gotMint, root.frostColor, frost * 0.5) : root.glassColor;
+                g.addColorStop(0, rgba(tint, (root.gotStyle ? 0.16 : 0.07) + 0.06 * frost));
+                g.addColorStop(0.5, rgba(tint, (root.gotStyle ? 0.08 : 0.025) + 0.04 * frost));
+                g.addColorStop(1, rgba(tint, (root.gotStyle ? 0.14 : 0.06) + 0.06 * frost));
                 ctx.fillStyle = g;
                 ctx.fill();
 
@@ -427,8 +508,13 @@ Item {
 
                 // Outline + highlights
                 outline(ctx);
-                ctx.lineWidth = 1.4;
-                ctx.strokeStyle = rgba(mix(root.glassColor, root.frostColor, frost), 0.3 + 0.35 * frost);
+                if (root.gotStyle) {
+                    ctx.lineWidth = Math.max(2, root.hgW * 0.03);
+                    ctx.strokeStyle = rgba(mix(root.gotTeal, root.frostColor, frost * 0.5), 1);
+                } else {
+                    ctx.lineWidth = 1.4;
+                    ctx.strokeStyle = rgba(mix(root.glassColor, root.frostColor, frost), 0.3 + 0.35 * frost);
+                }
                 ctx.stroke();
 
                 ctx.lineCap = "round";
@@ -443,9 +529,10 @@ Item {
                     ctx.stroke();
                 }
 
-                // Bases, with an accent rim on the glass side
+                // Bases, with an accent rim on the glass side (Glass of Time
+                // draws its own gold caps in front, see gotFront)
                 const capW = root.hgW;
-                for (let s = -1; s <= 1; s += 2) {
+                for (let s = -1; s <= 1 && !root.gotStyle; s += 2) {
                     const y = s < 0 ? -L - capH : L;
                     g = ctx.createLinearGradient(0, y, 0, y + capH);
                     g.addColorStop(0, mix(mix(root.capColor, Qt.rgba(1, 1, 1, 1), 0.12), root.frostColor, frost * 0.3));
@@ -503,6 +590,93 @@ Item {
                 x: body.width / 2 - width / 2 + (jitter - 0.5) * root.neck * 0.9
                 y: body.height / 2 + root.neck + Math.pow(q, 1.5) * root.fallLength - height / 2
                 color: Qt.tint(Qt.lighter(root.sandColor, 1.25), Qt.rgba(root.frostColor.r, root.frostColor.g, root.frostColor.b, root.frost * 0.6))
+            }
+        }
+
+        GotLayer {
+            id: gotFront
+            onPaint: {
+                const ctx = getContext("2d");
+                ctx.reset();
+                ctx.translate(width / 2, height / 2);
+                const S = root.sphereR, L = root.bulbL;
+                const line = rgba(cold(root.gotGoldLine, 0.4), 1);
+                const lw = Math.max(1.5, S * 0.012);
+                const chord = Math.sqrt(Math.max(0, S * S - L * L));
+
+                // Gold band: between the upper arcs of the ring's two edges
+                function upperArc(cy, fromLeft) {
+                    for (let i = 0; i <= 40; i++) {
+                        const t = fromLeft ? i / 40 : 1 - i / 40;
+                        const a = Math.PI + t * Math.PI;
+                        ctx.lineTo(Math.cos(a) * ringRx, cy + Math.sin(a) * ringRy);
+                    }
+                }
+                ctx.beginPath();
+                upperArc(ringTop, true);
+                upperArc(ringBottom, false);
+                ctx.closePath();
+                ctx.fillStyle = cold(root.gotGold, 0.5);
+                ctx.fill();
+                // Lit facet on the band
+                ctx.save();
+                ctx.clip();
+                ctx.fillStyle = cold(root.gotGoldLight, 0.5);
+                ctx.fillRect(-S * 0.42, -S, S * 0.42, S * 2);
+                ctx.restore();
+                ctx.beginPath();
+                upperArc(ringTop, true);
+                upperArc(ringBottom, false);
+                ctx.closePath();
+                ctx.lineWidth = lw;
+                ctx.strokeStyle = line;
+                ctx.stroke();
+
+                // Caps: the sphere's top and bottom in gold, a mint rim of
+                // glass just inside each
+                for (let s = -1; s <= 1; s += 2) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(0, 0, S, 0, Math.PI * 2);
+                    ctx.clip();
+                    const y0 = s < 0 ? -S : L;
+                    const g = ctx.createLinearGradient(-S, 0, S, 0);
+                    g.addColorStop(0, cold(root.gotGoldLight, 0.4));
+                    g.addColorStop(0.55, cold(root.gotGold, 0.4));
+                    g.addColorStop(1, cold(root.gotGold, 0.4));
+                    ctx.fillStyle = g;
+                    ctx.fillRect(-S, y0, S * 2, S - L);
+                    ctx.restore();
+                    ctx.beginPath();
+                    ctx.ellipse(-chord, s * L - S * 0.05, chord * 2, S * 0.1);
+                    ctx.fillStyle = rgba(cold(root.gotMint, 0.5), 0.85);
+                    ctx.fill();
+                    ctx.lineWidth = lw;
+                    ctx.strokeStyle = line;
+                    ctx.beginPath();
+                    ctx.moveTo(-chord, s * L);
+                    ctx.lineTo(chord, s * L);
+                    ctx.stroke();
+                    // Rime settling on the cap, as on the classic bases
+                    if (root.frost > 0.01) {
+                        ctx.fillStyle = rgba(root.frostColor, 0.85 * root.frost);
+                        for (let i = 0; i < 18; i++) {
+                            const hh = Math.abs(Math.sin((i + s * 7) * 43.13) * 9127.3) % 1;
+                            const bx = -chord * 0.9 + chord * 1.8 * (i + 0.5) / 18;
+                            const br = (1 + hh * 2.2) * root.frost;
+                            ctx.beginPath();
+                            ctx.ellipse(bx - br, s * L - br * 0.7, br * 2, br * 1.4);
+                            ctx.fill();
+                        }
+                    }
+                }
+
+                // Sphere rim
+                ctx.beginPath();
+                ctx.arc(0, 0, S, 0, Math.PI * 2);
+                ctx.lineWidth = Math.max(2, S * 0.018);
+                ctx.strokeStyle = rgba(cold(root.gotSphere, 0.5), 0.95);
+                ctx.stroke();
             }
         }
     }
