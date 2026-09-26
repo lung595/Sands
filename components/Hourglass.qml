@@ -122,7 +122,7 @@ Item {
 
     // --- Geometry (px), shared by the drawing and the grains
     // Glass of Time: a bit smaller, so the sphere around it fits the panel
-    readonly property real hgH: gotStyle ? Math.min(height * 0.7, width * 0.78) : Math.min(height * 0.8, width * 1.2)
+    readonly property real hgH: gotStyle ? Math.min(height * 0.66, width * 0.68) : Math.min(height * 0.8, width * 1.2)
     readonly property real hgW: hgH * 0.6
     readonly property real capH: Math.max(6, hgH * 0.05)
     readonly property real bulbL: hgH / 2 - capH - 1
@@ -188,18 +188,34 @@ Item {
     component Halo: Canvas {
         property color tint: "white"
         anchors.centerIn: parent
-        width: root.hgH * 1.3
+        // Glass of Time: sized on its sphere, within the panel's width
+        width: root.gotStyle ? Math.min(root.sphereR * 3.6, root.width * 1.5) : root.hgH * 1.3
         height: width
         renderTarget: Canvas.FramebufferObject
         onTintChanged: requestPaint()
         onWidthChanged: requestPaint()
+        Connections {
+            target: root
+            function onStyleChanged() {
+                requestPaint();
+            }
+        }
         onPaint: {
             const ctx = getContext("2d");
             ctx.reset();
             const r = width / 2;
             const g = ctx.createRadialGradient(r, r, 0, r, r, r);
             g.addColorStop(0, Qt.rgba(tint.r, tint.g, tint.b, 0.5));
-            g.addColorStop(0.45, Qt.rgba(tint.r, tint.g, tint.b, 0.16));
+            if (root.gotStyle) {
+                // Softer, longer falloff; gone at 66% of the radius, i.e.
+                // at the panel's edge, so it never ends on a hard line
+                g.addColorStop(0.3, Qt.rgba(tint.r, tint.g, tint.b, 0.4));
+                g.addColorStop(0.45, Qt.rgba(tint.r, tint.g, tint.b, 0.22));
+                g.addColorStop(0.56, Qt.rgba(tint.r, tint.g, tint.b, 0.08));
+                g.addColorStop(0.66, Qt.rgba(tint.r, tint.g, tint.b, 0));
+            } else {
+                g.addColorStop(0.45, Qt.rgba(tint.r, tint.g, tint.b, 0.16));
+            }
             // Fades out at 85% of the radius: even enlarged, the aura stays inside the
             // panel (DMS clips whatever overflows, which would leave a hard edge).
             g.addColorStop(0.85, Qt.rgba(tint.r, tint.g, tint.b, 0));
@@ -677,6 +693,31 @@ Item {
                 ctx.lineWidth = Math.max(2, S * 0.018);
                 ctx.strokeStyle = rgba(cold(root.gotSphere, 0.5), 0.95);
                 ctx.stroke();
+
+                // Frozen: a rime crown on the sphere, crystals poking out
+                if (root.frost > 0.01) {
+                    const f = root.frost;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, S, 0, Math.PI * 2);
+                    ctx.lineWidth = Math.max(3, S * 0.05) * f;
+                    ctx.strokeStyle = rgba(root.frostColor, 0.45 * f);
+                    ctx.stroke();
+                    ctx.strokeStyle = rgba(root.frostColor, 0.8 * f);
+                    ctx.lineWidth = 0.9;
+                    for (let i = 0; i < 28; i++) {
+                        const h = Math.abs(Math.sin(i * 12.9898) * 43758.5453) % 1;
+                        const a = (i + h * 0.6) / 28 * Math.PI * 2;
+                        const cx = Math.cos(a) * S, cy = Math.sin(a) * S;
+                        const size = (2.5 + h * 4) * f;
+                        for (let k = 0; k < 6; k++) {
+                            const ang = k * Math.PI / 3 + h;
+                            ctx.beginPath();
+                            ctx.moveTo(cx, cy);
+                            ctx.lineTo(cx + Math.cos(ang) * size, cy + Math.sin(ang) * size);
+                            ctx.stroke();
+                        }
+                    }
+                }
             }
         }
     }
