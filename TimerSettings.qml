@@ -5,13 +5,9 @@ import qs.Common
 import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
-import "L10n.js" as L
 
 PluginSettings {
     id: root
-
-    // UI language (plugin setting, reactive)
-    readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
 
     pluginId: "smartTimer"
 
@@ -21,11 +17,11 @@ PluginSettings {
     // without the audio channel test sounds.
     property var soundOptions: [
         {
-            label: L.tr(root.lang, "Réveil (par défaut)"),
+            label: "Alarm clock (default)",
             value: ""
         },
         {
-            label: L.tr(root.lang, "Fichier personnel…"),
+            label: "Custom file…",
             value: "custom"
         }
     ]
@@ -52,7 +48,7 @@ PluginSettings {
                         }));
                 root.soundOptions = [root.soundOptions[0]].concat(found, [
                     {
-                        label: L.tr(root.lang, "Fichier personnel…"),
+                        label: "Custom file…",
                         value: "custom"
                     }
                 ]);
@@ -61,36 +57,16 @@ PluginSettings {
     }
 
     SelectionSetting {
-        settingKey: "language"
-        label: L.tr(root.lang, "Langue")
-        options: [
-            {
-                label: L.tr(root.lang, "Automatique (langue du système)"),
-                value: "auto"
-            },
-            {
-                label: "Français",
-                value: "fr"
-            },
-            {
-                label: "English",
-                value: "en"
-            }
-        ]
-        defaultValue: "auto"
-    }
-
-    SelectionSetting {
         settingKey: "hourglassStyle"
-        label: L.tr(root.lang, "Sablier")
-        description: L.tr(root.lang, "Seul le sablier change : le sable, le gel et le retournement restent identiques")
+        label: "Hourglass"
+        description: "Only the hourglass changes: sand, freeze and flip stay the same"
         options: [
             {
-                label: L.tr(root.lang, "Classique"),
+                label: "Classic",
                 value: "classic"
             },
             {
-                // A nod to Steven Universe; the name is the same in both languages
+                // A nod to Steven Universe
                 label: "Glass of Time",
                 value: "glassOfTime"
             }
@@ -104,7 +80,7 @@ PluginSettings {
 
     StyledText {
         width: parent.width
-        text: L.tr(root.lang, "Son de fin")
+        text: "Alarm sound"
         font.pixelSize: Theme.fontSizeLarge
         font.weight: Font.DemiBold
         color: Theme.surfaceText
@@ -113,8 +89,8 @@ PluginSettings {
     SelectionSetting {
         id: soundSetting
         settingKey: "sound"
-        label: L.tr(root.lang, "Son")
-        description: L.tr(root.lang, "Joué en boucle quand un minuteur arrive à zéro")
+        label: "Sound"
+        description: "Loops when a timer reaches zero"
         options: root.soundOptions
         defaultValue: ""
     }
@@ -123,14 +99,14 @@ PluginSettings {
         id: customSetting
         visible: soundSetting.value === "custom"
         settingKey: "customSound"
-        label: L.tr(root.lang, "Fichier son")
-        description: L.tr(root.lang, "Chemin complet d'un fichier .oga, .ogg, .wav, .mp3 ou .flac")
-        placeholder: L.tr(root.lang, "~/Musique/sonnerie.mp3")
+        label: "Sound file"
+        description: "Full path to an .oga, .ogg, .wav, .mp3 or .flac file"
+        placeholder: "~/Music/alarm.mp3"
         defaultValue: ""
     }
 
     DankButton {
-        text: L.tr(root.lang, "Écouter")
+        text: "Preview"
         iconName: "play_arrow"
         enabled: root.daemon !== null
         onClicked: {
@@ -148,7 +124,7 @@ PluginSettings {
 
     SliderSetting {
         settingKey: "volume"
-        label: L.tr(root.lang, "Volume")
+        label: "Volume"
         defaultValue: 80
         minimum: 0
         maximum: 100
@@ -159,8 +135,8 @@ PluginSettings {
 
     SliderSetting {
         settingKey: "ringDuration"
-        label: L.tr(root.lang, "Durée de la sonnerie")
-        description: L.tr(root.lang, "Le son s'arrête seul après ce délai ; la pastille continue de clignoter jusqu'à ce qu'on l'arrête")
+        label: "Alarm duration"
+        description: "The sound stops by itself after this delay; the pill keeps pulsing until you stop it"
         defaultValue: 60
         minimum: 10
         maximum: 300
@@ -169,29 +145,29 @@ PluginSettings {
 
     ToggleSetting {
         settingKey: "notify"
-        label: L.tr(root.lang, "Notification à la fin")
-        description: L.tr(root.lang, "Avec les boutons « Arrêter » et « +5 min » : utile en plein écran, quand la barre est cachée")
+        label: "Notification when done"
+        description: "With “Stop” and “+5 min” buttons: handy in fullscreen, when the bar is hidden"
         defaultValue: true
     }
 
     ToggleSetting {
         settingKey: "rampUp"
-        label: L.tr(root.lang, "Sonnerie progressive")
-        description: L.tr(root.lang, "Commence doucement puis monte jusqu'au volume choisi")
+        label: "Gentle alarm"
+        description: "Starts softly, then rises to the chosen volume"
         defaultValue: true
     }
 
     ToggleSetting {
         settingKey: "tick"
-        label: L.tr(root.lang, "Tic-tac final")
-        description: L.tr(root.lang, "Un tic discret à chacune des 10 dernières secondes")
+        label: "Final countdown ticks"
+        description: "A soft tick on each of the last 10 seconds"
         defaultValue: false
     }
 
     ToggleSetting {
         settingKey: "respectDnd"
-        label: L.tr(root.lang, "Respecter « Ne pas déranger »")
-        description: L.tr(root.lang, "En « Ne pas déranger », aucun son : la pastille pulse quand même")
+        label: "Respect Do Not Disturb"
+        description: "In Do Not Disturb, no sound: the pill still pulses"
         defaultValue: true
     }
 
@@ -206,7 +182,7 @@ PluginSettings {
 
     StyledText {
         width: parent.width
-        text: L.tr(root.lang, "Lanceur")
+        text: "Launcher"
         font.pixelSize: Theme.fontSizeLarge
         font.weight: Font.DemiBold
         color: Theme.surfaceText
@@ -215,16 +191,16 @@ PluginSettings {
     ToggleSetting {
         id: noTriggerSetting
         settingKey: "noTrigger"
-        label: L.tr(root.lang, "Détection automatique")
-        description: L.tr(root.lang, "Reconnaît « timer 20 min », « 25m pâtes » ou « à 18h » sans préfixe. Désactivé : il faut taper le préfixe ci-dessous.")
+        label: "Automatic detection"
+        description: "Understands “timer 20 min”, “25m pasta” or “at 6pm” without a prefix. Off: type the prefix below first."
         defaultValue: true
     }
 
     StringSetting {
         visible: !noTriggerSetting.value
         settingKey: "trigger"
-        label: L.tr(root.lang, "Préfixe")
-        description: L.tr(root.lang, "Exemple avec « timer » : « timer 20 min »")
+        label: "Prefix"
+        description: "Example with “timer”: “timer 20 min”"
         placeholder: "timer"
         defaultValue: "timer"
     }
@@ -234,7 +210,6 @@ PluginSettings {
         wrapMode: Text.WordWrap
         color: Theme.surfaceVariantText
         font.pixelSize: Theme.fontSizeSmall
-        text: L.tr(root.lang, "Exemples : timer 20 min · minuteur 1h30 · 25m pâtes · 1:30 · une demi-heure · trois quarts d'heure · à 18h30 · at 6pm · timer 14h30
-En ligne de commande : dms ipc call smartTimer start \"12 min pâtes\" (aussi : toggle, stop, add 5, list, clear)")
+        text: "Examples: timer 20 min · 1h30 · 25m pasta · 1:30 · half an hour · at 6:30pm · timer 14h30. French works too: une demi-heure · 12 min pâtes · à 18h30\nCommand line: dms ipc call smartTimer start \"12 min pasta\" (also: toggle, stop, add 5, list, clear, panel)"
     }
 }

@@ -124,7 +124,7 @@ No prefix needed: Sands only answers when what you type looks like a duration, a
 
 ## Syntax
 
-English and French, words or digits, in any order:
+Type in English or French, words or digits, in any order:
 
 | Input | Result |
 |---|---|
@@ -139,7 +139,7 @@ English and French, words or digits, in any order:
 
 The parser is covered by 91 tests: `gjs tests/parser.test.js`.
 
-Sands speaks English and French, in the launcher and in the interface. Would you like another language? [Open an issue](https://github.com/lung595/Sands/issues) and say which one.
+The launcher understands English and French; the interface is in English. Would you like Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues) and say which one.
 
 ## Settings
 
@@ -147,7 +147,6 @@ Settings → Plugins → **Sands**
 
 | Setting | Default |
 |---|---|
-| Language — automatic, English, Français | automatic |
 | Hourglass — Classic or Glass of Time | Classic |
 | Sound — any installed sound theme file, or your own `.oga/.ogg/.wav/.mp3/.flac` (with *Preview*) | alarm clock |
 | Volume | 80 % |
@@ -170,7 +169,6 @@ dms ipc call smartTimer add 5                  # +5 min to the next timer
 dms ipc call smartTimer list
 dms ipc call smartTimer clear
 dms ipc call smartTimer panel                  # open/close the panel on the focused screen
-dms ipc call smartTimer lang en                # en, fr or auto
 dms ipc call launcher openQuery "timer "       # launcher pre-filled, ready to type a duration
 ```
 
@@ -228,7 +226,7 @@ Ideas, not promises, and no dates. Sands stays a simple timer: no network, nothi
 - **Lighter open panel**: the floating hourglass redraws in sync with the display while the panel is open; move its slow float to a plain timer, measured before and after (the same work already done for Orbit Bluetooth).
 - **Light theme**: check every state with a light DMS theme.
 - **Easier to read code**: split the largest files (`TimerPanelContent.qml`, `Hourglass.qml`, `TimerDaemon.qml`) by role, without changing behavior.
-- **More languages**: English and French today. Other languages are added on request: [open an issue](https://github.com/lung595/Sands/issues) to ask for yours.
+- **More input languages**: the launcher understands English and French today. Other languages are added on request: [open an issue](https://github.com/lung595/Sands/issues) to ask for yours.
 
 ## Project layout
 
@@ -239,7 +237,6 @@ TimerWidget.qml             bar pill + native DMS popout
 TimerLauncher.qml           launcher provider
 TimerSettings.qml           settings page
 TimeParser.js               natural-language parser + formatting (tested)
-L10n.js                     English / French strings
 components/
   TimerPanelContent.qml     panel: hourglass, time, controls, other timers
   Hourglass.qml             the floating, volume-synced hourglass

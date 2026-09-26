@@ -4,7 +4,6 @@ import Quickshell.Io
 import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
-import "L10n.js" as L
 
 // Timer engine, instantiated once. The bar and the launcher
 // reach it through PluginService.pluginDaemonInstances["smartTimer"].
@@ -15,9 +14,6 @@ import "L10n.js" as L
 // is saved in the plugin state.
 Item {
     id: root
-
-    // UI language (plugin setting, reactive)
-    readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
     // Look of the panel's hourglass: "classic" or "glassOfTime"
     readonly property string hourglassStyle: SettingsData.pluginSettings["smartTimer"]?.hourglassStyle || "classic"
 
@@ -99,7 +95,7 @@ Item {
             return "";
         if (t.label)
             return t.label;
-        return t.kind === "at" ? L.tr(root.lang, "Alarme") : L.tr(root.lang, "Minuteur");
+        return t.kind === "at" ? "Alarm" : "Timer";
     }
 
     // ------------------------------------------------------------------
@@ -359,10 +355,10 @@ Item {
     function _notify(t) {
         if (!setting("notify", true) || _notifiers[t.id])
             return;
-        const body = t.kind === "at" ? L.tr(root.lang, "Il est ") + TP.formatTimeOfDay(t.endAt, use24h()) : TP.formatHuman(t.total) + L.tr(root.lang, " écoulées");
+        const body = t.kind === "at" ? "It's " + TP.formatTimeOfDay(t.endAt, use24h()) : TP.formatHuman(t.total) + " elapsed";
         const proc = notifierComp.createObject(root, {
             timerId: t.id,
-            command: ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p", "-A", "stop=" + L.tr(root.lang, "Arrêter"), "-A", "snooze=+5 min", displayLabel(t) + L.tr(root.lang, " — terminé"), body]
+            command: ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p", "-A", "stop=" + "Stop", "-A", "snooze=+5 min", displayLabel(t) + " — done", body]
         });
         const map = Object.assign({}, _notifiers);
         map[t.id] = {
@@ -626,18 +622,18 @@ Item {
         function start(text: string): string {
             const r = root.startText(text);
             if (!r)
-                return L.tr(root.lang, "Durée non reconnue : ") + text;
-            return L.tr(root.lang, "Lancé : ") + (r.label || (r.kind === "at" ? L.tr(root.lang, "Alarme") : L.tr(root.lang, "Minuteur"))) + " — " + (r.kind === "at" ? L.tr(root.lang, "à ") + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms));
+                return "Unrecognized duration: " + text;
+            return "Started: " + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms));
         }
 
         // Pauses / resumes the nearest timer; stops the alarm.
         function toggle(): string {
             if (root.ringing) {
                 root.dismissRinging();
-                return L.tr(root.lang, "Sonnerie arrêtée");
+                return "Alarm stopped";
             }
             if (!root.primary)
-                return L.tr(root.lang, "Aucun minuteur");
+                return "No timer";
             root.toggle(root.primary.id);
             return "OK";
         }
@@ -656,27 +652,19 @@ Item {
         function stop(): string {
             if (root.ringing) {
                 root.dismissRinging();
-                return L.tr(root.lang, "Sonnerie arrêtée");
+                return "Alarm stopped";
             }
             if (!root.primary)
-                return L.tr(root.lang, "Aucun minuteur");
+                return "No timer";
             root.remove(root.primary.id);
-            return L.tr(root.lang, "Minuteur annulé");
+            return "Timer cancelled";
         }
 
         // dms ipc call smartTimer add 5  → +5 min on the nearest timer
         function add(minutes: int): string {
             if (!root.primary)
-                return L.tr(root.lang, "Aucun minuteur");
+                return "No timer";
             root.adjust(root.primary.id, minutes * 60000);
-            return "OK";
-        }
-
-        // dms ipc call smartTimer lang fr   (fr, en or auto)
-        function lang(code: string): string {
-            if (["fr", "en", "auto"].indexOf(code) < 0)
-                return "fr, en, auto";
-            root.pluginService?.savePluginData(root.pluginId, "language", code);
             return "OK";
         }
 
@@ -689,14 +677,14 @@ Item {
 
         function clear(): string {
             root.clear();
-            return L.tr(root.lang, "Tous les minuteurs sont supprimés");
+            return "All timers cleared";
         }
 
         function list(): string {
             if (root.timers.length === 0)
-                return L.tr(root.lang, "Aucun minuteur");
+                return "No timer";
             return root.sorted.map(t => {
-                const state = t.state === "paused" ? L.tr(root.lang, " (pause)") : (t.state === "ringing" ? L.tr(root.lang, " (terminé)") : "");
+                const state = t.state === "paused" ? " (paused)" : (t.state === "ringing" ? " (done)" : "");
                 return root.displayLabel(t) + "\t" + TP.formatClock(root.remainingOf(t)) + state;
             }).join("\n");
         }
