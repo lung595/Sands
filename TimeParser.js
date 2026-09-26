@@ -156,7 +156,7 @@ function parse(input, now, options) {
         }
     }
 
-    // 1 bis. « 7am », « 6:30 pm » : une heure avec am/pm est toujours un moment.
+    // 1b. « 7am », « 6:30 pm »: a time with am/pm is always a moment.
     if (!target) {
         m = /(?:^|[\s\u0000])(\d{1,2})(?::(\d{2}))?\s*(am|pm)(?![\w])/.exec(work);
         if (m) {
@@ -174,7 +174,7 @@ function parse(input, now, options) {
     }
 
     if (!target) {
-        // 2. Format horloge : « 1:30 » (min:s) ou « 1:02:03 » (h:min:s).
+        // 2. Clock format: « 1:30 » (min:s) or « 1:02:03 » (h:min:s).
         m = /(?:^|[^\d:])(\d{1,3}):(\d{2})(?::(\d{2}))?(?![\d:])/.exec(work);
         if (m) {
             var a = parseInt(m[1]), b = parseInt(m[2]);
@@ -190,7 +190,7 @@ function parse(input, now, options) {
             work = consume(work, cs, m.index + m[0].length);
         }
 
-        // 3. Expressions : « demi-heure », « trois quarts d'heure », « half an hour ».
+        // 3. Phrases: « demi-heure », « trois quarts d'heure », « half an hour ».
         var halfRe = /(?:^|[^a-z])((?:(?:une|a|an|1)\s+)?(?:demi[- ]?heure|half[- ](?:an[- ])?hour))(?![a-z])/;
         while ((m = halfRe.exec(work))) {
             total += 1800000;

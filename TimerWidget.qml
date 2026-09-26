@@ -211,9 +211,9 @@ PluginComponent {
                     width: Math.round(pill.textSize * 1.2)
                     height: width
 
-                    // Last ten seconds: one beat per second.
+                    // Last ten seconds: one beat per second (skipped with Reduce motion).
                     SequentialAnimation {
-                        running: pill.finalCountdown
+                        running: pill.finalCountdown && !SettingsData.reduceMotion
                         loops: Animation.Infinite
                         onRunningChanged: if (!running)
                             glyph.scale = 1
@@ -268,7 +268,7 @@ PluginComponent {
                         color: Theme.error
 
                         SequentialAnimation {
-                            running: pill.st === "ringing" && (root.daemon?.soundActive ?? false)
+                            running: pill.st === "ringing" && (root.daemon?.soundActive ?? false) && !SettingsData.reduceMotion
                             loops: Animation.Infinite
                             onRunningChanged: if (!running)
                                 bell.rotation = 0

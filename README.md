@@ -170,6 +170,13 @@ Requires DankMaterialShell ≥ 1.6 and `pw-play` (PipeWire; `paplay` is used as 
 
 Timers survive a DMS restart: they are stored as end times, not countdowns.
 
+## Privacy
+
+- No network access, no telemetry.
+- The only processes are short-lived local tools: `pw-play` (or `paplay`) to ring, `notify-send` / `gdbus` for the notification, and a one-off `find` over the system sound folders while the settings page is open, to list the sounds you can pick.
+- Written to disk, through DMS's own plugin state: your running timers (end times and labels, so they survive a restart) and your recent timers (to suggest them again in the launcher). Nothing else.
+- Settings are stored by DMS with your other plugin settings.
+
 ## Performance
 
 Sands is built to cost nothing while you are not looking at it.
@@ -178,6 +185,7 @@ Sands is built to cost nothing while you are not looking at it.
 - **Hourglass:** glass and sand are redrawn only when the sand level moves by at least a quarter pixel; only visible jumps are smoothed. Floating, grains and the flip are plain GPU transforms.
 - **Pulses, glints, mist, ringing:** Qt Quick *Animators* — they run on the render thread, with zero JavaScript per frame.
 - **Closed panel:** every animation stops.
+- **Reduce motion:** the hourglass stops floating and flipping, the pill no longer beats or shakes, and the frost crystals stay still.
 
 ## Project layout
 

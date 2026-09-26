@@ -269,7 +269,8 @@ Column {
                         opacity: 0.3
 
                         ParallelAnimation {
-                            running: dust.visible && pop.shown
+                            // Reduce motion: the crystals stay still, dimly lit.
+                            running: dust.visible && pop.shown && !pop.reducedMotion
                             loops: Animation.Infinite
 
                             SequentialAnimation {
