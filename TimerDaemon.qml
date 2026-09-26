@@ -18,6 +18,8 @@ Item {
 
     // UI language (plugin setting, reactive)
     readonly property string lang: SettingsData.pluginSettings["smartTimer"]?.language || "auto"
+    // Look of the panel's hourglass: "classic" or "glassOfTime"
+    readonly property string hourglassStyle: SettingsData.pluginSettings["smartTimer"]?.hourglassStyle || "classic"
 
     property string pluginId: "smartTimer"
     property var pluginService: null

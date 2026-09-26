@@ -68,6 +68,9 @@ var EN = {
     "Exemples : timer 20 min · minuteur 1h30 · 25m pâtes · 1:30 · une demi-heure · trois quarts d'heure · à 18h30 · at 6pm · timer 14h30\nEn ligne de commande : dms ipc call smartTimer start \"12 min pâtes\" (aussi : toggle, stop, add 5, list, clear)": "Examples: timer 20 min · 1h30 · 25m pasta · 1:30 · half an hour · at 6:30pm · timer 14h30\nCommand line: dms ipc call smartTimer start \"12 min pasta\" (also: toggle, stop, add 5, list, clear, panel)",
     "Tapez une durée": "Type a duration",
     "Langue": "Language",
+    "Sablier": "Hourglass",
+    "Classique": "Classic",
+    "Seul le sablier change : le sable, le gel et le retournement restent identiques": "Only the hourglass changes: sand, freeze and flip stay the same",
     "Automatique (langue du système)": "Automatic (system language)",
     "timer 20 min · 1h30 pâtes · à 18h": "timer 20 min · 1h30 pasta · at 6pm"
 };

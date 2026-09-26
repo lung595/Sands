@@ -121,6 +121,7 @@ Column {
             sandColor: pop.st === "ringing" ? Theme.error : ((pop.st === "running" && pop.rem <= 60000) ? Theme.warning : pop.accent)
             glassColor: Theme.surfaceText
             capColor: Theme.surfaceContainerHighest
+            style: pop.d ? pop.d.hourglassStyle : "classic"
 
             // Restart: the hourglass turns over.
             Connections {
