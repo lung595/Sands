@@ -5,6 +5,7 @@ import qs.Widgets
 import qs.Modules.Plugins
 import "./components"
 import "TimeParser.js" as TP
+import "components/Motion.js" as Motion
 
 // Bar pill + popout. State lives in the daemon; this file only
 // displays it and forwards actions.
@@ -71,6 +72,10 @@ PluginComponent {
             readonly property real rem: t && root.daemon ? root.daemon.remainingOf(t) : 0
             readonly property bool urgent: st === "running" && rem <= 60000
             readonly property bool finalCountdown: st === "running" && rem <= 10000
+            // Motion only when something moves, and never with Reduce motion
+            // (the ringing background still breathes: it is the alert).
+            readonly property bool beating: finalCountdown && !SettingsData.reduceMotion
+            readonly property bool bellShaking: st === "ringing" && (root.daemon?.soundActive ?? false) && !SettingsData.reduceMotion
             // Damped hover: the pill opens after 120 ms and only closes
             // 450 ms after the pointer leaves. Without it, the notch re-centering while
             // widening made the pointer enter/leave in a loop (flicker).
@@ -118,6 +123,24 @@ PluginComponent {
                 onTriggered: pill.hoverOpen = false
             }
 
+            // Pill motion clock (ms). A plain Timer instead of looping
+            // Animators: those would make every DMS window redraw at the
+            // display rate for as long as the alarm rings (possibly for
+            // hours if nobody is there); this only redraws the bar. 60 Hz
+            // for the quick beat and bell, 30 Hz for the slow breathing.
+            property real fxMs: 0
+            Timer {
+                interval: (pill.beating || pill.bellShaking) ? 16 : 33
+                repeat: true
+                running: pill.st === "ringing" || pill.beating
+                property real start: 0
+                onRunningChanged: {
+                    start = Date.now();
+                    pill.fxMs = 0;
+                }
+                onTriggered: pill.fxMs = Date.now() - start
+            }
+
             Timer {
                 id: flashEnd
                 interval: 2200
@@ -142,25 +165,8 @@ PluginComponent {
                 radius: Theme.cornerRadius
                 color: Theme.error
                 visible: pill.st === "ringing"
-                opacity: 0.2
-
-                // Animators: run on the render thread.
-                SequentialAnimation {
-                    running: pill.st === "ringing"
-                    loops: Animation.Infinite
-                    OpacityAnimator {
-                        target: alertBg
-                        to: 0.4
-                        duration: 700
-                        easing.type: Easing.InOutSine
-                    }
-                    OpacityAnimator {
-                        target: alertBg
-                        to: 0.16
-                        duration: 700
-                        easing.type: Easing.InOutSine
-                    }
-                }
+                // Breathes between 0.16 and 0.4 every 1.4 s.
+                opacity: visible ? Motion.wave(pill.fxMs / 1000, 1.4, 0.16, 0.4) : 0.2
             }
 
             // Wheel: ±1 min (on a ringing timer, up = +1 min).
@@ -208,27 +214,7 @@ PluginComponent {
                     height: width
 
                     // Last ten seconds: one beat per second (skipped with Reduce motion).
-                    SequentialAnimation {
-                        running: pill.finalCountdown && !SettingsData.reduceMotion
-                        loops: Animation.Infinite
-                        onRunningChanged: if (!running)
-                            glyph.scale = 1
-                        ScaleAnimator {
-                            target: glyph
-                            to: 1.22
-                            duration: 110
-                            easing.type: Easing.OutQuad
-                        }
-                        ScaleAnimator {
-                            target: glyph
-                            to: 1
-                            duration: 390
-                            easing.type: Easing.OutCubic
-                        }
-                        PauseAnimation {
-                            duration: 500
-                        }
-                    }
+                    scale: pill.beating ? Motion.beatScale(pill.fxMs) : 1
 
                     ProgressRing {
                         anchors.fill: parent
@@ -262,36 +248,8 @@ PluginComponent {
                         filled: true
                         size: parent.width
                         color: Theme.error
-
-                        SequentialAnimation {
-                            running: pill.st === "ringing" && (root.daemon?.soundActive ?? false) && !SettingsData.reduceMotion
-                            loops: Animation.Infinite
-                            onRunningChanged: if (!running)
-                                bell.rotation = 0
-                            RotationAnimator {
-                                target: bell
-                                to: 14
-                                duration: 70
-                            }
-                            RotationAnimator {
-                                target: bell
-                                to: -14
-                                duration: 140
-                            }
-                            RotationAnimator {
-                                target: bell
-                                to: 10
-                                duration: 120
-                            }
-                            RotationAnimator {
-                                target: bell
-                                to: 0
-                                duration: 90
-                            }
-                            PauseAnimation {
-                                duration: 650
-                            }
-                        }
+                        // Shakes while the sound plays.
+                        rotation: pill.bellShaking ? Motion.bellAngle(pill.fxMs) : 0
                     }
                 }
 

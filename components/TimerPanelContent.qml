@@ -2,6 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 import "../TimeParser.js" as TP
+import "Motion.js" as Motion
 
 // Panel content: hourglass, time, controls, other timers.
 Column {
@@ -130,8 +131,9 @@ Column {
         }
 
         // Frost around the hourglass: cold mist behind, frost dust
-        // in front. Drawn once; their slow drift and the sparkle
-        // are Animators (render thread): no JavaScript work.
+        // in front. Drawn once; their slow drift and the sparkle follow the
+        // hourglass effects clock (glass.fxTime, a 30 Hz Timer), not looping
+        // QML animations, which would redraw the whole shell (Motion.js).
         Item {
             id: mistHolder
             z: -1
@@ -146,8 +148,9 @@ Column {
                 // so on top) instead of stopping under the hourglass.
                 width: pop.width
                 height: 360
-                x: (parent.width - width) / 2
-                y: -pop.topPadding
+                x: baseX + (pop.reducedMotion ? 0 : Motion.wave(glass.fxTime, 18, -10, 10))
+                y: baseY + (pop.reducedMotion ? 0 : Motion.wave(glass.fxTime, 13, -4, 6))
+                opacity: pop.reducedMotion ? 1 : Motion.wave(glass.fxTime, 10, 1, 0.8)
                 renderTarget: Canvas.FramebufferObject
                 onPaint: {
                     const ctx = getContext("2d");
@@ -175,60 +178,10 @@ Column {
 
                 // The mist floats gently in the background: drifts sideways,
                 // rises and falls, breathes. Different periods (18 s, 13 s,
-                // 10 s): the motion never quite repeats. Each
-                // loop starts from the current position: no jump on resume.
-                // Amplitudes chosen so the clouds stay inside the panel.
+                // 10 s): the motion never quite repeats. Amplitudes chosen so
+                // the clouds stay inside the panel.
                 readonly property real baseX: (mistHolder.width - width) / 2
                 readonly property real baseY: -pop.topPadding
-                ParallelAnimation {
-                    running: mistHolder.visible && pop.shown && !pop.reducedMotion
-                    loops: Animation.Infinite
-                    SequentialAnimation {
-                        XAnimator {
-                            target: mist
-                            to: mist.baseX + 10
-                            duration: 9000
-                            easing.type: Easing.InOutSine
-                        }
-                        XAnimator {
-                            target: mist
-                            from: mist.baseX + 10
-                            to: mist.baseX - 10
-                            duration: 9000
-                            easing.type: Easing.InOutSine
-                        }
-                    }
-                    SequentialAnimation {
-                        YAnimator {
-                            target: mist
-                            to: mist.baseY + 6
-                            duration: 6500
-                            easing.type: Easing.InOutSine
-                        }
-                        YAnimator {
-                            target: mist
-                            from: mist.baseY + 6
-                            to: mist.baseY - 4
-                            duration: 6500
-                            easing.type: Easing.InOutSine
-                        }
-                    }
-                    SequentialAnimation {
-                        OpacityAnimator {
-                            target: mist
-                            to: 0.8
-                            duration: 5000
-                            easing.type: Easing.InOutSine
-                        }
-                        OpacityAnimator {
-                            target: mist
-                            from: 0.8
-                            to: 1
-                            duration: 5000
-                            easing.type: Easing.InOutSine
-                        }
-                    }
-                }
             }
         }
 
@@ -262,47 +215,9 @@ Column {
                         radius: width / 2
                         x: -width / 2
                         color: "white"
-                        opacity: 0.3
-
-                        ParallelAnimation {
-                            // Reduce motion: the crystals stay still, dimly lit.
-                            running: dust.visible && pop.shown && !pop.reducedMotion
-                            loops: Animation.Infinite
-
-                            SequentialAnimation {
-                                PauseAnimation {
-                                    duration: slot.h1 * 3000
-                                }
-                                OpacityAnimator {
-                                    target: mote
-                                    to: 0.95
-                                    duration: 900 + slot.h2 * 800
-                                    easing.type: Easing.InOutSine
-                                }
-                                OpacityAnimator {
-                                    target: mote
-                                    to: 0.25
-                                    duration: 1400 + slot.h3 * 900
-                                    easing.type: Easing.InOutSine
-                                }
-                            }
-                            SequentialAnimation {
-                                YAnimator {
-                                    target: mote
-                                    from: 2
-                                    to: -4
-                                    duration: 5000 + slot.h2 * 3000
-                                    easing.type: Easing.InOutSine
-                                }
-                                YAnimator {
-                                    target: mote
-                                    from: -4
-                                    to: 2
-                                    duration: 5000 + slot.h3 * 3000
-                                    easing.type: Easing.InOutSine
-                                }
-                            }
-                        }
+                        // Reduce motion: the crystals stay still, dimly lit.
+                        opacity: pop.reducedMotion ? 0.3 : Motion.sparkle(glass.fxTime * 1000, slot.h1, slot.h2, slot.h3)
+                        y: pop.reducedMotion ? 0 : Motion.drift(glass.fxTime * 1000, slot.h2, slot.h3)
                     }
                 }
             }
@@ -462,24 +377,8 @@ Column {
                 style: pop.frost > 0.01 ? Text.Outline : Text.Normal
                 styleColor: Qt.rgba(pop.frostColor.r, pop.frostColor.g, pop.frostColor.b, 0.25 * pop.frost)
 
-                SequentialAnimation {
-                    running: pop.st === "ringing" && pop.shown
-                    loops: Animation.Infinite
-                    onRunningChanged: if (!running)
-                        bigTime.opacity = 1
-                    OpacityAnimator {
-                        target: bigTime
-                        to: 0.35
-                        duration: 650
-                        easing.type: Easing.InOutSine
-                    }
-                    OpacityAnimator {
-                        target: bigTime
-                        to: 1
-                        duration: 650
-                        easing.type: Easing.InOutSine
-                    }
-                }
+                // Ringing: blinks between 1 and 0.35 every 1.3 s.
+                opacity: pop.st === "ringing" ? Motion.wave(glass.fxTime, 1.3, 1, 0.35) : 1
             }
 
             Row {
