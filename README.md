@@ -11,7 +11,7 @@ Pause it and the whole thing freezes over.
 
 </div>
 
-**New in 1.2.1:** *Reduce motion* is honored everywhere, and a *Privacy* section explains what Sands runs and stores. See the [changelog](#changelog) and the [roadmap](#roadmap).
+**New in 1.3.0:** ultra light. With the panel open, the whole shell used about one CPU core; it now costs a few percent (see [Performance](#performance)). The interface is in English; the launcher still understands English and French. See the [changelog](#changelog) and the [roadmap](#roadmap).
 
 **Contents:** [Install](#install) · [Quick start](#quick-start) · [Features](#features) · [Syntax](#syntax) · [Settings](#settings) · [Command line](#command-line--keybindings) · [Privacy](#privacy) · [Changelog](#changelog) · [Roadmap](#roadmap)
 
@@ -201,11 +201,28 @@ Sands is built to cost nothing while you are not looking at it.
 
 - **Engine:** wakes up exactly when a displayed second changes (≈ once per second), not at all when everything is paused. The sorted list is only recomputed when timers change.
 - **Hourglass:** glass and sand are redrawn only when the sand level moves by at least a quarter pixel; only visible jumps are smoothed. Floating, grains and the flip are plain GPU transforms.
-- **Pulses, glints, mist, ringing:** Qt Quick *Animators* — they run on the render thread, with zero JavaScript per frame.
+- **No looping QML animation:** a looping animation keeps Qt's shared animation clock ticking, and then *every* DMS window (bars, wallpaper) redraws at the display rate, even when nothing changes there. Instead, one plain timer drives all the motion (float, grains, mist, frost crystals, pulses, bell): 60 fps while grains fall or the bell shakes, 30 fps for slow motion. Only the window that shows it redraws.
 - **Closed panel:** every animation stops.
-- **Reduce motion:** the hourglass stops floating and flipping, the pill no longer beats or shakes, and the frost crystals stay still.
+- **Reduce motion:** the hourglass stops floating and flipping, the pill no longer beats or shakes, and the frost crystals and aura stay still.
+
+Measured on a 240 Hz display, in % of one CPU core for the whole shell (DMS alone: about 2 %):
+
+| Situation | 1.2.1 | 1.3.0 |
+|---|---|---|
+| Timer running, panel closed | same as DMS alone | same as DMS alone (2.1 %) |
+| Panel open, sand flowing | 87 % | 6.5 % |
+| Panel open, paused (frozen) | 105 % | 3.9 % |
+
+Counter-test: back on the 1.2.1 code, after a restart, the paused panel measured 105 % again, and 3.9 % once the fix was back. The gain comes from the fix, not from the restart.
 
 ## Changelog
+
+### 1.3.0 (2026-09-26)
+- Ultra light: the open panel no longer makes the whole shell redraw at the display rate. Open panel 87 % → 6.5 % of one CPU core, paused panel 105 % → 3.9 % (details in [Performance](#performance)). Same motion as before: same ranges, periods and easing.
+- A ringing alarm left alone no longer keeps the shell busy: the pill breathes at 30 fps, and redraws only the bar.
+- The interface is in English only; the *Language* setting and the `lang` command are gone. The launcher still understands English and French.
+- The settings examples now show both input languages.
+- With *Reduce motion*, the frozen aura no longer breathes.
 
 ### 1.2.1 (2026-09-26)
 - *Reduce motion* is honored everywhere: no beat or bell shake in the pill, still frost crystals, and no frames at all while a paused hourglass stands still.
@@ -223,8 +240,6 @@ Sands is built to cost nothing while you are not looking at it.
 
 Ideas, not promises, and no dates. Sands stays a simple timer: no network, nothing sent anywhere.
 
-- **Lighter open panel**: the floating hourglass redraws in sync with the display while the panel is open; move its slow float to a plain timer, measured before and after (the same work already done for Orbit Bluetooth).
-- **Light theme**: check every state with a light DMS theme.
 - **Easier to read code**: split the largest files (`TimerPanelContent.qml`, `Hourglass.qml`, `TimerDaemon.qml`) by role, without changing behavior.
 - **More input languages**: the launcher understands English and French today. Other languages are added on request: [open an issue](https://github.com/lung595/Sands/issues) to ask for yours.
 
@@ -242,7 +257,9 @@ components/
   Hourglass.qml             the floating, volume-synced hourglass
   ProgressRing.qml          the ring used in the pill and lists
   RoundButton.qml, Chip.qml
+  Motion.js                 looping motion as pure functions of time (tested)
 tests/parser.test.js        gjs tests/parser.test.js
+tests/motion.test.js        gjs tests/motion.test.js
 docs/images/                screenshots and animations
 ```
 
