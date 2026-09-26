@@ -11,6 +11,8 @@ Pause it and the whole thing freezes over.
 
 </div>
 
+**New in 1.2.1:** *Reduce motion* is honored everywhere, and a *Privacy* section explains what Sands runs and stores. See the [changelog](#changelog) and the [roadmap](#roadmap).
+
 ---
 
 ## Why Sands
@@ -207,6 +209,28 @@ docs/images/                screenshots and animations
 ```
 
 > The plugin id is `smartTimer` (settings, IPC target and saved state use it); the display name is **Sands**.
+
+## Changelog
+
+### 1.2.1 (2026-09-26)
+- *Reduce motion* is honored everywhere: no beat or bell shake in the pill, still frost crystals, and no frames at all while a paused hourglass stands still.
+- New *Privacy* section in this README.
+- Code comments and test output in English only.
+
+### 1.2.0 (2026-09-26)
+- New *Hourglass* setting: *Classic*, or *Glass of Time* (a nod to Steven Universe: the glass in a cyan sphere, a gold ring around the waist). Sand, freeze and flip behave the same.
+
+### 1.1.0 (2026-09-24)
+- First release: natural-language timers in French and English from the launcher, the bar pill with its ring, the floating hourglass that freezes when paused and flips on restart, several named timers with their own theme color, timers that survive a restart.
+- Progressive ringing, a final tick, Do Not Disturb, a notification with Stop and +5 min, `dms ipc call smartTimer …` commands.
+
+## Roadmap
+
+Ideas, not promises, and no dates. Sands stays a simple timer: no network, nothing sent anywhere.
+
+- **Lighter open panel**: the floating hourglass redraws in sync with the display while the panel is open; move its slow float to a plain timer, measured before and after (the same work already done for Orbit Bluetooth).
+- **Light theme**: check every state with a light DMS theme.
+- **Easier to read code**: split the largest files (`TimerPanelContent.qml`, `Hourglass.qml`, `TimerDaemon.qml`) by role, without changing behavior.
 
 ## License
 
