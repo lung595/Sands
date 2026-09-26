@@ -139,6 +139,8 @@ English and French, words or digits, in any order:
 
 The parser is covered by 91 tests: `gjs tests/parser.test.js`.
 
+Sands speaks English and French, in the launcher and in the interface. Would you like another language? [Open an issue](https://github.com/lung595/Sands/issues) and say which one.
+
 ## Settings
 
 Settings → Plugins → **Sands**
@@ -226,6 +228,7 @@ Ideas, not promises, and no dates. Sands stays a simple timer: no network, nothi
 - **Lighter open panel**: the floating hourglass redraws in sync with the display while the panel is open; move its slow float to a plain timer, measured before and after (the same work already done for Orbit Bluetooth).
 - **Light theme**: check every state with a light DMS theme.
 - **Easier to read code**: split the largest files (`TimerPanelContent.qml`, `Hourglass.qml`, `TimerDaemon.qml`) by role, without changing behavior.
+- **More languages**: English and French today. Other languages are added on request: [open an issue](https://github.com/lung595/Sands/issues) to ask for yours.
 
 ## Project layout
 
