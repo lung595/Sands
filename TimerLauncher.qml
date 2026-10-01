@@ -34,11 +34,47 @@ Item {
             return _activeItems();
         }
 
+        // « timer stop »: cancel straight away, or choose which one.
+        if (_isCancelQuery(q))
+            return _cancelItems();
+
         const now = Date.now();
         const results = TP.parse(q, now, {
             keyword: withTrigger
         });
         return results.map(r => _startItem(r, now));
+    }
+
+    // « timer stop », « stop timer », « cancel timer », « annuler minuteur »:
+    // the keyword is required, so a plain « stop » search stays untouched.
+    function _isCancelQuery(q) {
+        const kw = "timers?|minuteurs?|minuteries?|alarms?|alarmes?";
+        const verb = "stop|cancel|annuler?|arreter?|arrêter?|supprimer?|delete";
+        return new RegExp("^(?:(?:" + kw + ")\\s+(?:" + verb + ")|(?:" + verb + ")\\s+(?:" + kw + "))$", "i").test(q);
+    }
+
+    // One timer: a single entry, Enter cancels it. Several: one entry
+    // per timer (the one ringing or ending first is on top), and « all ».
+    function _cancelItems() {
+        const d = daemon;
+        if (!d || !d.hasTimers)
+            return [];
+        const items = d.sorted.map(t => ({
+            name: "Cancel " + d.displayLabel(t) + " \u2014 " + TP.formatClock(d.remainingOf(t)),
+            icon: "material:timer_off",
+            comment: d.count > 1 ? "Enter: cancel this timer" : "Enter: cancel",
+            action: "cancel:" + t.id,
+            categories: ["Minuteur"]
+        }));
+        if (d.count > 1)
+            items.push({
+                name: "Cancel all " + d.count + " timers",
+                icon: "material:delete_sweep",
+                comment: "Enter: cancel everything",
+                action: "cancelAll:",
+                categories: ["Minuteur"]
+            });
+        return items;
     }
 
     function _startItem(r, now) {
@@ -49,7 +85,8 @@ Item {
             name = (r.label ? r.label + " — " : "Alarm ") + "at " + end + (tomorrow ? " (tomorrow)" : "");
             comment = "Rings in " + TP.formatRelative(r.ms);
         } else {
-            name = (r.label ? r.label + " — " : "Timer ") + TP.formatHuman(r.ms);
+            const times = r.count > 1 ? r.count + " × " : "";
+            name = (r.label ? r.label + " — " : "Timer ") + times + TP.formatHuman(r.ms);
             comment = "Rings at " + end + (tomorrow ? " tomorrow" : "");
         }
         return {
@@ -60,7 +97,8 @@ Item {
                 ms: r.ms,
                 label: r.label,
                 kind: r.kind,
-                at: r.at || 0
+                at: r.at || 0,
+                count: r.count || 1
             }),
             categories: ["Minuteur"]
         };
@@ -128,9 +166,15 @@ Item {
         case "start":
             {
                 const p = JSON.parse(data);
-                d.start(p.ms, p.label, p.kind, p.at);
+                d.startMany(p.ms, p.label, p.kind, p.at, p.count);
                 break;
             }
+        case "cancel":
+            d.remove(parseInt(data));
+            break;
+        case "cancelAll":
+            d.clear();
+            break;
         case "toggle":
             d.toggle(parseInt(data));
             break;
