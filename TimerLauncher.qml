@@ -35,7 +35,7 @@ Item {
         }
 
         // « timer stop »: cancel straight away, or choose which one.
-        if (_isCancelQuery(q))
+        if (_isCancelQuery(q, withTrigger))
             return _cancelItems();
 
         const now = Date.now();
@@ -47,9 +47,12 @@ Item {
 
     // « timer stop », « stop timer », « cancel timer », « annuler minuteur »:
     // the keyword is required, so a plain « stop » search stays untouched.
-    function _isCancelQuery(q) {
+    function _isCancelQuery(q, withTrigger) {
         const kw = "timers?|minuteurs?|minuteries?|alarms?|alarmes?";
         const verb = "stop|cancel|annuler?|arreter?|arrêter?|supprimer?|delete";
+        // With a prefix set in the settings, DMS strips « timer » before we see it.
+        if (withTrigger && new RegExp("^(?:" + verb + ")$", "i").test(q))
+            return true;
         return new RegExp("^(?:(?:" + kw + ")\\s+(?:" + verb + ")|(?:" + verb + ")\\s+(?:" + kw + "))$", "i").test(q);
     }
 
