@@ -165,7 +165,7 @@ Item {
         return list.slice().sort((a, b) => score(b) - score(a));
     }
 
-    function start(ms, label, kind, at) {
+    function start(ms, label, kind, at, remember) {
         ms = Math.round(ms);
         if (!(ms >= 1000))
             return -1;
@@ -183,10 +183,18 @@ Item {
             finishedAt: 0,
             hue: _freeHue()
         }]));
-        if (kind !== "at")
+        if (kind !== "at" && remember !== false)
             _remember(ms, (label || "").trim());
         timerStarted(id);
         return id;
+    }
+
+    // « 4x 1h »: `count` timers of the same duration. Remembered once in
+    // the recents, not four times.
+    function startMany(ms, label, kind, at, count) {
+        const n = kind === "at" ? 1 : Math.max(1, Math.min(20, Math.round(count || 1)));
+        for (let i = 0; i < n; i++)
+            start(ms, label, kind, at, i === 0);
     }
 
     // Each timer has its own color (sand, ring, list): the first
@@ -217,7 +225,7 @@ Item {
         if (res.length === 0)
             return null;
         const r = res[0];
-        start(r.ms, r.label, r.kind, r.at);
+        startMany(r.ms, r.label, r.kind, r.at, r.count);
         return r;
     }
 
@@ -487,6 +495,11 @@ Item {
 
     property int _ringCount: 0
 
+    // How long an alarm makes noise and moves (the same setting for both).
+    function ringLimitMs() {
+        return Math.max(5, parseInt(setting("ringDuration", 60)) || 60) * 1000;
+    }
+
     function startRinging() {
         if (_muted())
             return;
@@ -534,8 +547,7 @@ Item {
                 root._playOnce();
                 return;
             }
-            const maxMs = Math.max(5, parseInt(root.setting("ringDuration", 60)) || 60) * 1000;
-            if (exitCode !== 0 || Date.now() - root._ringStartedAt >= maxMs) {
+            if (exitCode !== 0 || Date.now() - root._ringStartedAt >= root.ringLimitMs()) {
                 root.soundActive = false;
                 return;
             }
@@ -623,7 +635,8 @@ Item {
             const r = root.startText(text);
             if (!r)
                 return "Unrecognized duration: " + text;
-            return "Started: " + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms));
+            const times = r.kind === "duration" && r.count > 1 ? r.count + " × " : "";
+            return "Started: " + times + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms));
         }
 
         // Pauses / resumes the nearest timer; stops the alarm.

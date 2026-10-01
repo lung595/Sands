@@ -11,7 +11,7 @@ Pause it and the whole thing freezes over.
 
 </div>
 
-**New in 1.3.0:** ultra light. With the panel open, the whole shell used about one CPU core; it now costs a few percent (see [Performance](#performance)). The interface is in English; the launcher still understands English and French. See the [changelog](#changelog) and the [roadmap](#roadmap).
+**New in 1.4.0:** `4x 1h` starts four one-hour timers, `timer stop` cancels from the launcher, `Space` pauses, and a click on the hourglass is just for fun. 1.3.0 made it ultra light (see [Performance](#performance)). The interface is in English; the launcher still understands English and French. See the [changelog](#changelog) and the [roadmap](#roadmap).
 
 **Contents:** [Install](#install) · [Quick start](#quick-start) · [Features](#features) · [Syntax](#syntax) · [Settings](#settings) · [Command line](#command-line--keybindings) · [Privacy](#privacy) · [Changelog](#changelog) · [Roadmap](#roadmap)
 
@@ -29,7 +29,7 @@ Then add it to the bar: **Settings → Appearance → DankBar Layout → Sands**
 
 Manual install: clone [the repository](https://github.com/lung595/Sands) into `~/.config/DankMaterialShell/plugins/`, then **Settings → Plugins → *Scan for plugins*** and enable **Sands**.
 
-Requires DankMaterialShell ≥ 1.6 and `pw-play` (PipeWire; `paplay` is used as a fallback).
+Requires DankMaterialShell ≥ 1.6, `pw-play` (PipeWire), `notify-send` (libnotify) and `gdbus` (glib2). `paplay` (pulseaudio-utils) is optional: it is used if `pw-play` is missing.
 
 
 ## Quick start
@@ -100,7 +100,8 @@ The ring turns amber during the last minute and beats during the last ten second
 - **A floating hourglass.** It levitates, tilts, and casts a breathing shadow.
 - **Sand synced by volume.** The bulbs' profile is integrated, so at half time exactly half the sand is left on top — a dip forms above, a mound grows below, grains stream through the neck.
 - **Freeze on pause.** Time slows to a stop, grains hang mid-air, the hourglass keeps floating — slower, like at absolute zero. Frost settles on the glass and the caps, a cold mist drifts, the digits turn ice-blue. It thaws just as smoothly.
-- **Flip to restart.** The hourglass turns over and starts again.
+- **Flip to restart.** The restart button turns the hourglass over and starts again.
+- **A click is just for fun.** Click the hourglass: it spins twice and hops. Nothing about your timer changes, so you can never restart one by accident (with *Reduce motion*, it stays still).
 - **Two hourglasses.** The classic one, or **Glass of Time** — a nod to Steven Universe: the glass floats in a cyan sphere with a gold ring around its waist. Only the frame changes; the sand, the freeze and the flip behave exactly the same.
 
 ![Glass of Time, running and frozen](docs/images/glass-of-time.png)
@@ -111,16 +112,19 @@ The ring turns amber during the last minute and beats during the last ten second
 
 | Gesture on the hourglass | Action |
 |---|---|
-| Click | Flip it (restart) |
+| Click | A wild spin and hop, just for fun — the timer is untouched |
 | Scroll | ±1 minute |
 | Swipe / horizontal scroll | Next or previous timer (dots show where you are) |
 | `Space` / `Esc` | Pause–resume / close |
+| Restart button (↻) | Turns the hourglass over and starts again |
 
 ### The launcher
 
 ![launcher](docs/images/launcher.png)
 
 No prefix needed: Sands only answers when what you type looks like a duration, and stays silent for everything else. Type `timer` alone to get your most used timers first (frequent *and* recent), then 5, 10 and 25 min, then the running ones.
+
+Cancel without leaving the keyboard: type `timer stop` (or `stop timer`, `cancel timer`). With one timer, Enter cancels it; with several, you pick which one, or *Cancel all*. Anything else you type with `stop` in it is left alone.
 
 ## Syntax
 
@@ -134,10 +138,11 @@ Type in English or French, words or digits, in any order:
 | `half an hour`, `an hour and a half`, `twenty five minutes` | spelled-out durations |
 | `une demi-heure`, `trois quarts d'heure`, `2 heures et quart` | same in French |
 | `12 min pasta`, `pasta 12 min`, `pasta for 12 min` | a named timer |
+| `4x 1h`, `4* 1h`, `1h x4` | four timers of one hour (up to 20) |
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | an alarm at a time of day (tomorrow if already past) |
 | `timer 14h30` | offers both: *alarm at 14:30* first, *14 h 30 timer* second |
 
-The parser is covered by 91 tests: `gjs tests/parser.test.js`.
+The parser is covered by 105 tests: `gjs tests/parser.test.js`.
 
 The launcher understands English and French; the interface is in English. Would you like Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues) and say which one.
 
@@ -216,6 +221,16 @@ Measured on a 240 Hz display, in % of one CPU core for the whole shell (DMS alon
 Counter-test: back on the 1.2.1 code, after a restart, the paused panel measured 105 % again, and 3.9 % once the fix was back. The gain comes from the fix, not from the restart.
 
 ## Changelog
+
+### 1.4.0 (2026-10-01)
+- A ringing alarm nobody answers stops moving after the *Alarm duration*, like its sound: the pill stays red but no longer redraws the bar.
+- The *Stop* button text uses the theme's `onError` color (it was an unknown token).
+- The panel follows the theme more closely: text on the main button, frost color, frost crystals, clock and icon sizes. The frost stays an ice blue, but darker on a light theme.
+- Declared dependencies: `pw-play`, `libnotify`, `glib2`.
+- Repeat a duration: `4x 1h`, `4* 1h`, `1h x4` start four timers (up to 20), and count once in your recents.
+- `timer stop` in the launcher cancels directly, or asks which timer when there are several.
+- `Space` pauses and resumes the timer shown in the panel.
+- Clicking the hourglass plays a spin-and-hop animation instead of restarting the timer. Restart stays on its button.
 
 ### 1.3.0 (2026-09-26)
 - Ultra light: the open panel no longer makes the whole shell redraw at the display rate. Open panel 87 % → 6.5 % of one CPU core, paused panel 105 % → 3.9 % (details in [Performance](#performance)). Same motion as before: same ranges, periods and easing.

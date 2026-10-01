@@ -39,7 +39,7 @@ Rectangle {
             visible: root.iconName !== ""
             anchors.verticalCenter: parent.verticalCenter
             name: root.iconName
-            size: 16
+            size: Theme.iconSizeSmall
             color: Theme.surfaceText
         }
 
