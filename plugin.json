@@ -22,7 +22,9 @@
     "settings": "./TimerSettings.qml",
     "requires_dms": ">=1.6.0",
     "dependencies": [
-        "pw-play"
+        "pw-play",
+        "libnotify",
+        "glib2"
     ],
     "permissions": [
         "settings_read",
