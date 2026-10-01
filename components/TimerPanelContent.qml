@@ -99,15 +99,21 @@ Column {
     bottomPadding: Theme.spacingXS
 
     // Space pauses / resumes the shown timer (stops it if it is ringing),
-    // like the big button. The panel takes the keyboard focus when it opens.
+    // like the big button. It is a window shortcut, not a Keys handler: DMS
+    // gives the keyboard focus to its own popout container, which is an
+    // ancestor of this panel, and a key event only ever travels upwards, so
+    // a Keys handler here would never see it.
     focus: true
-    Keys.onSpacePressed: event => {
-        if (pop.t && pop.d)
-            pop.d.toggle(pop.t.id);
-        event.accepted = true;
-    }
     onShownChanged: if (shown)
         forceActiveFocus()
+
+    Shortcut {
+        sequence: "Space"
+        context: Qt.WindowShortcut
+        // Only while the panel is open and has a timer to act on.
+        enabled: pop.shown && !!pop.t && !!pop.d
+        onActivated: pop.d.toggle(pop.t.id)
+    }
 
     // Opening the popout silences the alarm; the timer stays "finished"
     // so the user can choose: stop, +1 min, restart.

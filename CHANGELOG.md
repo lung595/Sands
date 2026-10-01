@@ -9,6 +9,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - Documentation split into `README.md`, `docs/GUIDE.md`, `CHANGELOG.md`, `ROADMAP.md` and `CONTRIBUTING.md`.
 
+### Fixed
+
+- `Space` really pauses and resumes the timer shown in the panel. It is a window shortcut now: DMS gives the keyboard focus to its own popout container, an ancestor of the panel, and a key event only travels upwards, so a `Keys` handler on the panel never saw it.
+
 ## 1.4.0 - 2026-10-01
 
 ### Added
