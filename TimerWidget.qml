@@ -128,17 +128,27 @@ PluginComponent {
             // display rate for as long as the alarm rings (possibly for
             // hours if nobody is there); this only redraws the bar. 60 Hz
             // for the quick beat and bell, 30 Hz for the slow breathing.
+            //
+            // An alarm nobody answers does not animate forever: like the
+            // sound, the pill stops moving after the alarm duration and
+            // stays lit (still red) until it is dismissed.
             property real fxMs: 0
+            property bool settled: false
+            onStChanged: settled = false
             Timer {
                 interval: (pill.beating || pill.bellShaking) ? 16 : 33
                 repeat: true
-                running: pill.st === "ringing" || pill.beating
+                running: (pill.st === "ringing" && !pill.settled) || pill.beating
                 property real start: 0
                 onRunningChanged: {
                     start = Date.now();
                     pill.fxMs = 0;
                 }
-                onTriggered: pill.fxMs = Date.now() - start
+                onTriggered: {
+                    pill.fxMs = Date.now() - start;
+                    if (pill.st === "ringing" && pill.fxMs > (root.daemon ? root.daemon.ringLimitMs() : 60000))
+                        pill.settled = true;
+                }
             }
 
             Timer {
@@ -166,7 +176,7 @@ PluginComponent {
                 color: Theme.error
                 visible: pill.st === "ringing"
                 // Breathes between 0.16 and 0.4 every 1.4 s.
-                opacity: visible ? Motion.wave(pill.fxMs / 1000, 1.4, 0.16, 0.4) : 0.2
+                opacity: visible && !pill.settled ? Motion.wave(pill.fxMs / 1000, 1.4, 0.16, 0.4) : 0.28
             }
 
             // Wheel: ±1 min (on a ringing timer, up = +1 min).

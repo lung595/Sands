@@ -16,6 +16,7 @@ import "Motion.js" as Motion
 // - progress : remaining fraction at the top (1 = full, 0 = empty)
 // - frost    : 0 → 1, freeze (driven by the panel, which freezes the whole screen)
 // - flip()   : the hourglass turns over (when restarting)
+// - wild()   : a happy spin and hop, for fun (a click); changes nothing else
 // - style    : "classic", or "glassOfTime" (a nod to the Hourglass of Steven
 //              Universe: glass in a cyan sphere, a gold ring around the waist).
 //              Only the frame changes; sand, freeze and flip behave the same.
@@ -140,6 +141,59 @@ Item {
         duration: 850
         easing.type: Easing.InOutBack
         easing.overshoot: 1.1
+        onFinished: root.flipAngle = 0
+    }
+
+    // Wild: a click on the hourglass. Two full turns with a springy hop
+    // and a squash on landing, then back to rest. Finite (about 1.3 s),
+    // so it costs nothing once done; skipped with Reduce motion.
+    property real wildHop: 0
+    property real wildSquash: 0
+    function wild() {
+        if (!root.reducedMotion && root.animate)
+            wildAnim.restart();
+    }
+    ParallelAnimation {
+        id: wildAnim
+        NumberAnimation {
+            target: root
+            property: "flipAngle"
+            from: 0
+            to: 720
+            duration: 1250
+            easing.type: Easing.InOutBack
+            easing.overshoot: 1.4
+        }
+        SequentialAnimation {
+            NumberAnimation {
+                target: root
+                property: "wildHop"
+                to: 1
+                duration: 420
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: root
+                property: "wildHop"
+                to: 0
+                duration: 520
+                easing.type: Easing.OutBounce
+            }
+            NumberAnimation {
+                target: root
+                property: "wildSquash"
+                to: 1
+                duration: 90
+                easing.type: Easing.OutQuad
+            }
+            NumberAnimation {
+                target: root
+                property: "wildSquash"
+                to: 0
+                duration: 220
+                easing.type: Easing.OutElastic
+            }
+        }
         onFinished: root.flipAngle = 0
     }
 
@@ -309,7 +363,13 @@ Item {
         width: root.hgW
         height: root.hgH
         x: (root.width - width) / 2
-        y: root.height / 2 - 8 - height / 2 + root.floatY
+        y: root.height / 2 - 8 - height / 2 + root.floatY - root.wildHop * 34
+        transform: Scale {
+            origin.x: body.width / 2
+            origin.y: body.height
+            xScale: 1 + 0.12 * root.wildSquash
+            yScale: 1 - 0.12 * root.wildSquash
+        }
         rotation: root.flipAngle + Math.sin(root.floatClock * 0.85) * 1.6 * root.floatAmp / 5
 
         // --- Glass of Time layers: the sphere and the ring's inner face
