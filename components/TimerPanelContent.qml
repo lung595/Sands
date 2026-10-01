@@ -88,6 +88,17 @@ Column {
     topPadding: Theme.spacingS
     bottomPadding: Theme.spacingXS
 
+    // Space pauses / resumes the shown timer (stops it if it is ringing),
+    // like the big button. The panel takes the keyboard focus when it opens.
+    focus: true
+    Keys.onSpacePressed: event => {
+        if (pop.t && pop.d)
+            pop.d.toggle(pop.t.id);
+        event.accepted = true;
+    }
+    onShownChanged: if (shown)
+        forceActiveFocus()
+
     // Opening the popout silences the alarm; the timer stays "finished"
     // so the user can choose: stop, +1 min, restart.
     Component.onCompleted: d?.silence()
@@ -223,7 +234,8 @@ Column {
             }
         }
 
-        // Gestures on the hourglass: click = turn it over (restart),
+        // Gestures on the hourglass: click = just a wild animation (it
+        // never changes the timer: restart is the button's job),
         // wheel = ±1 min, swipe / horizontal wheel = another timer.
         MouseArea {
             anchors.centerIn: parent
@@ -246,8 +258,8 @@ Column {
                 }
             }
             onClicked: {
-                if (!swiped && pop.t)
-                    pop.d.restart(pop.t.id);
+                if (!swiped)
+                    glass.wild();
             }
             onWheel: w => {
                 if (!pop.t)
