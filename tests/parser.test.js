@@ -11,7 +11,7 @@ const TP = new Function(src + "; return { parse, formatClock, formatHuman, forma
 const NOW = new Date(2026, 8, 24, 21, 47, 0, 0).getTime();
 const MIN = 60000, H = 3600000, S = 1000;
 
-let failures = 0, count = 0;
+let failures = 0, count = 0, countChecks = 0;
 
 function check(input, expected, opts) {
     count++;
@@ -115,6 +115,31 @@ check("mes 2 chats", []);
 check("= 2+2", []);
 check("timer 0 min", []);
 
+// Repeat: « 4x 1h » is four timers of one hour (count is checked apart)
+check("4x 1h", [{ ms: H, label: "" }]);
+check("4* 1h", [{ ms: H, label: "" }]);
+check("4×1h", [{ ms: H, label: "" }]);
+check("timer 3x 20 min pasta", [{ ms: 20 * MIN, label: "pasta" }]);
+check("1h x4", [{ ms: H, label: "" }]);
+check("2x 25m focus", [{ ms: 25 * MIN, label: "focus" }]);
+check("4x", []);
+check("2x pasta", []);
+
+function checkCount(input, expected) {
+    countChecks++;
+    const got = TP.parse(input, NOW)[0]?.count;
+    if (got !== expected) {
+        failures++;
+        print("✗ count " + JSON.stringify(input) + ": expected " + expected + ", got " + got);
+    }
+}
+checkCount("4x 1h", 4);
+checkCount("4* 1h", 4);
+checkCount("timer 4x 1h", 4);
+checkCount("1h x4", 4);
+checkCount("1h", 1);
+checkCount("99x 1h", 1);
+
 // Formatting
 function eq(a, b) {
     count++;
@@ -139,5 +164,5 @@ eq(TP.formatRelative(2 * H + 16 * MIN), "2 h 16");
 eq(TP.formatTimeOfDay(new Date(2026, 8, 24, 22, 4).getTime(), true), "22:04");
 eq(TP.formatTimeOfDay(new Date(2026, 8, 24, 22, 4).getTime(), false), "10:04 PM");
 
-print(failures === 0 ? "✓ " + count + " tests passed" : "\n" + failures + " / " + count + " failed");
+print(failures === 0 ? "✓ " + (count + countChecks) + " tests passed" : "\n" + failures + " / " + count + " failed");
 imports.system.exit(failures === 0 ? 0 : 1);

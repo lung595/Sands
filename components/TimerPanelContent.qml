@@ -11,7 +11,9 @@ Column {
     property var daemon: null
     property bool use24h: true
     // 0 → 1: freeze (pause), driven by the panel
-    readonly property color frostColor: Qt.rgba(0.78, 0.9, 1, 1)
+    // Frost: always an ice blue (cold means blue), but its lightness follows
+    // the theme: pale on a dark theme, deeper on a light one so it stays visible.
+    readonly property color frostColor: Qt.hsla(0.56, 0.85, Math.max(0.45, Math.min(0.88, Theme.surfaceText.hslLightness)), 1)
     // Freeze: sets in ~0.9 s on pause, melts in ~0.7 s on resume.
     property real frost: st === "paused" ? 1 : 0
     Behavior on frost {
@@ -39,6 +41,14 @@ Column {
     // (otherwise the Repeater would recreate its rows 4 times per second).
     readonly property string othersKey: others.map(x => x.id).join(",")
     readonly property color accent: (d && t) ? d.colorFor(t) : Theme.primary
+    // Text on the main button: the theme's own for the first timer, and for
+    // the derived hues a darker or lighter shade of the button itself.
+    readonly property color accentText: {
+        if (!t || !t.hue)
+            return Theme.onPrimary;
+        const lum = 0.299 * accent.r + 0.587 * accent.g + 0.114 * accent.b;
+        return lum > 0.6 ? Qt.darker(accent, 4) : Qt.lighter(accent, 4);
+    }
 
     // --- Switching between timers (swipe, horizontal wheel, dots)
     readonly property var ids: d ? d.sorted.map(x => x.id) : []
@@ -87,6 +97,17 @@ Column {
     spacing: Theme.spacingL
     topPadding: Theme.spacingS
     bottomPadding: Theme.spacingXS
+
+    // Space pauses / resumes the shown timer (stops it if it is ringing),
+    // like the big button. The panel takes the keyboard focus when it opens.
+    focus: true
+    Keys.onSpacePressed: event => {
+        if (pop.t && pop.d)
+            pop.d.toggle(pop.t.id);
+        event.accepted = true;
+    }
+    onShownChanged: if (shown)
+        forceActiveFocus()
 
     // Opening the popout silences the alarm; the timer stays "finished"
     // so the user can choose: stop, +1 min, restart.
@@ -214,7 +235,7 @@ Column {
                         height: width
                         radius: width / 2
                         x: -width / 2
-                        color: "white"
+                        color: Theme.surfaceText
                         // Reduce motion: the crystals stay still, dimly lit.
                         opacity: pop.reducedMotion ? 0.3 : Motion.sparkle(glass.fxTime * 1000, slot.h1, slot.h2, slot.h3)
                         y: pop.reducedMotion ? 0 : Motion.drift(glass.fxTime * 1000, slot.h2, slot.h3)
@@ -223,7 +244,8 @@ Column {
             }
         }
 
-        // Gestures on the hourglass: click = turn it over (restart),
+        // Gestures on the hourglass: click = just a wild animation (it
+        // never changes the timer: restart is the button's job),
         // wheel = ±1 min, swipe / horizontal wheel = another timer.
         MouseArea {
             anchors.centerIn: parent
@@ -246,8 +268,8 @@ Column {
                 }
             }
             onClicked: {
-                if (!swiped && pop.t)
-                    pop.d.restart(pop.t.id);
+                if (!swiped)
+                    glass.wild();
             }
             onWheel: w => {
                 if (!pop.t)
@@ -366,7 +388,7 @@ Column {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 text: TP.formatClock(pop.rem)
-                font.pixelSize: 52
+                font.pixelSize: Math.round(Theme.fontSizeXLarge * 2.6)
                 font.weight: Font.Light
                 font.features: {
                     "tnum": 1
@@ -388,7 +410,7 @@ Column {
                 DankIcon {
                     anchors.verticalCenter: parent.verticalCenter
                     name: pop.st === "paused" ? "ac_unit" : (pop.st === "ringing" ? "alarm" : "notifications")
-                    size: 15
+                    size: Theme.iconSizeSmall
                     filled: true
                     color: pop.st === "ringing" ? Theme.error : (pop.st === "paused" ? pop.frostColor : Theme.surfaceVariantText)
                 }
@@ -459,7 +481,7 @@ Column {
                 filled: true
                 // Color of the displayed timer; dark or light text depending on the background.
                 accent: pop.accent
-                accentText: (0.299 * pop.accent.r + 0.587 * pop.accent.g + 0.114 * pop.accent.b) > 0.6 ? "#1c1b1f" : "white"
+                accentText: pop.accentText
                 iconName: pop.st === "paused" ? "play_arrow" : "pause"
                 tooltip: pop.st === "paused" ? "Resume" : "Pause"
                 onClicked: pop.d.toggle(pop.t.id)
@@ -502,15 +524,15 @@ Column {
                         anchors.verticalCenter: parent.verticalCenter
                         name: "stop"
                         filled: true
-                        size: 22
-                        color: Theme.errorText
+                        size: Theme.iconSize
+                        color: Theme.onError
                     }
                     StyledText {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Stop"
                         font.pixelSize: Theme.fontSizeLarge
                         font.weight: Font.DemiBold
-                        color: Theme.errorText
+                        color: Theme.onError
                     }
                 }
 
