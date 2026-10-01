@@ -57,13 +57,13 @@ In **Settings → Plugins**, turn **Sands** on. The launcher now understands dur
 | --- | --- |
 | **Bar** | **Settings → Appearance → DankBar Layout**, add **Sands** to a section (the center looks best) |
 
-The pill only shows while a timer runs, so an empty bar right after adding it is normal.
+The pill only shows while you have a timer (running, paused or ringing), so an empty bar right after adding it is normal.
 
 ### 4. First steps
 
 1. **Open the launcher and type a duration**, with an optional name: `timer 20 min pasta`, `1h30 oven`, `at 6pm`.
 2. **Watch the pill** in the bar: a ring drains until it rings.
-3. **Click the pill** for the floating hourglass: pause freezes it, the restart button flips it over.
+3. **Click the pill** for the floating hourglass: pause freezes it, the restart button flips it over, <kbd>Space</kbd> freezes and resumes it, <kbd>Esc</kbd> closes the panel.
 
 ## Features
 
@@ -72,7 +72,7 @@ The pill only shows while a timer runs, so an empty bar right after adding it is
 | ![freeze](docs/images/freeze.gif) | ![flip](docs/images/flip.gif) |
 
 - **Zero forms**: one line in the launcher starts a timer, in English or French.
-- **Zero clutter**: the bar pill only exists while a timer runs.
+- **Zero clutter**: the bar pill only exists while you have a timer.
 - **Sand synced by volume** to the real remaining time.
 - **Several named timers** at once, each with its own color.
 - **Survives a restart**: timers are stored as end times.
@@ -109,7 +109,7 @@ Type `timer` alone to get your most used timers; `timer stop` cancels one from t
 | Restart button (↻) | Turns the hourglass over and starts again |
 | Scroll | ±1 minute |
 | Swipe / horizontal scroll | Next or previous timer |
-| <kbd>Space</kbd> / <kbd>Esc</kbd> | Pause–resume / close |
+| <kbd>Space</kbd> / <kbd>Esc</kbd> | Pause–resume the shown timer / close the panel |
 
 📖 The full syntax, every state of the pill and panel, and the *Glass of Time* hourglass are in the **[user guide](docs/GUIDE.md)**.
 
@@ -134,6 +134,8 @@ Type `timer` alone to get your most used timers; `timer stop` cancels one from t
 ```sh
 dms ipc call smartTimer start "12 min pasta"   # same syntax as the launcher
 dms ipc call smartTimer toggle                 # pause/resume the next timer, or stop the alarm
+dms ipc call smartTimer pause                  # pause every running timer
+dms ipc call smartTimer resume                 # resume every paused timer
 dms ipc call smartTimer stop                   # stop the alarm, or cancel the next timer
 dms ipc call smartTimer add 5                  # +5 min to the next timer
 dms ipc call smartTimer list                   # list running timers
