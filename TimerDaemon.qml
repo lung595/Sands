@@ -495,6 +495,11 @@ Item {
 
     property int _ringCount: 0
 
+    // How long an alarm makes noise and moves (the same setting for both).
+    function ringLimitMs() {
+        return Math.max(5, parseInt(setting("ringDuration", 60)) || 60) * 1000;
+    }
+
     function startRinging() {
         if (_muted())
             return;
@@ -542,8 +547,7 @@ Item {
                 root._playOnce();
                 return;
             }
-            const maxMs = Math.max(5, parseInt(root.setting("ringDuration", 60)) || 60) * 1000;
-            if (exitCode !== 0 || Date.now() - root._ringStartedAt >= maxMs) {
+            if (exitCode !== 0 || Date.now() - root._ringStartedAt >= root.ringLimitMs()) {
                 root.soundActive = false;
                 return;
             }

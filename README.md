@@ -29,7 +29,7 @@ Then add it to the bar: **Settings → Appearance → DankBar Layout → Sands**
 
 Manual install: clone [the repository](https://github.com/lung595/Sands) into `~/.config/DankMaterialShell/plugins/`, then **Settings → Plugins → *Scan for plugins*** and enable **Sands**.
 
-Requires DankMaterialShell ≥ 1.6 and `pw-play` (PipeWire; `paplay` is used as a fallback).
+Requires DankMaterialShell ≥ 1.6, `pw-play` (PipeWire), `notify-send` (libnotify) and `gdbus` (glib2). `paplay` (pulseaudio-utils) is optional: it is used if `pw-play` is missing.
 
 
 ## Quick start
@@ -223,6 +223,10 @@ Counter-test: back on the 1.2.1 code, after a restart, the paused panel measured
 ## Changelog
 
 ### 1.4.0 (2026-10-01)
+- A ringing alarm nobody answers stops moving after the *Alarm duration*, like its sound: the pill stays red but no longer redraws the bar.
+- The *Stop* button text uses the theme's `onError` color (it was an unknown token).
+- The panel follows the theme more closely: text on the main button, frost color, frost crystals, clock and icon sizes. The frost stays an ice blue, but darker on a light theme.
+- Declared dependencies: `pw-play`, `libnotify`, `glib2`.
 - Repeat a duration: `4x 1h`, `4* 1h`, `1h x4` start four timers (up to 20), and count once in your recents.
 - `timer stop` in the launcher cancels directly, or asks which timer when there are several.
 - `Space` pauses and resumes the timer shown in the panel.
