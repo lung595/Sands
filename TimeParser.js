@@ -8,8 +8,12 @@
 //   [{ kind: "at", at: <epoch ms>, ms: <ms until that time>, label: "" }]
 // An empty list means "this is not a timer": the launcher then stays
 // silent for every other search.
+//
+// A duration can be repeated: « 4x 1h », « 4*1h », « 1h x4 » → count: 4
+// (four timers of one hour).
 
 var MAX_MS = 100 * 3600 * 1000;
+var MAX_COUNT = 20;
 
 var KEYWORDS = "timer|minuteur|minuterie|countdown|compte a rebours|chrono|alarme|alarm|rappel|reminder|reveil";
 
@@ -134,6 +138,17 @@ function parse(input, now, options) {
     var found = false;
     var target = null;
     var clockLike = null;
+
+    // 0. Repeat: « 4x 1h », « 4 * 1h », « 4×1h » at the start, or « 1h x4 » at the end.
+    var count = 1;
+    m = /^[\s\u0000]*(\d{1,2})\s*[x×*](?=\s|\d|$)/.exec(work) || /(?:^|\s)[x×*]\s*(\d{1,2})\s*$/.exec(work);
+    if (m) {
+        var n = parseInt(m[1]);
+        if (n >= 1 && n <= MAX_COUNT) {
+            count = n;
+            work = consume(work, m.index, m.index + m[0].length);
+        }
+    }
 
     // 1. Explicit target time: « à 18h », « à 18:30 », « at 6pm », « vers midi ».
     var atRe = /(?:^|[\s\u0000])(?:a|at|vers|until|jusqu'a|@)\s*(?:(midi|noon)|(minuit|midnight)|(\d{1,2})(?:\s*(h)\s*(\d{2})?|:(\d{2}))?\s*(am|pm)?)(?![\w:])/;
@@ -284,7 +299,7 @@ function parse(input, now, options) {
     var results = [];
     total = Math.round(total);
     if (total >= 1000 && total <= MAX_MS)
-        results.push({ kind: "duration", ms: total, label: label });
+        results.push({ kind: "duration", ms: total, label: label, count: count });
 
     // « 14h30 » or « 18:00 »: also offer the target time (first for
     // « 14h30 », which looks more like a time of day than a duration).

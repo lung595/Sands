@@ -72,7 +72,7 @@ Sands/
 ## Tests
 
 ```sh
-gjs tests/parser.test.js        # 91 parser tests
+gjs tests/parser.test.js        # 105 parser tests
 gjs tests/motion.test.js
 ```
 
@@ -109,4 +109,4 @@ Measure before and after a change, in % of one CPU core for the whole shell (240
 1. Bump `version` in `plugin.json` ([Semantic Versioning](https://semver.org/)).
 2. Move the `Unreleased` entries of `CHANGELOG.md` under the new version and date.
 3. Refresh the images in `docs/images/` if the look changed.
-4. Run the tests, commit, then tag: `git tag v1.3.1 && git push --tags`.
+4. Run the tests, commit, then tag: `git tag v1.4.1 && git push --tags`.

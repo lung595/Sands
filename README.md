@@ -21,6 +21,7 @@ Pause it and the whole thing freezes over.
 | --- | --- | --- |
 | DankMaterialShell | 1.6.0 or newer | Everything |
 | `pw-play` (PipeWire) | Any | The alarm sound (`paplay` is used as a fallback) |
+| `notify-send` (libnotify), `gdbus` (glib2) | Any | Notifications and Do Not Disturb |
 
 ### 1. Install
 
@@ -62,7 +63,7 @@ The pill only shows while a timer runs, so an empty bar right after adding it is
 
 1. **Open the launcher and type a duration**, with an optional name: `timer 20 min pasta`, `1h30 oven`, `at 6pm`.
 2. **Watch the pill** in the bar: a ring drains until it rings.
-3. **Click the pill** for the floating hourglass: pause freezes it, restart flips it over.
+3. **Click the pill** for the floating hourglass: pause freezes it, the restart button flips it over.
 
 ## Features
 
@@ -88,9 +89,10 @@ The pill only shows while a timer runs, so an empty bar right after adding it is
 | `1h30`, `1.5h`, `90 min`, `1:30:00` | 1 hour 30 |
 | `half an hour`, `une demi-heure` | Spelled-out durations |
 | `12 min pasta`, `pasta for 12 min` | A named timer |
+| `4x 1h`, `1h x4` | Four timers of one hour (up to 20) |
 | `at 18:30`, `at 6pm`, `à 18h` | An alarm at a time of day |
 
-Type `timer` alone to get your most used timers.
+Type `timer` alone to get your most used timers; `timer stop` cancels one from the keyboard.
 
 ### Gestures
 
@@ -103,7 +105,8 @@ Type `timer` alone to get your most used timers.
 
 | On the hourglass | Action |
 | --- | --- |
-| Click | Flip it (restart) |
+| Click | A spin and hop, just for fun (the timer is untouched) |
+| Restart button (↻) | Turns the hourglass over and starts again |
 | Scroll | ±1 minute |
 | Swipe / horizontal scroll | Next or previous timer |
 | <kbd>Space</kbd> / <kbd>Esc</kbd> | Pause–resume / close |

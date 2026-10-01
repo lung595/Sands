@@ -9,6 +9,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - Documentation split into `README.md`, `docs/GUIDE.md`, `CHANGELOG.md`, `ROADMAP.md` and `CONTRIBUTING.md`.
 
+## 1.4.0 - 2026-10-01
+
+### Added
+
+- Repeat a duration: `4x 1h`, `4* 1h`, `1h x4` start four timers (up to 20) and count once in your recents.
+- `timer stop` in the launcher cancels directly, or asks which timer when there are several.
+- `Space` pauses and resumes the timer shown in the panel.
+
+### Changed
+
+- Clicking the hourglass plays a spin-and-hop animation instead of restarting the timer. Restart stays on its button.
+- A ringing alarm nobody answers stops moving after the *Alarm duration*, like its sound: the pill stays red but no longer redraws the bar.
+- The panel follows the theme more closely (text on the main button, frost color and crystals, clock and icon sizes). The frost stays an ice blue, but darker on a light theme.
+- Declared dependencies: `pw-play`, `libnotify`, `glib2`.
+
+### Fixed
+
+- The *Stop* button text uses the theme's `onError` color (it was an unknown token).
+
 ## 1.3.0 - 2026-09-26
 
 ### Changed

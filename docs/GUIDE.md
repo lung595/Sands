@@ -57,15 +57,17 @@ The ring turns amber during the last minute and beats during the last ten second
 - **A floating hourglass.** It levitates, tilts and casts a breathing shadow.
 - **Sand synced by volume.** The bulbs' profile is integrated, so at half time exactly half the sand is left on top.
 - **Freeze on pause.** Time slows to a stop, grains hang mid-air, frost settles on the glass, the digits turn ice-blue. It thaws just as smoothly.
-- **Flip to restart.** The hourglass turns over and starts again.
+- **Flip to restart.** The restart button turns the hourglass over and starts again.
+- **A click is just for fun.** Click the hourglass: it spins twice and hops. Nothing about your timer changes, so you can never restart one by accident (with *Reduce motion*, it stays still).
 - **Colors follow your theme.** The first timer uses your accent color; each additional timer gets a harmonious hue derived from it. Alerts use the theme's warning (last minute) and error (done) colors.
 
 | Gesture on the hourglass | Action |
 | --- | --- |
-| Click | Flip it (restart) |
+| Click | A spin and hop, just for fun (the timer is untouched) |
 | Scroll | ±1 minute |
 | Swipe / horizontal scroll | Next or previous timer (dots show where you are) |
 | <kbd>Space</kbd> / <kbd>Esc</kbd> | Pause–resume / close |
+| Restart button (↻) | Turns the hourglass over and starts again |
 
 **Two hourglasses.** The classic one, or **Glass of Time**, a nod to *Steven Universe*: the glass floats in a cyan sphere with a gold ring around its waist. Only the frame changes.
 
@@ -76,6 +78,8 @@ The ring turns amber during the last minute and beats during the last ten second
 ![launcher](images/launcher.png)
 
 No prefix needed: Sands only answers when what you type looks like a duration, and stays silent otherwise. Type `timer` alone to get your most used timers first (frequent *and* recent), then 5, 10 and 25 min, then the running ones.
+
+**Cancel from the keyboard**: type `timer stop` (or `stop timer`, `cancel timer`). With one timer, <kbd>Enter</kbd> cancels it; with several, you pick which one, or *Cancel all*. Anything else you type with `stop` in it is left alone.
 
 ## Syntax
 
@@ -89,6 +93,7 @@ Type in English or French, words or digits, in any order:
 | `half an hour`, `an hour and a half`, `twenty five minutes` | Spelled-out durations |
 | `une demi-heure`, `trois quarts d'heure`, `2 heures et quart` | Same in French |
 | `12 min pasta`, `pasta 12 min`, `pasta for 12 min` | A named timer |
+| `4x 1h`, `4* 1h`, `1h x4` | Four timers of one hour (up to 20); they count once in your recents |
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
 | `timer 14h30` | Offers both: *alarm at 14:30* first, *14 h 30 timer* second |
 
@@ -108,7 +113,7 @@ The interface is in English. Want Sands to understand another language? [Open an
 | Respect Do Not Disturb | No sound; the pill still pulses | On |
 | Automatic detection / Prefix | Answer any duration in the launcher, or only after your prefix | Automatic detection |
 
-DMS's *Reduce motion* is respected: no floating, no flip animation.
+DMS's *Reduce motion* is respected: no floating, no spin or flip animation.
 
 ## Privacy
 
