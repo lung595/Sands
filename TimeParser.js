@@ -141,11 +141,13 @@ function parse(input, now, options) {
 
     // 0. Repeat: « 4x 1h », « 4 * 1h », « 4×1h » at the start, or « 1h x4 » at the end.
     var count = 1;
+    var capped = false;
     m = /^[\s\u0000]*(\d{1,2})\s*[x×*](?=\s|\d|$)/.exec(work) || /(?:^|\s)[x×*]\s*(\d{1,2})\s*$/.exec(work);
     if (m) {
         var n = parseInt(m[1]);
-        if (n >= 1 && n <= MAX_COUNT) {
-            count = n;
+        if (n >= 1) {
+            count = Math.min(n, MAX_COUNT);
+            capped = n > MAX_COUNT;
             work = consume(work, m.index, m.index + m[0].length);
         }
     }
@@ -299,7 +301,7 @@ function parse(input, now, options) {
     var results = [];
     total = Math.round(total);
     if (total >= 1000 && total <= MAX_MS)
-        results.push({ kind: "duration", ms: total, label: label, count: count });
+        results.push({ kind: "duration", ms: total, label: label, count: count, capped: capped });
 
     // « 14h30 » or « 18:00 »: also offer the target time (first for
     // « 14h30 », which looks more like a time of day than a duration).

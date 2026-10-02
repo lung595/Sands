@@ -42,6 +42,16 @@ Item {
         const results = TP.parse(q, now, {
             keyword: withTrigger
         });
+        // Nothing understood: say so and point to the syntax (value 10),
+        // but only when the query was meant for Sands.
+        if (results.length === 0 && (withTrigger || /^(timer|minuteur|minuterie|countdown)\s/i.test(q)))
+            return [{
+                    name: "No duration found in \u201c" + q + "\u201d",
+                    icon: "material:help",
+                    comment: "Try \u201c12 min pasta\u201d or \u201cat 6pm\u201d · Enter: open the guide",
+                    action: "guide:syntax",
+                    categories: ["Minuteur"]
+                }];
         return results.map(r => _startItem(r, now));
     }
 
@@ -90,7 +100,7 @@ Item {
         } else {
             const times = r.count > 1 ? r.count + " × " : "";
             name = (r.label ? r.label + " — " : "Timer ") + times + TP.formatHuman(r.ms);
-            comment = "Rings at " + end + (tomorrow ? " tomorrow" : "");
+            comment = "Rings at " + end + (tomorrow ? " tomorrow" : "") + (r.capped ? " · at most 20 at once" : "");
         }
         return {
             name: name,
@@ -159,6 +169,12 @@ Item {
         const sep = item.action.indexOf(":");
         const type = item.action.substring(0, sep);
         const data = item.action.substring(sep + 1);
+        if (type === "guide") {
+            // Opens in the browser on request only; the plugin itself
+            // makes no network access.
+            Qt.openUrlExternally("https://github.com/lung595/Sands/blob/main/docs/GUIDE.md#" + data);
+            return;
+        }
         const d = daemon;
         if (!d) {
             if (typeof ToastService !== "undefined")

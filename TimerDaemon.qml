@@ -128,15 +128,21 @@ Item {
             pluginService.savePluginState(pluginId, "recents", list);
     }
 
-    function start(ms, label, kind, at, remember) {
-        ms = Math.round(ms);
-        if (!(ms >= 1000))
-            return -1;
-        const t0 = Date.now();
-        const id = _nextId++;
+    // Hard limits: a script or a typo can't fill the disk or the bar.
+    readonly property int maxTimers: 50
+    readonly property string guideUrl: "https://github.com/lung595/Sands/blob/main/docs/GUIDE.md"
+
+    // Short message plus a link to the guide section that explains it
+    // (value 10: never refuse silently). The link opens only on click.
+    function _refuse(message, anchor) {
+        if (typeof ToastService !== "undefined")
+            ToastService.showError("Sands: " + message, guideUrl + "#" + anchor);
+    }
+
+    function _make(ms, label, kind, at, t0) {
         const endAt = kind === "at" && at ? at : t0 + ms;
-        _commit(timers.concat([{
-            id: id,
+        return {
+            id: _nextId++,
             label: (label || "").trim(),
             kind: kind === "at" ? "at" : "duration",
             total: endAt - t0,
@@ -144,20 +150,43 @@ Item {
             remaining: endAt - t0,
             state: "running",
             finishedAt: 0,
-            hue: _freeHue()
-        }]));
-        if (kind !== "at" && remember !== false)
-            _remember(ms, (label || "").trim());
-        timerStarted(id);
-        return id;
+            hue: 0
+        };
     }
 
-    // « 4x 1h »: `count` timers of the same duration. Remembered once in
-    // the recents, not four times.
-    function startMany(ms, label, kind, at, count) {
-        const n = kind === "at" ? 1 : Math.max(1, Math.min(20, Math.round(count || 1)));
-        for (let i = 0; i < n; i++)
-            start(ms, label, kind, at, i === 0);
+    function start(ms, label, kind, at, remember) {
+        return startMany(ms, label, kind, at, 1, remember);
+    }
+
+    // « 4x 1h »: `count` timers of the same duration, saved in a single
+    // write and remembered once in the recents, not four times.
+    // Returns the first id, or -1 when nothing was started.
+    function startMany(ms, label, kind, at, count, remember) {
+        ms = Math.round(ms);
+        if (!(ms >= 1000) || ms > TP.MAX_MS) {
+            _refuse("a timer lasts between 1 second and 100 hours", "syntax");
+            return -1;
+        }
+        const wanted = kind === "at" ? 1 : Math.max(1, Math.min(TP.MAX_COUNT, Math.round(count || 1)));
+        const n = Math.min(wanted, maxTimers - timers.length);
+        if (n <= 0) {
+            _refuse("at most " + maxTimers + " timers at once, cancel one first", "syntax");
+            return -1;
+        }
+        const t0 = Date.now();
+        let list = timers;
+        const ids = [];
+        for (let i = 0; i < n; i++) {
+            const t = _make(ms, label, kind, at, t0);
+            t.hue = Timers.freeHue(list, hueCount);
+            list = list.concat([t]);
+            ids.push(t.id);
+        }
+        _commit(list);
+        if (kind !== "at" && remember !== false)
+            _remember(ms, (label || "").trim());
+        ids.forEach(id => timerStarted(id));
+        return ids[0];
     }
 
     // Each timer has its own color (sand, ring, list): the first
@@ -184,8 +213,7 @@ Item {
         if (res.length === 0)
             return null;
         const r = res[0];
-        startMany(r.ms, r.label, r.kind, r.at, r.count);
-        return r;
+        return startMany(r.ms, r.label, r.kind, r.at, r.count) >= 0 ? r : null;
     }
 
     function pause(id) {
@@ -221,12 +249,15 @@ Item {
 
     // Adds (or removes) time. On a ringing timer: restarts it for
     // that duration ("+1 min" = repeat).
+    // Returns false when nothing changed (unknown id, out of range).
     function adjust(id, deltaMs) {
         const t0 = Date.now();
+        let ok = false;
         return _update(id, t => {
             if (t.state === "ringing") {
-                if (deltaMs <= 0)
+                if (deltaMs <= 0 || deltaMs > TP.MAX_MS)
                     return;
+                ok = true;
                 t.state = "running";
                 t.endAt = t0 + deltaMs;
                 t.total = deltaMs;
@@ -236,14 +267,15 @@ Item {
             }
             const rem = t.state === "running" ? t.endAt - t0 : t.remaining;
             const next = rem + deltaMs;
-            if (next < 1000)
+            if (next < 1000 || next > TP.MAX_MS)
                 return;
+            ok = true;
             if (t.state === "running")
                 t.endAt += deltaMs;
             else
                 t.remaining = next;
             t.total = Math.max(t.total + Math.max(0, deltaMs), next);
-        });
+        }) && ok;
     }
 
     function restart(id) {
@@ -444,7 +476,7 @@ Item {
     function _command(path, volume) {
         if (_useFallbackPlayer)
             return ["paplay", "--volume=" + Math.round(volume * 65536), path];
-        return ["pw-play", "--volume=" + volume.toFixed(2), path];
+        return ["pw-play", "--volume=" + volume.toFixed(2), "--", path];
     }
 
     // "Do not disturb": the pill pulses, but no sound.
@@ -593,7 +625,7 @@ Item {
         function start(text: string): string {
             const r = root.startText(text);
             if (!r)
-                return "Unrecognized duration: " + text;
+                return "Not started. Try \"12 min pasta\": " + root.guideUrl + "#syntax";
             const times = r.kind === "duration" && r.count > 1 ? r.count + " × " : "";
             return "Started: " + times + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms));
         }
@@ -636,7 +668,8 @@ Item {
         function add(minutes: int): string {
             if (!root.primary)
                 return "No timer";
-            root.adjust(root.primary.id, minutes * 60000);
+            if (!root.adjust(root.primary.id, minutes * 60000))
+                return "Not changed: a timer lasts between 1 second and 100 hours. " + root.guideUrl + "#syntax";
             return "OK";
         }
 

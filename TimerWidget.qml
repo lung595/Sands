@@ -20,6 +20,9 @@ PluginComponent {
     readonly property bool hasTimers: daemon?.hasTimers ?? false
     readonly property var primary: daemon?.primary ?? null
     readonly property bool use24h: SettingsData.use24HourClock !== false
+    // Locked session or screens off: nobody sees the pill, so it stops
+    // moving (the alarm sound still rings).
+    readonly property bool asleep: SessionService.locked || IdleService.isShellLocked || IdleService.monitorsOff
 
     // Invisible at rest: the pill appears (width + fade) with the first timer.
     function syncVisibility() {
@@ -138,7 +141,7 @@ PluginComponent {
             Timer {
                 interval: (pill.beating || pill.bellShaking) ? 16 : 33
                 repeat: true
-                running: (pill.st === "ringing" && !pill.settled) || pill.beating
+                running: !root.asleep && ((pill.st === "ringing" && !pill.settled) || pill.beating)
                 property real start: 0
                 onRunningChanged: {
                     start = Date.now();

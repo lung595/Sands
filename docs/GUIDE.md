@@ -97,6 +97,8 @@ Type in English or French, words or digits, in any order:
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
 | `timer 14h30` | Offers both: *alarm at 14:30* first, *14 h 30 timer* second |
 
+**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), and at most 50 timers run together. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
+
 The interface is in English. Want Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues).
 
 ## Settings
@@ -117,7 +119,7 @@ DMS's *Reduce motion* is respected: no floating, no spin or flip animation.
 
 ## Privacy
 
-- **No network access, no telemetry.**
+- **No network access, no telemetry.** The guide links in messages open in your browser only when you click them.
 - **Short-lived local tools only**: `pw-play` (or `paplay`) to ring, `notify-send` / `gdbus` for the notification, and a one-off `find` over the system sound folders while the settings page is open.
 - **Written to disk**, through DMS's plugin state: your running timers (end times and labels) and your recent timers. Nothing else.
 - **Settings** are stored by DMS with your other plugin settings.

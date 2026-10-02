@@ -5,6 +5,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+## 1.4.2 - 2026-10-02
+
+### Security
+
+- At most 50 timers run together, and `4x 1h` is saved in a single write instead of one per timer.
+- `dms ipc call smartTimer add` can no longer push a timer past 100 hours.
+- `pw-play` gets `--` before the sound path.
+
+### Changed
+
+- Nothing is refused silently: a launcher query Sands can't read, `99x` (now clamped to 20), a full timer list or an out-of-range `add` show a short message with a link to the *Syntax* section of the guide.
+
+### Fixed
+
+- The pill stops moving while the session is locked or the screens are off; the alarm sound still rings.
+
 ## 1.4.1 - 2026-10-02
 
 ### Changed

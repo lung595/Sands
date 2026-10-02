@@ -138,7 +138,14 @@ checkCount("4* 1h", 4);
 checkCount("timer 4x 1h", 4);
 checkCount("1h x4", 4);
 checkCount("1h", 1);
-checkCount("99x 1h", 1);
+// Above the maximum: clamped and flagged so the launcher can say so,
+// never ignored silently.
+checkCount("99x 1h", 20);
+countChecks++;
+if (TP.parse("99x 1h", NOW)[0]?.capped !== true || TP.parse("4x 1h", NOW)[0]?.capped !== false) {
+    failures++;
+    print("✗ capped flag on \"99x 1h\"");
+}
 
 // Formatting
 function eq(a, b) {
