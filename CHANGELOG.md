@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- The timer logic (time left, progress, recents ranking) moved out of the daemon into `Timers.js`, with 25 tests; nothing changes on screen.
 - Documentation split into `README.md`, `docs/GUIDE.md`, `CHANGELOG.md`, `ROADMAP.md` and `CONTRIBUTING.md`.
 
 ### Fixed

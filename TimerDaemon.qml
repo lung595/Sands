@@ -4,6 +4,7 @@ import Quickshell.Io
 import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
+import "Timers.js" as Timers
 
 // Timer engine, instantiated once. The bar and the launcher
 // reach it through PluginService.pluginDaemonInstances["smartTimer"].
@@ -66,20 +67,14 @@ Item {
     // Queries
     // ------------------------------------------------------------------
 
+    // The pure logic lives in Timers.js (tested with gjs); these read the
+    // daemon's clock for it
     function remainingOf(t, n) {
-        if (!t)
-            return 0;
-        if (t.state === "running")
-            return t.endAt - (n === undefined ? now : n);
-        if (t.state === "paused")
-            return t.remaining;
-        return (t.finishedAt || now) - (n === undefined ? now : n);
+        return Timers.remainingOf(t, n === undefined ? now : n);
     }
 
     function progressOf(t) {
-        if (!t || t.total <= 0)
-            return 0;
-        return Math.max(0, Math.min(1, remainingOf(t) / t.total));
+        return Timers.progressOf(t, now);
     }
 
     function find(id) {
@@ -91,11 +86,7 @@ Item {
     }
 
     function displayLabel(t) {
-        if (!t)
-            return "";
-        if (t.label)
-            return t.label;
-        return t.kind === "at" ? "Alarm" : "Timer";
+        return Timers.displayLabel(t);
     }
 
     // ------------------------------------------------------------------
@@ -131,38 +122,10 @@ Item {
     }
 
     function _remember(ms, label) {
-        const key = (label || "").toLowerCase() + "|" + ms;
-        const t0 = Date.now();
-        let found = false;
-        let list = recents.map(r => {
-            if (((r.label || "").toLowerCase() + "|" + r.ms) !== key)
-                return r;
-            found = true;
-            return Object.assign({}, r, {
-                uses: (r.uses || 1) + 1,
-                last: t0,
-                label: label || ""
-            });
-        });
-        if (!found)
-            list.push({
-                ms: ms,
-                label: label || "",
-                uses: 1,
-                last: t0
-            });
-        list = _rankRecents(list).slice(0, 12);
+        const list = Timers.remember(recents, ms, label, Date.now());
         recents = list;
         if (pluginService)
             pluginService.savePluginState(pluginId, "recents", list);
-    }
-
-    // "Frecency": used often AND recently. A timer started 10 times
-    // last month ranks below yesterday's, not below one from a year ago.
-    function _rankRecents(list) {
-        const t0 = Date.now();
-        const score = r => (r.uses || 1) / (1 + (t0 - (r.last || 0)) / 86400000 / 3);
-        return list.slice().sort((a, b) => score(b) - score(a));
     }
 
     function start(ms, label, kind, at, remember) {
@@ -202,11 +165,7 @@ Item {
     // free hue is reused, so colors stay stable.
     readonly property int hueCount: 6
     function _freeHue() {
-        for (let h = 0; h < hueCount; h++) {
-            if (!timers.some(t => t.hue === h))
-                return h;
-        }
-        return timers.length % hueCount;
+        return Timers.freeHue(timers, hueCount);
     }
 
     function colorFor(t) {
@@ -606,7 +565,7 @@ Item {
             _nextId = Math.max(_nextId, copy.id + 1);
             return copy;
         });
-        recents = _rankRecents(pluginService.loadPluginState(pluginId, "recents", []) || []);
+        recents = Timers.rankRecents(pluginService.loadPluginState(pluginId, "recents", []) || [], Date.now());
         _loaded = true;
         timers = list;
         now = t0;

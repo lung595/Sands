@@ -41,6 +41,7 @@ The widget and the launcher reach the engine through `PluginService.pluginDaemon
 Logic that can be tested lives in **pure `.js` files** with no QML:
 
 - `TimeParser.js`: natural-language parser (English and French) and formatting.
+- `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
 - `components/Motion.js`: every looping motion as a pure function of time.
 
 Timers are stored as **end times**, not countdowns, so they survive a restart.
@@ -55,6 +56,7 @@ Sands/
 ├── TimerLauncher.qml           # launcher provider
 ├── TimerSettings.qml           # settings page
 ├── TimeParser.js               # natural-language parser + formatting (tested)
+├── Timers.js                   # pure timer logic: time left, recents ranking… (tested)
 ├── components/
 │   ├── TimerPanelContent.qml   # panel: hourglass, time, controls, other timers
 │   ├── Hourglass.qml           # the floating, volume-synced hourglass
@@ -74,6 +76,7 @@ Sands/
 ```sh
 gjs tests/parser.test.js        # 105 parser tests
 gjs tests/motion.test.js
+gjs tests/timers.test.js        # 25 timer logic tests
 ```
 
 Run both before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
