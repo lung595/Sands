@@ -38,6 +38,15 @@ Item {
         if (_isCancelQuery(q, withTrigger))
             return _cancelItems();
 
+        // Too long to be a timer: say so instead of freezing the shell (value 10)
+        if (TP.tooLong(q))
+            return withTrigger ? [{
+                    name: "Too long for a timer",
+                    icon: "material:help",
+                    comment: "Keep it under " + TP.MAX_INPUT + " characters, like \u201c12 min pasta\u201d · Enter: open the guide",
+                    action: "guide:syntax",
+                    categories: ["Minuteur"]
+                }] : [];
         const now = Date.now();
         const results = TP.parse(q, now, {
             keyword: withTrigger

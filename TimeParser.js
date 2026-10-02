@@ -14,6 +14,11 @@
 
 var MAX_MS = 100 * 3600 * 1000;
 var MAX_COUNT = 20;
+// Nobody types more than this for a timer; the parser's cost grows with the
+// square of the length, so a huge text (IPC, launcher) would freeze the shell
+var MAX_INPUT = 200;
+// A label longer than this would not fit anywhere it is shown
+var MAX_LABEL = 60;
 
 var KEYWORDS = "timer|minuteur|minuterie|countdown|compte a rebours|chrono|alarme|alarm|rappel|reminder|reveil";
 
@@ -118,8 +123,13 @@ function cleanLabel(original, work) {
     return kept;
 }
 
+// True when a text is too long to be read as a timer (see MAX_INPUT)
+function tooLong(input) {
+    return String(input || "").length > MAX_INPUT;
+}
+
 function parse(input, now, options) {
-    if (!input)
+    if (!input || tooLong(input))
         return [];
     now = now || Date.now();
     options = options || {};
@@ -291,7 +301,7 @@ function parse(input, now, options) {
         }
     }
 
-    var label = cleanLabel(original, work);
+    var label = cleanLabel(original, work).substring(0, MAX_LABEL).trim();
 
     if (target)
         return [{ kind: "at", at: target, ms: target - now, label: label }];

@@ -97,7 +97,7 @@ Type in English or French, words or digits, in any order:
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
 | `timer 14h30` | Offers both: *alarm at 14:30* first, *14 h 30 timer* second |
 
-**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), and at most 50 timers run together. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
+**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together, a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
 
 The interface is in English. Want Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues).
 

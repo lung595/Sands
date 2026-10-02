@@ -12,6 +12,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - At most 50 timers run together, and `4x 1h` is saved in a single write instead of one per timer.
 - `dms ipc call smartTimer add` can no longer push a timer past 100 hours.
 - `pw-play` gets `--` before the sound path.
+- A query longer than 200 characters is answered at once with a short note instead of being parsed (a 20,000-character text took 165 ms before, 0 ms now), and a label keeps its first 60 characters.
 
 ### Changed
 

@@ -5,7 +5,7 @@ const GLib = imports.gi.GLib;
 const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/parser.test.js", GLib.get_current_dir())));
 const [, bytes] = GLib.file_get_contents(dir + "/TimeParser.js");
 const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const TP = new Function(src + "; return { parse, formatClock, formatHuman, formatRelative, formatTimeOfDay };")();
+const TP = new Function(src + "; return { parse, tooLong, MAX_INPUT, MAX_LABEL, formatClock, formatHuman, formatRelative, formatTimeOfDay };")();
 
 // Wednesday, Sept 24 2026, 21:47:00 local time
 const NOW = new Date(2026, 8, 24, 21, 47, 0, 0).getTime();
@@ -145,6 +145,24 @@ countChecks++;
 if (TP.parse("99x 1h", NOW)[0]?.capped !== true || TP.parse("4x 1h", NOW)[0]?.capped !== false) {
     failures++;
     print("✗ capped flag on \"99x 1h\"");
+}
+
+// Length caps (P118): a huge text is refused at once, a long label is cut
+{
+    const huge = "a ".repeat(40000);
+    const t0 = Date.now();
+    const r = TP.parse("12 min " + huge, NOW, { keyword: true });
+    count++;
+    if (r.length !== 0 || Date.now() - t0 > 50 || !TP.tooLong(huge) || TP.tooLong("12 min pasta")) {
+        failures++;
+        print("✗ a text over " + TP.MAX_INPUT + " characters is refused at once");
+    }
+    const long = TP.parse("12 min " + "pasta ".repeat(30), NOW)[0];
+    count++;
+    if (!long || long.label.length > TP.MAX_LABEL || long.ms !== 12 * MIN) {
+        failures++;
+        print("✗ a long label is cut to " + TP.MAX_LABEL + " characters");
+    }
 }
 
 // Formatting

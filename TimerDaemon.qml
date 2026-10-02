@@ -143,7 +143,7 @@ Item {
         const endAt = kind === "at" && at ? at : t0 + ms;
         return {
             id: _nextId++,
-            label: (label || "").trim(),
+            label: String(label || "").substring(0, TP.MAX_LABEL).trim(),
             kind: kind === "at" ? "at" : "duration",
             total: endAt - t0,
             endAt: endAt,
@@ -623,6 +623,8 @@ Item {
 
         // dms ipc call smartTimer start "12 min pâtes"
         function start(text: string): string {
+            if (TP.tooLong(text))
+                return "Not started: keep it under " + TP.MAX_INPUT + " characters, like \"12 min pasta\": " + root.guideUrl + "#syntax";
             const r = root.startText(text);
             if (!r)
                 return "Not started. Try \"12 min pasta\": " + root.guideUrl + "#syntax";
