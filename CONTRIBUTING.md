@@ -42,6 +42,7 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 
 - `TimeParser.js`: natural-language parser (English and French) and formatting.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
+- `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
 
 Timers are stored as **end times**, not countdowns, so they survive a restart.
@@ -57,15 +58,20 @@ Sands/
 ├── TimerSettings.qml           # settings page
 ├── TimeParser.js               # natural-language parser + formatting (tested)
 ├── Timers.js                   # pure timer logic: time left, recents ranking… (tested)
+├── Guide.js                    # "why it can't be done" notes + guide anchors (tested)
 ├── components/
 │   ├── TimerPanelContent.qml   # panel: hourglass, time, controls, other timers
 │   ├── Hourglass.qml           # the floating, volume-synced hourglass
 │   ├── ProgressRing.qml        # the ring used in the pill and lists
+│   ├── HelpNote.qml            # the short note at the top of the panel
+│   ├── GitHubMark.qml          # GitHub logo that opens the guide section
 │   ├── RoundButton.qml, Chip.qml
 │   └── Motion.js               # looping motion as pure functions of time (tested)
 ├── tests/
 │   ├── parser.test.js
-│   └── motion.test.js
+│   ├── motion.test.js
+│   ├── timers.test.js
+│   └── guide.test.js
 └── docs/
     ├── GUIDE.md                # user guide
     └── images/                 # screenshots and animations
@@ -74,12 +80,13 @@ Sands/
 ## Tests
 
 ```sh
-gjs tests/parser.test.js        # 105 parser tests
+gjs tests/parser.test.js        # 108 parser tests
 gjs tests/motion.test.js
-gjs tests/timers.test.js        # 25 timer logic tests
+gjs tests/timers.test.js        # 34 timer logic tests
+gjs tests/guide.test.js         # 18 tests: note length, guide anchors
 ```
 
-Run both before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
+Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
 
 ## Performance rules
 

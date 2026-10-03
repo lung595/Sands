@@ -5,6 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+## 1.4.3 - 2026-10-03
+
+### Changed
+
+- When something can't be done, Sands says why in a short note at the top of the open panel (or a DMS toast when the panel is closed), with a GitHub mark that opens the matching section of the guide. The note fades after 4 seconds, and no timer runs while it is hidden.
+  - `4x 1h` with fewer free places starts what fits and says *Started 2 of 4*.
+  - An alarm that made no sound says *The alarm made no sound* and points to the new guide section *If the alarm makes no sound*.
+  - A sound preview that fails says *Could not play this sound*.
+- `dms ipc call smartTimer start` answers how many timers started (`Started: 10 of 20 × …`) and why none did (`Not started: …`).
+
+### Fixed
+
+- The alarm was silent with the default sound: the settings dropdown saved its label (`Default (alarm clock)`) instead of an empty value, and Sands tried to play a file by that name. Any value that is not a full path now plays the default alarm.
+
 ## 1.4.2 - 2026-10-02
 
 ### Security
