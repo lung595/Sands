@@ -17,8 +17,9 @@ PluginSettings {
     // without the audio channel test sounds.
     property var soundOptions: [
         {
+            // Not "": DMS's dropdown would save the label instead (P126)
             label: "Alarm clock (default)",
-            value: ""
+            value: "default"
         },
         {
             label: "Custom file…",
@@ -92,7 +93,7 @@ PluginSettings {
         label: "Sound"
         description: "Loops when a timer reaches zero"
         options: root.soundOptions
-        defaultValue: ""
+        defaultValue: "default"
     }
 
     StringSetting {
@@ -112,13 +113,7 @@ PluginSettings {
         onClicked: {
             if (!root.daemon)
                 return;
-            const choice = soundSetting.value;
-            let path = "";
-            if (choice === "custom")
-                path = (customSetting.value || "").trim().replace(/^~(?=\/)/, Quickshell.env("HOME"));
-            else
-                path = choice;
-            root.daemon.previewSound(path || root.daemon.defaultSound);
+            root.daemon.previewSound(root.daemon.soundPath(soundSetting.value, customSetting.value));
         }
     }
 

@@ -74,3 +74,16 @@ function freeHue(timers, hueCount) {
     }
     return timers.length % hueCount;
 }
+
+// The file to play for the "sound" setting. Only a full path is a file:
+// "" and "default" mean the default sound, and so does anything else that
+// is not a path, such as "Alarm clock (default)", the label DMS's
+// dropdown saved by mistake for the empty value (P126). "custom" reads the
+// "customSound" setting, where "~/" and "file://" are accepted.
+function soundFile(choice, custom, home, fallback) {
+    if (choice === "custom") {
+        const path = String(custom || "").trim().replace(/^file:\/\//, "").replace(/^~(?=\/)/, home);
+        return path.startsWith("/") ? path : fallback;
+    }
+    return typeof choice === "string" && choice.startsWith("/") ? choice : fallback;
+}

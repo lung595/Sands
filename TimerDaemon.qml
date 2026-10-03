@@ -491,13 +491,10 @@ Item {
     property real _ringStartedAt: 0
     property bool _useFallbackPlayer: false
 
-    function soundPath() {
-        const choice = setting("sound", "");
-        if (choice === "custom") {
-            const custom = (setting("customSound", "") || "").trim();
-            return custom ? custom.replace(/^file:\/\//, "").replace(/^~(?=\/)/, Quickshell.env("HOME")) : defaultSound;
-        }
-        return choice || defaultSound;
+    // The file the alarm plays; `choice` and `custom` default to the saved
+    // settings, Preview passes what is shown in the settings page.
+    function soundPath(choice, custom) {
+        return Timers.soundFile(choice === undefined ? setting("sound", "") : choice, custom === undefined ? setting("customSound", "") : custom, Quickshell.env("HOME"), defaultSound);
     }
 
     function _volume() {

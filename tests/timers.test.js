@@ -6,7 +6,7 @@ const GLib = imports.gi.GLib;
 const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/timers.test.js", GLib.get_current_dir())));
 const [, bytes] = GLib.file_get_contents(dir + "/Timers.js");
 const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const T = new Function(src + "; return { remainingOf, progressOf, displayLabel, rankRecents, remember, freeHue };")();
+const T = new Function(src + "; return { remainingOf, progressOf, displayLabel, rankRecents, remember, freeHue, soundFile };")();
 
 let failures = 0, count = 0;
 
@@ -66,6 +66,18 @@ eq(T.remember(many, 999, "new", now).length, 12, "at most 12 are kept");
 eq(T.freeHue([], 6), 0, "the first slot when nothing runs");
 eq(T.freeHue([{ hue: 0 }, { hue: 1 }, { hue: 3 }], 6), 2, "the first free slot");
 eq(T.freeHue([0, 1, 2].map(h => ({ hue: h })), 3), 0, "all taken: the next in turn");
+
+// Sound setting → file to play
+const DEF = "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga";
+eq(T.soundFile("", "", "/h", DEF), DEF, "empty choice plays the default");
+eq(T.soundFile("default", "", "/h", DEF), DEF, "'default' plays the default");
+eq(T.soundFile("Alarm clock (default)", "", "/h", DEF), DEF, "the label DMS saved by mistake plays the default (P126)");
+eq(T.soundFile("/usr/share/sounds/x/bell.oga", "", "/h", DEF), "/usr/share/sounds/x/bell.oga", "a full path plays as is");
+eq(T.soundFile("custom", "~/Music/a.mp3", "/h", DEF), "/h/Music/a.mp3", "custom expands ~/");
+eq(T.soundFile("custom", " file:///tmp/a.ogg ", "/h", DEF), "/tmp/a.ogg", "custom drops file:// and spaces");
+eq(T.soundFile("custom", "", "/h", DEF), DEF, "custom without a file plays the default");
+eq(T.soundFile("custom", "alarm.mp3", "/h", DEF), DEF, "custom needs a full path");
+eq(T.soundFile(undefined, "", "/h", DEF), DEF, "no setting plays the default");
 
 print(failures === 0 ? "✓ " + count + " tests passed" : "\n" + failures + " / " + count + " failed");
 imports.system.exit(failures === 0 ? 0 : 1);
