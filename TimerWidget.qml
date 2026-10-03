@@ -453,6 +453,15 @@ PluginComponent {
                 // Panel closed (DMS keeps its content loaded): no more animation.
                 shown: pane.parentPopout ? pane.parentPopout.shouldBeVisible : true
             }
+
+            // Why something did not happen, over the bottom of the panel
+            HelpNote {
+                daemon: root.daemon
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: Theme.spacingM
+                maxWidth: pane.width - Theme.spacingM * 2
+            }
         }
     }
 }

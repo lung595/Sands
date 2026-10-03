@@ -9,7 +9,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [The hourglass panel](#the-hourglass-panel)
 - [The launcher](#the-launcher)
 - [Syntax](#syntax)
-- [Settings](#settings)
+- [Settings](#settings) · [If the alarm makes no sound](#if-the-alarm-makes-no-sound)
 - [Privacy](#privacy)
 - [Performance](#performance)
 
@@ -97,7 +97,7 @@ Type in English or French, words or digits, in any order:
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
 | `timer 14h30` | Offers both: *alarm at 14:30* first, *14 h 30 timer* second |
 
-**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together, a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
+**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together (`4x 1h` with two places left starts two and says *Started 2 of 4*), a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
 
 The interface is in English. Want Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues).
 
@@ -116,6 +116,15 @@ The interface is in English. Want Sands to understand another language? [Open an
 | Automatic detection / Prefix | Answer any duration in the launcher, or only after your prefix | Automatic detection |
 
 DMS's *Reduce motion* is respected: no floating, no spin or flip animation.
+
+### If the alarm makes no sound
+
+When the alarm cannot play its sound, Sands says so instead of staying quiet: **The alarm made no sound** (in the panel if it is open, otherwise as a DMS notification). **Preview** in the settings does the same with **Could not play this sound**. The pill still pulses either way.
+
+- **A file of your own**: check the path in *Sound file* (a full path, or one starting with `~/`) and that the file is an `.oga`, `.ogg`, `.wav`, `.mp3` or `.flac` you can open.
+- **A sound theme file**: pick another one in *Sound*; the default *Alarm clock* comes with the `sound-theme-freedesktop` package.
+- **No player**: Sands plays with `pw-play` (PipeWire) and falls back to `paplay`. Run `pw-play /usr/share/sounds/freedesktop/stereo/complete.oga` in a terminal: an error there is the same one Sands met.
+- **Nothing is wrong but it is silent**: *Volume* is at 0, the output device is muted, or *Respect Do Not Disturb* is on while Do Not Disturb is active (no message then: that silence is on purpose).
 
 ## Privacy
 

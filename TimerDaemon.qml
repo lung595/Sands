@@ -5,6 +5,7 @@ import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
 import "Timers.js" as Timers
+import "Guide.js" as Guide
 
 // Timer engine, instantiated once. The bar and the launcher
 // reach it through PluginService.pluginDaemonInstances["smartTimer"].
@@ -132,11 +133,30 @@ Item {
     readonly property int maxTimers: 50
     readonly property string guideUrl: "https://github.com/lung595/Sands/blob/main/docs/GUIDE.md"
 
-    // Short message plus a link to the guide section that explains it
-    // (value 10: never refuse silently). The link opens only on click.
-    function _refuse(message, anchor) {
-        if (typeof ToastService !== "undefined")
-            ToastService.showError("Sands: " + message, guideUrl + "#" + anchor);
+    // The note the open panel shows ({ title, hint, anchor }, see Guide.js),
+    // null when there is none
+    property var note: null
+    // Panels currently on screen; a note needs one, otherwise it is a toast
+    property var _panels: []
+    readonly property bool panelOpen: _panels.length > 0
+
+    // Called by each panel when it shows or hides
+    function panelShown(panel, on) {
+        const rest = _panels.filter(p => p !== panel);
+        _panels = on ? rest.concat([panel]) : rest;
+        // A closed panel forgets its note: it would be stale when reopened
+        if (!panelOpen)
+            note = null;
+    }
+
+    // Says why something did not happen and what to do, with a link to the
+    // guide section (value 10: never refuse silently). In the panel when it
+    // is open, otherwise as a DMS toast. The link opens only on click.
+    function explain(n) {
+        if (panelOpen)
+            note = n;
+        else if (typeof ToastService !== "undefined")
+            ToastService.showError(Guide.toastText(n), guideUrl + "#" + n.anchor);
     }
 
     function _make(ms, label, kind, at, t0) {
@@ -164,15 +184,17 @@ Item {
     function startMany(ms, label, kind, at, count, remember) {
         ms = Math.round(ms);
         if (!(ms >= 1000) || ms > TP.MAX_MS) {
-            _refuse("a timer lasts between 1 second and 100 hours", "syntax");
+            explain(Guide.rangeNote());
             return -1;
         }
         const wanted = kind === "at" ? 1 : Math.max(1, Math.min(TP.MAX_COUNT, Math.round(count || 1)));
         const n = Math.min(wanted, maxTimers - timers.length);
         if (n <= 0) {
-            _refuse("at most " + maxTimers + " timers at once, cancel one first", "syntax");
+            explain(Guide.fullNote(maxTimers));
             return -1;
         }
+        if (n < wanted)
+            explain(Guide.partialNote(n, wanted, maxTimers));
         const t0 = Date.now();
         let list = timers;
         const ids = [];
@@ -520,9 +542,21 @@ Item {
             ringPlayer.running = false;
     }
 
+    // A new preview waits for the previous one to stop, so a player we
+    // stopped ourselves is never mistaken for a file that cannot be played.
     function previewSound(path) {
-        previewPlayer.running = false;
-        previewPlayer.command = _command(path || soundPath(), _volume());
+        previewPlayer.path = path || soundPath();
+        if (previewPlayer.running) {
+            previewPlayer.next = true;
+            previewPlayer.running = false;
+        } else {
+            _playPreview();
+        }
+    }
+
+    function _playPreview() {
+        previewPlayer.command = _command(previewPlayer.path, _volume());
+        previewPlayer.startedAt = Date.now();
         previewPlayer.running = true;
     }
 
@@ -538,7 +572,15 @@ Item {
                 root._playOnce();
                 return;
             }
-            if (exitCode !== 0 || Date.now() - root._ringStartedAt >= root.ringLimitMs()) {
+            if (exitCode !== 0) {
+                root.soundActive = false;
+                // Both players failed: the file is the problem, so keep
+                // pw-play as the first choice next time
+                root._useFallbackPlayer = false;
+                root.explain(Guide.silentNote());
+                return;
+            }
+            if (Date.now() - root._ringStartedAt >= root.ringLimitMs()) {
                 root.soundActive = false;
                 return;
             }
@@ -554,6 +596,27 @@ Item {
 
     Process {
         id: previewPlayer
+        property string path: ""
+        property bool next: false
+        property bool closing: false
+        property real startedAt: 0
+        onExited: (exitCode, exitStatus) => {
+            if (next) {
+                next = false;
+                root._playPreview();
+                return;
+            }
+            if (exitCode === 0 || closing)
+                return;
+            // Same fallback as the alarm: pw-play missing or failing at once
+            if (!root._useFallbackPlayer && Date.now() - startedAt < 1500) {
+                root._useFallbackPlayer = true;
+                root._playPreview();
+                return;
+            }
+            root._useFallbackPlayer = false;
+            root.explain(Guide.previewNote());
+        }
     }
 
     readonly property string tickSound: "/usr/share/sounds/freedesktop/stereo/audio-volume-change.oga"
@@ -611,6 +674,7 @@ Item {
         ticker.stop();
         ringGap.stop();
         ringPlayer.running = false;
+        previewPlayer.closing = true;
         previewPlayer.running = false;
     }
 

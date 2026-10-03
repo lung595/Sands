@@ -25,6 +25,15 @@ Column {
 
     // false when the panel is closed: every animation stops.
     property bool shown: true
+    // Tells the daemon a panel is on screen, so its notes land here
+    // instead of in a toast.
+    readonly property bool live: shown && !!daemon
+    onLiveChanged: if (daemon)
+        daemon.panelShown(pop, live)
+    Component.onCompleted: if (daemon)
+        daemon.panelShown(pop, live)
+    Component.onDestruction: if (daemon)
+        daemon.panelShown(pop, false)
     readonly property bool reducedMotion: SettingsData.reduceMotion
 
     // Timer shown large: the one picked, otherwise the nearest.
