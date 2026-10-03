@@ -454,12 +454,13 @@ PluginComponent {
                 shown: pane.parentPopout ? pane.parentPopout.shouldBeVisible : true
             }
 
-            // Why something did not happen, over the bottom of the panel
+            // Why something did not happen, over the top of the hourglass:
+            // the bottom of the panel can be off screen with a long list
             HelpNote {
                 daemon: root.daemon
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: Theme.spacingM
+                anchors.top: parent.top
+                anchors.topMargin: Theme.spacingM
                 maxWidth: pane.width - Theme.spacingM * 2
             }
         }
