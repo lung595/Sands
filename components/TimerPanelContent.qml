@@ -30,8 +30,6 @@ Column {
     readonly property bool live: shown && !!daemon
     onLiveChanged: if (daemon)
         daemon.panelShown(pop, live)
-    Component.onCompleted: if (daemon)
-        daemon.panelShown(pop, live)
     Component.onDestruction: if (daemon)
         daemon.panelShown(pop, false)
     readonly property bool reducedMotion: SettingsData.reduceMotion
@@ -125,8 +123,13 @@ Column {
     }
 
     // Opening the popout silences the alarm; the timer stays "finished"
-    // so the user can choose: stop, +1 min, restart.
-    Component.onCompleted: d?.silence()
+    // so the user can choose: stop, +1 min, restart. It also registers
+    // the panel with the daemon (see `live`).
+    Component.onCompleted: {
+        d?.silence();
+        if (daemon)
+            daemon.panelShown(pop, live);
+    }
     onVisibleChanged: if (visible)
         d?.silence()
 
