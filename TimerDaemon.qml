@@ -180,17 +180,24 @@ Item {
 
     // « 4x 1h »: `count` timers of the same duration, saved in a single
     // write and remembered once in the recents, not four times.
-    // Returns the first id, or -1 when nothing was started.
+    // Returns the first id, or -1 when nothing was started; how many
+    // actually started, and why not, are kept for the IPC answer.
+    property int lastStarted: 0
+    property var lastRefusal: null
     function startMany(ms, label, kind, at, count, remember) {
         ms = Math.round(ms);
+        lastStarted = 0;
         if (!(ms >= 1000) || ms > TP.MAX_MS) {
-            explain(Guide.rangeNote());
+            lastRefusal = Guide.rangeNote();
+            explain(lastRefusal);
             return -1;
         }
         const wanted = kind === "at" ? 1 : Math.max(1, Math.min(TP.MAX_COUNT, Math.round(count || 1)));
         const n = Math.min(wanted, maxTimers - timers.length);
+        lastStarted = Math.max(0, n);
         if (n <= 0) {
-            explain(Guide.fullNote(maxTimers));
+            lastRefusal = Guide.fullNote(maxTimers);
+            explain(lastRefusal);
             return -1;
         }
         if (n < wanted)
@@ -234,8 +241,11 @@ Item {
         const res = TP.parse(text, Date.now(), { keyword: true });
         if (res.length === 0)
             return null;
+        // Understood but refused (out of range, no room left): r.started is 0
         const r = res[0];
-        return startMany(r.ms, r.label, r.kind, r.at, r.count) >= 0 ? r : null;
+        startMany(r.ms, r.label, r.kind, r.at, r.count);
+        r.started = lastStarted;
+        return r;
     }
 
     function pause(id) {
@@ -692,8 +702,12 @@ Item {
             const r = root.startText(text);
             if (!r)
                 return "Not started. Try \"12 min pasta\": " + root.guideUrl + "#syntax";
-            const times = r.kind === "duration" && r.count > 1 ? r.count + " × " : "";
-            return "Started: " + times + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms));
+            if (r.started === 0)
+                return "Not started: " + root.lastRefusal.hint + ". " + root.guideUrl + "#" + root.lastRefusal.anchor;
+            const partial = r.started < (r.count || 1);
+            const times = partial ? r.started + " of " + r.count + " × " : (r.kind === "duration" && r.count > 1 ? r.count + " × " : "");
+            const limit = partial ? " (at most " + root.maxTimers + " at once: " + root.guideUrl + "#syntax)" : "";
+            return "Started: " + times + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms)) + limit;
         }
 
         // Pauses / resumes the nearest timer; stops the alarm.
