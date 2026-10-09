@@ -183,7 +183,7 @@ No network access, no telemetry. Only short-lived local tools run (`pw-play` to 
 
 ## Credits
 
-*Glass of Time* is a nod to *Steven Universe*, drawn from scratch. The default ring, *Hourglass*, is synthesised by [`tools/sounds/`](tools/sounds). *Silt Chime* is "Pleasing Bell Sound Effect" by Spring Spring, released under [CC0](https://creativecommons.org/publicdomain/zero/1.0/) and found on [OpenGameArt](https://opengameart.org/content/pleasing-bell-sound-effect): thank you. Sands only struck it twice, faded it and re-encoded it (shipped file sha256 `49f1c7cb1a760471…`, from a source WAV starting `3c851939ccf9146e…`). Built on [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) and [Quickshell](https://quickshell.org).
+*Glass of Time* is a nod to *Steven Universe*, drawn from scratch. The default ring, *Hourglass*, is synthesised by [`tools/sounds/`](tools/sounds). *Silt Chime* is "Pleasing Bell Sound Effect" by Spring Spring, released under [CC0](https://creativecommons.org/publicdomain/zero/1.0/) and found on [OpenGameArt](https://opengameart.org/content/pleasing-bell-sound-effect): thank you. Sands only struck it twice, faded it and re-encoded it (full sha256 of the shipped files in [`tools/sounds/README.md`](tools/sounds/README.md)). Built on [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) and [Quickshell](https://quickshell.org).
 
 ## License
 

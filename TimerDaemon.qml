@@ -23,7 +23,7 @@ Item {
     property var pluginService: null
 
     // The rings shipped with the plugin, as a local path ending with "/".
-    readonly property string ringDir: Qt.resolvedUrl("sounds/").toString().replace(/^file:\/\//, "")
+    readonly property string ringDir: decodeURIComponent(Qt.resolvedUrl("sounds/").toString().replace(/^file:\/\//, ""))
 
     // { id, label, kind: "duration"|"at", total, endAt, remaining,
     //   state: "running"|"paused"|"ringing", finishedAt }
@@ -239,9 +239,7 @@ Item {
 
     // Same syntax as the launcher: startText("12 min pâtes").
     function startText(text) {
-        const res = TP.parse(text, Date.now(), {
-            keyword: true
-        });
+        const res = TP.parse(text, Date.now(), { keyword: true });
         if (res.length === 0)
             return null;
         // Understood but refused (out of range, no room left): r.started is 0

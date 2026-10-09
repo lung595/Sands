@@ -69,7 +69,7 @@ Sands/
 │   ├── RoundButton.qml, Chip.qml
 │   └── Motion.js               # looping motion as pure functions of time (tested)
 ├── sounds/                     # the shipped rings (hourglass.ogg, silt-chime.ogg)
-├── tools/sounds/               # renders hourglass.ogg: python3 tools/sounds/generate.py OUT; check.py inspects rings
+├── tools/sounds/               # renders hourglass.ogg (python3 tools/sounds/generate.py OUT), check.py inspects rings; README.md lists hashes
 ├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
 ├── tests/
 │   ├── parser.test.js
