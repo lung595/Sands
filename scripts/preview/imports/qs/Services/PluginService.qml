@@ -5,4 +5,9 @@ import QtQuick
 // looks for the real one.
 QtObject {
     property var pluginDaemonInstances: ({})
+
+    // No prefix set, like the default install
+    function getPluginTrigger(id) {
+        return "";
+    }
 }
