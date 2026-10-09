@@ -7,7 +7,9 @@
 //   [{ kind: "duration", ms: 5400000, label: "pâtes" }]
 //   [{ kind: "at", at: <epoch ms>, ms: <ms until that time>, label: "" }]
 // An empty list means "this is not a timer": the launcher then stays
-// silent for every other search.
+// silent for every other search. The list always carries a string `hint`:
+// a short message when the user clearly asked for a timer but a word was not
+// understood, "" otherwise (see Preview.hintOf).
 //
 // A duration can be repeated: « 4x 1h », « 4*1h », « 1h x4 » → count: 4
 // (four timers of one hour).
@@ -50,7 +52,7 @@ var HALF = "(?:\\s*(?:et|and)\\s*(demie?|quart|a half|half|a quarter|quarter))?"
 // « set a timer for », « mets un minuteur de ». They are dropped, never shown
 // as the label. The optional connector goes with them.
 var CONTEXT = new RegExp("^\\s*(?:" +
-    "rappelle[sz]?[- ]moi|remind me|" +
+    "rappelle[sz]?[- ]moi|remind me|reveille[sz]?[- ]moi|wake(?:\\s+me)?(?:\\s+up)?|" +
     "(?:set|start|create|add|put)\\s+(?:me\\s+)?(?:an?\\s+|the\\s+|my\\s+)?(?:timer|alarm|reminder|countdown)|" +
     "(?:mets?|lance|lancer|demarre|regle|programme|cree)(?:-moi)?\\s+(?:un|une|le|la)?\\s*(?:timer|minuteur|minuterie|alarme|rappel|compte a rebours|chrono|reveil)" +
     ")(?![a-z])(?:\\s+(?:for|to|of|about|that|de|pour|que)(?![a-z])|\\s+d'|\\s+qu')?");
@@ -72,7 +74,28 @@ var TYPO_UNITS = [
 // allow anything but two swapped letters: « mni », « esc ».
 var TYPO_ABBREVIATIONS = [["min", "min"], ["sec", "s"]];
 
+// Day words that fix the date or the half of the day of a clock time:
+// « demain 8h », « ce soir à 9h ». shift = days added to the date, pm = hours
+// 1–11 are read as afternoon or evening, night = « 12 » means midnight.
+var DAY_WORDS = {
+    "demain": { shift: 1 }, "tomorrow": { shift: 1 },
+    "ce soir": { shift: 0, pm: true, night: true }, "tonight": { shift: 0, pm: true, night: true },
+    "this evening": { shift: 0, pm: true, night: true },
+    "cet apres-midi": { shift: 0, pm: true }, "this afternoon": { shift: 0, pm: true },
+    "ce matin": { shift: 0 }, "this morning": { shift: 0 },
+    "aujourd'hui": { shift: 0 }, "today": { shift: 0 }
+};
+// Words that make an hour explicit: « 7pm », « 7 du soir », « 7 in the morning ».
+var PERIOD = "am|pm|du\\s+(?:matin|soir)|de\\s+l'apres[- ]?midi|in\\s+the\\s+(?:morning|evening|afternoon)";
+
 // Built once: parse runs on every keystroke.
+var RE_DAY = new RegExp("(?:^|[^a-z])(" + Object.keys(DAY_WORDS).join("|") + ")(?![a-z])");
+// 1 preposition, 2 midi, 3 minuit, 4 hour, 5 « h » word, 6 minutes after h,
+// 7 minutes after a colon, 8 period
+var RE_CLOCK = new RegExp("(?:^|[\\s\\u0000])(?:(a|at|vers|until|jusqu'a|@)\\s*)?(?:(midi|noon)|(minuit|midnight)|" +
+    "(\\d{1,2})(?:\\s*(heures?|h)\\s*(\\d{2})?|:(\\d{2}))?(?:\\s*(" + PERIOD + "))?)(?![\\w:])");
+// A bare hour followed by a unit is a duration: « pasta a 12 min »
+var RE_UNIT_AHEAD = new RegExp("^\\s*(?:" + "heures?|hours?|hrs?|h|minutes?|mins?|mn|m|secondes?|seconds?|secs?|s" + ")(?![a-z])");
 var RE_UNIT_WORD = new RegExp("^(?:" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")$");
 var RE_AFTER_NUMBER = new RegExp("(^|[^a-z0-9.,'])" + NUM + "\\s*([a-z]{3,})(?![a-z])", "g");
 
@@ -246,9 +269,74 @@ function tooLong(input) {
     return String(input || "").length > MAX_INPUT;
 }
 
+// The clock time in the text, or null: { at: epoch ms, spans: [[start, end], …] }
+// where the spans (the time and its day word) are to be consumed. A bare hour
+// needs a preposition (« at 7 »): without one « 7 » could be anything, and
+// « a 12 min » is a duration. A bare hour is the next occurrence of that
+// hour within 24 h; « tomorrow » is the calendar day after today.
+function readClockTime(work, now) {
+    var m = RE_CLOCK.exec(work);
+    if (!m)
+        return null;
+    var day = RE_DAY.exec(work);
+    var dayInfo = day ? DAY_WORDS[day[1]] : null;
+    var hh, mm = 0;
+    if (m[2]) {
+        hh = 12;
+    } else if (m[3]) {
+        hh = 0;
+    } else {
+        hh = parseInt(m[4]);
+        mm = parseInt(m[6] || m[7] || "0");
+        var explicit = m[5] || m[7] !== undefined || m[8];
+        if (!m[1] && !(explicit && (m[8] || dayInfo)))
+            return null;
+        if (!explicit && RE_UNIT_AHEAD.test(work.substring(m.index + m[0].length)))
+            return null;
+        if (m[8]) {
+            if (hh < 1 || hh > 12)
+                return null;
+            hh = (hh % 12) + (/soir|evening|afternoon|apres|pm/.test(m[8]) ? 12 : 0);
+        } else if (dayInfo && dayInfo.pm && hh >= 1 && hh <= 11) {
+            hh += 12;
+        } else if (dayInfo && dayInfo.night && hh === 12) {
+            hh = 0;
+        }
+    }
+    if (hh > 23 || mm > 59)
+        return null;
+    var at;
+    if (dayInfo && dayInfo.shift) {
+        var d = new Date(now);
+        d.setDate(d.getDate() + dayInfo.shift);
+        d.setHours(hh, mm, 0, 0);
+        at = d.getTime();
+    } else {
+        at = nextOccurrence(hh, mm, now);
+    }
+    var spans = [[m.index, m.index + m[0].length]];
+    if (dayInfo)
+        spans.push([day.index + day[0].indexOf(day[1]), day.index + day[0].indexOf(day[1]) + day[1].length]);
+    return { at: at, spans: spans };
+}
+
+// An empty result carrying the message for the launcher (see Preview.hintOf).
+function noResult(hint) {
+    var r = [];
+    r.hint = hint || "";
+    return r;
+}
+
+// « Unknown word », when a timer was clearly asked for (keyword or context
+// verb) but nothing could be read from the text: the first word left over.
+function unknownWordHint(original, work) {
+    var word = /[^\s\u0000]+/.exec(cleanLabel(original, work));
+    return word ? "Unknown word « " + word[0].substring(0, 20) + " »" : "";
+}
+
 function parse(input, now, options) {
     if (!input || tooLong(input))
-        return [];
+        return noResult("");
     now = now || Date.now();
     options = options || {};
     var original = String(input);
@@ -292,42 +380,12 @@ function parse(input, now, options) {
         }
     }
 
-    // 1. Explicit target time: « à 18h », « à 18:30 », « at 6pm », « vers midi ».
-    var atRe = /(?:^|[\s\u0000])(?:a|at|vers|until|jusqu'a|@)\s*(?:(midi|noon)|(minuit|midnight)|(\d{1,2})(?:\s*(h)\s*(\d{2})?|:(\d{2}))?\s*(am|pm)?)(?![\w:])/;
-    m = atRe.exec(work);
-    if (m && (m[1] || m[2] || m[4] || m[6] !== undefined || m[7])) {
-        var hh = 0, mm = 0;
-        if (m[1]) {
-            hh = 12;
-        } else if (!m[2]) {
-            hh = parseInt(m[3]);
-            mm = parseInt(m[5] || m[6] || "0");
-            if (m[7] === "pm" && hh < 12)
-                hh += 12;
-            if (m[7] === "am" && hh === 12)
-                hh = 0;
-        }
-        if (hh <= 23 && mm <= 59) {
-            target = nextOccurrence(hh, mm, now);
-            work = consume(work, m.index, m.index + m[0].length);
-        }
-    }
-
-    // 1b. « 7am », « 6:30 pm »: a time with am/pm is always a moment.
-    if (!target) {
-        m = /(?:^|[\s\u0000])(\d{1,2})(?::(\d{2}))?\s*(am|pm)(?![\w])/.exec(work);
-        if (m) {
-            let h12 = parseInt(m[1]);
-            const mn = parseInt(m[2] || "0");
-            if (h12 >= 1 && h12 <= 12 && mn <= 59) {
-                if (m[3] === "pm" && h12 < 12)
-                    h12 += 12;
-                if (m[3] === "am" && h12 === 12)
-                    h12 = 0;
-                target = nextOccurrence(h12, mn, now);
-                work = consume(work, m.index, m.index + m[0].length);
-            }
-        }
+    // 1. Clock time: « à 18h », « at 6pm », « vers midi », « demain 8h », « ce soir à 9h ».
+    var clock = readClockTime(work, now);
+    if (clock) {
+        target = clock.at;
+        for (var c = 0; c < clock.spans.length; c++)
+            work = consume(work, clock.spans[c][0], clock.spans[c][1]);
     }
 
     if (!target) {
@@ -390,6 +448,9 @@ function parse(input, now, options) {
                     if (u === 3600000 && value % 1 === 0 && value <= 23 && rest[1].length === 2 && rv <= 59)
                         clockLike = { h: value, m: rv, colon: false };
                     end += rest[0].length;
+                } else if (mm[2] === "h" && value % 1 === 0 && value <= 23) {
+                    // « 8h » alone is also a time of day
+                    clockLike = { h: value, m: 0, colon: false, bare: true };
                 }
             }
             comps.push({ start: start, end: end, ms: ms });
@@ -454,7 +515,7 @@ function parse(input, now, options) {
     if (target)
         return [{ kind: "at", at: target, ms: target - now, label: label }];
     if (!found)
-        return [];
+        return noResult(hasKeyword ? unknownWordHint(original, work) : "");
 
     var results = [];
     total = Math.round(total);
@@ -468,7 +529,8 @@ function parse(input, now, options) {
         var at = nextOccurrence(clockLike.h, clockLike.m, now);
         var alt = { kind: "at", at: at, ms: at - now, label: label };
         if (clockLike.h >= 6) {
-            if (clockLike.colon)
+            // « 8h »: a duration first, unless it is too late in the day for one
+            if (clockLike.colon || (clockLike.bare && clockLike.h < 13))
                 results.push(alt);
             else
                 results.unshift(alt);
