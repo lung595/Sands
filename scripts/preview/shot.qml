@@ -10,7 +10,8 @@ import "mock"
 // Modes:
 //   pill-idle, pill-running, pill-label (right after a start), pill-done,
 //   pill-4 (four timers), panel, panel-paused, panel-ringing, panel-4
-//   (four 1 h timers), hourglass-running, hourglass-frozen, hourglass-ringing
+//   (four 1 h timers), panel-toggle (pause and resume every 2 s, bench
+//   only, with "-hold"), hourglass-running, hourglass-frozen, hourglass-ringing
 // Suffixes: "-reduce" turns Reduce motion on (the sand and the float stand
 // still, so the picture is the same on every run), "-hold" takes no picture and
 // keeps running on the real clock (what banc-ab.sh and essai.sh want).
@@ -35,6 +36,7 @@ Window {
             "pill-4": [["running", "Run", 60 * mm, 59 * mm, 0], ["running", "Bake", 60 * mm, 59 * mm + 1000, 1], ["running", "Read", 60 * mm, 59 * mm + 2000, 2], ["running", "Laundry", 60 * mm, 59 * mm + 3000, 3]],
             "panel": [["running", "Pasta", 20 * mm, 12 * mm + 34000, 0], ["running", "Laundry", 45 * mm, 31 * mm, 1]],
             "panel-paused": [["paused", "Pasta", 20 * mm, 12 * mm + 34000, 0]],
+            "panel-toggle": [["paused", "Pasta", 20 * mm, 12 * mm + 34000, 0]],
             "panel-ringing": [["ringing", "Tea", 4 * mm, 0, 0]],
             "panel-4": [["running", "Run", 60 * mm, 59 * mm, 0], ["running", "Bake", 60 * mm, 59 * mm + 1000, 1], ["running", "Read", 60 * mm, 59 * mm + 2000, 2], ["running", "Laundry", 60 * mm, 59 * mm + 3000, 3]],
             "hourglass-running": [],
@@ -125,6 +127,14 @@ Window {
         capColor: Theme.surfaceContainerHighest
         frostColor: Qt.hsla(0.56, 0.85, Math.max(0.45, Math.min(0.88, Theme.surfaceText.hslLightness)), 1)
         shadowColor: "black"
+    }
+
+    // The pause/resume action in a loop: the frost Loaders come and go
+    Timer {
+        interval: 2000
+        repeat: true
+        running: win.ready && win.hold && win.mode === "panel-toggle"
+        onTriggered: daemon.flip(1)
     }
 
     // Long enough for the 0.9 s freeze and the pill's 120 ms hover to land,
