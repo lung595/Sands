@@ -1,11 +1,12 @@
 import QtQuick
-import Quickshell
-import Quickshell.Io
 import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
 import "Timers.js" as Timers
 import "Guide.js" as Guide
+import "components/daemon"
+import "components/daemon/Lifecycle.js" as Lifecycle
+import "components/daemon/Notifications.js" as Notifications
 
 // Timer engine, instantiated once. The bar and the launcher
 // reach it through PluginService.pluginDaemonInstances["smartTimer"].
@@ -14,6 +15,11 @@ import "Guide.js" as Guide
 // (endAt): nothing drifts, and a DMS restart finds it exactly where it
 // was. Every change replaces the `timers` array (QML bindings update) and
 // is saved in the plugin state.
+//
+// This file owns the timer list, its actions and the clock. The rest has one
+// file each in components/daemon/: TimerStore (persistence), AlarmSound
+// (every sound), TimerNotifier (end notification), TimerIpc (the `dms ipc`
+// commands), and the pure rules in the .js files next to them.
 Item {
     id: root
     // Look of the panel's hourglass: "classic" or "glassOfTime"
@@ -22,27 +28,19 @@ Item {
     property string pluginId: "smartTimer"
     property var pluginService: null
 
-    // The rings shipped with the plugin, as a local path ending with "/".
-    readonly property string ringDir: decodeURIComponent(Qt.resolvedUrl("sounds/").toString().replace(/^file:\/\//, ""))
-
     // { id, label, kind: "duration"|"at", total, endAt, remaining,
     //   state: "running"|"paused"|"ringing", finishedAt }
     property var timers: []
     property real now: Date.now()
 
-    // Display order: ringing first, then the soonest to finish, then
-    // paused ones. Does not depend on the clock (the order of end times does
-    // not change over time): recomputed only when the list changes.
-    readonly property var sorted: {
-        const rank = t => t.state === "ringing" ? 0 : (t.state === "running" ? 1 : 2);
-        const key = t => t.state === "running" ? t.endAt : (t.state === "paused" ? t.remaining : t.finishedAt);
-        return timers.slice().sort((a, b) => rank(a) - rank(b) || key(a) - key(b));
-    }
+    // Display order, see Lifecycle.sortTimers. Does not depend on the clock
+    // (the order of end times does not change over time): recomputed only
+    // when the list changes.
+    readonly property var sorted: Lifecycle.sortTimers(timers)
     readonly property var primary: sorted.length > 0 ? sorted[0] : null
     readonly property int count: timers.length
     readonly property bool hasTimers: timers.length > 0
     readonly property bool ringing: timers.some(t => t.state === "ringing")
-    property bool soundActive: false
 
     // Durations used before, most frequent and recent first:
     // [{ ms, label, uses, last }]. Feeds a bare "timer" in the launcher.
@@ -55,7 +53,6 @@ Item {
     signal panelRequested(string screenName)
 
     property int _nextId: 1
-    property bool _loaded: false
 
     function setting(key, fallback) {
         return pluginService ? pluginService.loadPluginData(pluginId, key, fallback) : fallback;
@@ -92,6 +89,26 @@ Item {
     }
 
     // ------------------------------------------------------------------
+    // Sound (see AlarmSound.qml)
+    // ------------------------------------------------------------------
+
+    function soundPath(choice, custom) {
+        return alarm.soundPath(choice, custom);
+    }
+
+    function previewSound(path) {
+        alarm.preview(path);
+    }
+
+    function ringLimitMs() {
+        return alarm.ringLimitMs();
+    }
+
+    function silence() {
+        alarm.silence();
+    }
+
+    // ------------------------------------------------------------------
     // Actions
     // ------------------------------------------------------------------
 
@@ -113,21 +130,17 @@ Item {
     function _commit(list) {
         timers = list;
         now = Date.now();
-        if (pluginService && _loaded) {
-            pluginService.savePluginState(pluginId, "timers", list);
-            pluginService.savePluginState(pluginId, "nextId", _nextId);
-        }
+        store.saveTimers(list, _nextId);
         if (!list.some(t => t.state === "ringing"))
             silence();
-        _syncNotifications(list);
+        notifier.sync(list);
         _schedule();
     }
 
     function _remember(ms, label) {
         const list = Timers.remember(recents, ms, label, Date.now());
         recents = list;
-        if (pluginService)
-            pluginService.savePluginState(pluginId, "recents", list);
+        store.saveRecents(list);
     }
 
     // Hard limits: a script or a typo can't fill the disk or the bar.
@@ -158,21 +171,6 @@ Item {
             note = n;
         else if (typeof ToastService !== "undefined")
             ToastService.showError(Guide.toastText(n), guideUrl + "#" + n.anchor);
-    }
-
-    function _make(ms, label, kind, at, t0) {
-        const endAt = kind === "at" && at ? at : t0 + ms;
-        return {
-            id: _nextId++,
-            label: String(label || "").substring(0, TP.MAX_LABEL).trim(),
-            kind: kind === "at" ? "at" : "duration",
-            total: endAt - t0,
-            endAt: endAt,
-            remaining: endAt - t0,
-            state: "running",
-            finishedAt: 0,
-            hue: 0
-        };
     }
 
     function start(ms, label, kind, at, remember) {
@@ -207,7 +205,7 @@ Item {
         let list = timers;
         const ids = [];
         for (let i = 0; i < n; i++) {
-            const t = _make(ms, label, kind, at, t0);
+            const t = Lifecycle.make(_nextId++, ms, label, kind, at, t0, TP.MAX_LABEL);
             t.hue = Timers.freeHue(list, hueCount);
             list = list.concat([t]);
             ids.push(t.id);
@@ -223,9 +221,6 @@ Item {
     // takes the accent color, the next ones neighboring hues. The first
     // free hue is reused, so colors stay stable.
     readonly property int hueCount: 6
-    function _freeHue() {
-        return Timers.freeHue(timers, hueCount);
-    }
 
     function colorFor(t) {
         const base = Theme.primary;
@@ -239,7 +234,9 @@ Item {
 
     // Same syntax as the launcher: startText("12 min pâtes").
     function startText(text) {
-        const res = TP.parse(text, Date.now(), { keyword: true });
+        const res = TP.parse(text, Date.now(), {
+            keyword: true
+        });
         if (res.length === 0)
             return null;
         // Understood but refused (out of range, no room left): r.started is 0
@@ -251,22 +248,12 @@ Item {
 
     function pause(id) {
         const t0 = Date.now();
-        return _update(id, t => {
-            if (t.state !== "running")
-                return;
-            t.remaining = Math.max(0, t.endAt - t0);
-            t.state = "paused";
-        });
+        return _update(id, t => Lifecycle.pause(t, t0));
     }
 
     function resume(id) {
         const t0 = Date.now();
-        return _update(id, t => {
-            if (t.state !== "paused")
-                return;
-            t.endAt = t0 + t.remaining;
-            t.state = "running";
-        });
+        return _update(id, t => Lifecycle.resume(t, t0));
     }
 
     function toggle(id) {
@@ -287,42 +274,14 @@ Item {
         const t0 = Date.now();
         let ok = false;
         return _update(id, t => {
-            if (t.state === "ringing") {
-                if (deltaMs <= 0 || deltaMs > TP.MAX_MS)
-                    return;
-                ok = true;
-                t.state = "running";
-                t.endAt = t0 + deltaMs;
-                t.total = deltaMs;
-                t.finishedAt = 0;
-                t.kind = "duration";
-                return;
-            }
-            const rem = t.state === "running" ? t.endAt - t0 : t.remaining;
-            const next = rem + deltaMs;
-            if (next < 1000 || next > TP.MAX_MS)
-                return;
-            ok = true;
-            if (t.state === "running")
-                t.endAt += deltaMs;
-            else
-                t.remaining = next;
-            t.total = Math.max(t.total + Math.max(0, deltaMs), next);
+            ok = Lifecycle.adjust(t, t0, deltaMs, TP.MAX_MS);
         }) && ok;
     }
 
     function restart(id) {
         const t0 = Date.now();
         Qt.callLater(() => root.timerStarted(id));
-        return _update(id, t => {
-            const dur = t.kind === "at" ? Math.max(t.total, 1000) : t.total;
-            t.kind = "duration";
-            t.total = dur;
-            t.endAt = t0 + dur;
-            t.remaining = dur;
-            t.state = "running";
-            t.finishedAt = 0;
-        });
+        return _update(id, t => Lifecycle.restart(t, t0));
     }
 
     function remove(id) {
@@ -355,119 +314,27 @@ Item {
     function _tick() {
         const t0 = Date.now();
         now = t0;
-        let fired = false;
-        const list = timers.map(t => {
-            if (t.state !== "running" || t.endAt > t0)
-                return t;
-            fired = true;
-            return Object.assign({}, t, {
-                state: "ringing",
-                finishedAt: t.endAt,
-                remaining: 0
-            });
-        });
+        const r = Lifecycle.expire(timers, t0);
         // Subtle ticking during the last 10 seconds (optional).
-        if (!fired && setting("tick", false) && !_muted() && list.some(t => t.state === "running" && t.endAt - t0 > 0 && t.endAt - t0 <= 10050))
-            _playTick();
-        if (fired) {
-            const newly = list.filter(t => t.state === "ringing" && !_notifiers[t.id]);
-            _commit(list);
-            startRinging();
+        if (!r.fired && setting("tick", false) && !alarm.muted() && Lifecycle.inFinalSeconds(r.list, t0))
+            alarm.playTick();
+        if (r.fired) {
+            const newly = r.list.filter(t => t.state === "ringing" && !notifier.has(t.id));
+            _commit(r.list);
+            alarm.startRinging();
             newly.forEach(t => _notify(t));
         }
     }
 
-    // ------------------------------------------------------------------
-    // End notification with actions (useful in fullscreen, bar hidden)
-    // ------------------------------------------------------------------
-
-    // timer id → { proc, notifId }
-    property var _notifiers: ({})
-
     function _notify(t) {
-        if (!setting("notify", true) || _notifiers[t.id])
-            return;
-        const body = t.kind === "at" ? "It's " + TP.formatTimeOfDay(t.endAt, use24h()) : TP.formatHuman(t.total) + " elapsed";
-        const proc = notifierComp.createObject(root, {
-            timerId: t.id,
-            command: ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p", "-A", "stop=" + "Stop", "-A", "snooze=+5 min", displayLabel(t) + " — done", body]
-        });
-        const map = Object.assign({}, _notifiers);
-        map[t.id] = {
-            proc: proc,
-            notifId: 0
-        };
-        _notifiers = map;
-        proc.running = true;
-    }
-
-    // Closes the notifications of timers that are no longer ringing.
-    function _syncNotifications(list) {
-        for (const key in _notifiers) {
-            const id = parseInt(key);
-            const t = list.find(x => x.id === id);
-            if (t && t.state === "ringing")
-                continue;
-            const n = _notifiers[key];
-            if (n.notifId > 0)
-                Quickshell.execDetached(["gdbus", "call", "--session", "--dest", "org.freedesktop.Notifications", "--object-path", "/org/freedesktop/Notifications", "--method", "org.freedesktop.Notifications.CloseNotification", String(n.notifId)]);
-            const map = Object.assign({}, _notifiers);
-            delete map[key];
-            _notifiers = map;
-        }
-    }
-
-    Component {
-        id: notifierComp
-
-        Process {
-            id: proc
-            property int timerId: 0
-
-            stdout: SplitParser {
-                onRead: line => {
-                    const v = line.trim();
-                    const n = root._notifiers[proc.timerId];
-                    if (/^\d+$/.test(v)) {
-                        if (n)
-                            n.notifId = parseInt(v);
-                        return;
-                    }
-                    if (v === "stop")
-                        root.dismiss(proc.timerId);
-                    else if (v === "snooze")
-                        root.adjust(proc.timerId, 300000);
-                }
-            }
-
-            onExited: {
-                const map = Object.assign({}, root._notifiers);
-                if (map[proc.timerId] && map[proc.timerId].proc === proc) {
-                    delete map[proc.timerId];
-                    root._notifiers = map;
-                }
-                proc.destroy();
-            }
-        }
+        if (setting("notify", true))
+            notifier.show(t, displayLabel(t), Notifications.body(t, use24h()));
     }
 
     // Wake-up aligned on the next change of the displayed second (≈ once
     // per second), and no wake-up at all when everything is paused.
     function _schedule() {
-        const t0 = Date.now();
-        let next = -1;
-        for (let i = 0; i < timers.length; i++) {
-            const t = timers[i];
-            let d = -1;
-            if (t.state === "running") {
-                const r = t.endAt - t0;
-                d = r <= 0 ? 0 : (r % 1000 || 1000);
-            } else if (t.state === "ringing") {
-                d = 1000 - ((t0 - t.finishedAt) % 1000);
-            }
-            if (d >= 0 && (next < 0 || d < next))
-                next = d;
-        }
+        const next = Lifecycle.nextDelay(timers, Date.now());
         if (next < 0) {
             ticker.stop();
             return;
@@ -485,291 +352,52 @@ Item {
         }
     }
 
-    // ------------------------------------------------------------------
-    // Sound
-    // ------------------------------------------------------------------
-
-    property real _ringStartedAt: 0
-    property bool _useFallbackPlayer: false
-
-    // The file the alarm plays; `choice` and `custom` default to the saved
-    // settings, Preview passes what is shown in the settings page.
-    function soundPath(choice, custom) {
-        return Timers.soundFile(choice === undefined ? setting("sound", "") : choice, custom === undefined ? setting("customSound", "") : custom, Quickshell.env("HOME"), ringDir);
+    TimerStore {
+        id: store
+        pluginService: root.pluginService
+        pluginId: root.pluginId
     }
 
-    function _volume() {
-        const v = parseInt(setting("volume", 80));
-        return Math.max(0, Math.min(100, isNaN(v) ? 80 : v)) / 100;
+    AlarmSound {
+        id: alarm
+        engine: root
     }
 
-    function _command(path, volume) {
-        if (_useFallbackPlayer)
-            return ["paplay", "--volume=" + Math.round(volume * 65536), path];
-        return ["pw-play", "--volume=" + volume.toFixed(2), "--", path];
+    TimerNotifier {
+        id: notifier
+        onStopRequested: id => root.dismiss(id)
+        onSnoozeRequested: id => root.adjust(id, 300000)
     }
 
-    // "Do not disturb": the pill pulses, but no sound.
-    function _muted() {
-        return setting("respectDnd", true) && SessionData.doNotDisturb;
-    }
-
-    property int _ringCount: 0
-
-    // How long an alarm makes noise and moves (the same setting for both).
-    function ringLimitMs() {
-        return Math.max(5, parseInt(setting("ringDuration", 60)) || 60) * 1000;
-    }
-
-    function startRinging() {
-        if (_muted())
-            return;
-        _ringStartedAt = Date.now();
-        _ringCount = 0;
-        soundActive = true;
-        _playOnce();
-    }
-
-    function _playOnce() {
-        if (!soundActive)
-            return;
-        // Rising alarm: 30%, 65%, then full volume.
-        const ramp = setting("rampUp", true) ? Math.min(1, 0.3 + 0.35 * _ringCount) : 1;
-        _ringCount++;
-        ringPlayer.command = _command(soundPath(), _volume() * ramp);
-        ringPlayer.startedAt = Date.now();
-        ringPlayer.running = true;
-    }
-
-    // Silences the sound; the timer stays "finished" (the pill pulses) until
-    // it is stopped or restarted.
-    function silence() {
-        soundActive = false;
-        ringGap.stop();
-        if (ringPlayer.running)
-            ringPlayer.running = false;
-    }
-
-    // A new preview waits for the previous one to stop, so a player we
-    // stopped ourselves is never mistaken for a file that cannot be played.
-    function previewSound(path) {
-        previewPlayer.path = path || soundPath();
-        if (previewPlayer.running) {
-            previewPlayer.next = true;
-            previewPlayer.running = false;
-        } else {
-            _playPreview();
-        }
-    }
-
-    function _playPreview() {
-        previewPlayer.command = _command(previewPlayer.path, _volume());
-        previewPlayer.startedAt = Date.now();
-        previewPlayer.running = true;
-    }
-
-    Process {
-        id: ringPlayer
-        property real startedAt: 0
-        onExited: (exitCode, exitStatus) => {
-            if (!root.soundActive)
-                return;
-            // pw-play missing or failing right away: fall back to paplay.
-            if (exitCode !== 0 && !root._useFallbackPlayer && Date.now() - startedAt < 1500) {
-                root._useFallbackPlayer = true;
-                root._playOnce();
-                return;
-            }
-            if (exitCode !== 0) {
-                root.soundActive = false;
-                // Both players failed: the file is the problem, so keep
-                // pw-play as the first choice next time
-                root._useFallbackPlayer = false;
-                root.explain(Guide.silentNote());
-                return;
-            }
-            if (Date.now() - root._ringStartedAt >= root.ringLimitMs()) {
-                root.soundActive = false;
-                return;
-            }
-            ringGap.restart();
-        }
-    }
-
-    Timer {
-        id: ringGap
-        interval: 450
-        onTriggered: root._playOnce()
-    }
-
-    Process {
-        id: previewPlayer
-        property string path: ""
-        property bool next: false
-        property bool closing: false
-        property real startedAt: 0
-        onExited: (exitCode, exitStatus) => {
-            if (next) {
-                next = false;
-                root._playPreview();
-                return;
-            }
-            if (exitCode === 0 || closing)
-                return;
-            // Same fallback as the alarm: pw-play missing or failing at once
-            if (!root._useFallbackPlayer && Date.now() - startedAt < 1500) {
-                root._useFallbackPlayer = true;
-                root._playPreview();
-                return;
-            }
-            root._useFallbackPlayer = false;
-            root.explain(Guide.previewNote());
-        }
-    }
-
-    readonly property string tickSound: "/usr/share/sounds/freedesktop/stereo/audio-volume-change.oga"
-    function _playTick() {
-        tickPlayer.running = false;
-        tickPlayer.command = _command(tickSound, _volume() * 0.35);
-        tickPlayer.running = true;
-    }
-
-    Process {
-        id: tickPlayer
+    TimerIpc {
+        engine: root
     }
 
     // ------------------------------------------------------------------
-    // Persistence and startup
+    // Startup
     // ------------------------------------------------------------------
 
     Component.onCompleted: {
         if (!pluginService)
             return;
+        store.ensureLauncherDefault();
 
-        // The launcher works without a prefix by default (« 20 min » is enough).
-        // Without this explicit setting, DMS would fall back to the "!" trigger.
-        if (pluginService.loadPluginData(pluginId, "noTrigger", null) === null)
-            pluginService.savePluginData(pluginId, "noTrigger", true);
-
-        const saved = pluginService.loadPluginState(pluginId, "timers", []);
-        _nextId = pluginService.loadPluginState(pluginId, "nextId", 1);
+        const saved = store.read();
         const t0 = Date.now();
-        let ringNow = false;
-        const list = (Array.isArray(saved) ? saved : []).filter(t => t && t.id !== undefined).map(t => {
-            const copy = Object.assign({}, t);
-            if (copy.state === "running" && copy.endAt <= t0) {
-                copy.state = "ringing";
-                copy.finishedAt = copy.endAt;
-                copy.remaining = 0;
-                // Finished while the shell was off: ring only if it just happened.
-                if (t0 - copy.endAt < 60000)
-                    ringNow = true;
-            }
-            _nextId = Math.max(_nextId, copy.id + 1);
-            return copy;
-        });
-        recents = Timers.rankRecents(pluginService.loadPluginState(pluginId, "recents", []) || [], Date.now());
-        _loaded = true;
-        timers = list;
+        const state = Lifecycle.restore(saved.timers, saved.nextId, t0);
+        _nextId = state.nextId;
+        recents = Timers.rankRecents(saved.recents, t0);
+        store.loaded = true;
+        timers = state.list;
         now = t0;
         _schedule();
-        if (ringNow)
-            startRinging();
-        list.filter(t => t.state === "ringing" && t0 - t.finishedAt < 60000).forEach(t => _notify(t));
+        if (state.ringNow)
+            alarm.startRinging();
+        state.recent.forEach(t => _notify(t));
     }
 
     Component.onDestruction: {
         ticker.stop();
-        ringGap.stop();
-        ringPlayer.running = false;
-        previewPlayer.closing = true;
-        previewPlayer.running = false;
-    }
-
-    // ------------------------------------------------------------------
-    // IPC: dms ipc call smartTimer <function> [arguments]
-    // ------------------------------------------------------------------
-
-    IpcHandler {
-        target: "smartTimer"
-
-        // dms ipc call smartTimer start "12 min pâtes"
-        function start(text: string): string {
-            if (TP.tooLong(text))
-                return "Not started: keep it under " + TP.MAX_INPUT + " characters, like \"12 min pasta\": " + root.guideUrl + "#syntax";
-            const r = root.startText(text);
-            if (!r)
-                return "Not started. Try \"12 min pasta\": " + root.guideUrl + "#syntax";
-            if (r.started === 0)
-                return "Not started: " + root.lastRefusal.hint + ". " + root.guideUrl + "#" + root.lastRefusal.anchor;
-            const partial = r.started < (r.count || 1);
-            const times = partial ? r.started + " of " + r.count + " × " : (r.kind === "duration" && r.count > 1 ? r.count + " × " : "");
-            const limit = partial ? " (at most " + root.maxTimers + " at once: " + root.guideUrl + "#syntax)" : "";
-            return "Started: " + times + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, root.use24h()) : TP.formatHuman(r.ms)) + limit;
-        }
-
-        // Pauses / resumes the nearest timer; stops the alarm.
-        function toggle(): string {
-            if (root.ringing) {
-                root.dismissRinging();
-                return "Alarm stopped";
-            }
-            if (!root.primary)
-                return "No timer";
-            root.toggle(root.primary.id);
-            return "OK";
-        }
-
-        function pause(): string {
-            root.timers.filter(t => t.state === "running").forEach(t => root.pause(t.id));
-            return "OK";
-        }
-
-        function resume(): string {
-            root.timers.filter(t => t.state === "paused").forEach(t => root.resume(t.id));
-            return "OK";
-        }
-
-        // Stops whatever is ringing, otherwise cancels the nearest timer.
-        function stop(): string {
-            if (root.ringing) {
-                root.dismissRinging();
-                return "Alarm stopped";
-            }
-            if (!root.primary)
-                return "No timer";
-            root.remove(root.primary.id);
-            return "Timer cancelled";
-        }
-
-        // dms ipc call smartTimer add 5  → +5 min on the nearest timer
-        function add(minutes: int): string {
-            if (!root.primary)
-                return "No timer";
-            if (!root.adjust(root.primary.id, minutes * 60000))
-                return "Not changed: a timer lasts between 1 second and 100 hours. " + root.guideUrl + "#syntax";
-            return "OK";
-        }
-
-        // Bind to a shortcut: opens / closes the panel on the active screen.
-        function panel(): string {
-            const scr = CompositorService.getFocusedScreen();
-            root.panelRequested(scr ? scr.name : "");
-            return "OK";
-        }
-
-        function clear(): string {
-            root.clear();
-            return "All timers cleared";
-        }
-
-        function list(): string {
-            if (root.timers.length === 0)
-                return "No timer";
-            return root.sorted.map(t => {
-                const state = t.state === "paused" ? " (paused)" : (t.state === "ringing" ? " (done)" : "");
-                return root.displayLabel(t) + "\t" + TP.formatClock(root.remainingOf(t)) + state;
-            }).join("\n");
-        }
+        alarm.shutdown();
     }
 }

@@ -32,17 +32,28 @@ Tools: `gjs` (tests).
 
 | Component | File | Role |
 | --- | --- | --- |
-| Daemon | `TimerDaemon.qml` | The engine, one instance: timers, persistence, sound, notifications, IPC |
+| Daemon | `TimerDaemon.qml` | The engine, one instance: the timer list, its actions and the clock. Delegates to `components/daemon/` |
 | Widget | `TimerWidget.qml` | Bar pill and its popout (the panel). Only displays the daemon's state and forwards actions |
 | Launcher | `TimerLauncher.qml` | Launcher provider: answers only when the input looks like a duration |
 | Settings | `TimerSettings.qml` | Settings page |
 
 The widget and the launcher reach the engine through `PluginService.pluginDaemonInstances["smartTimer"]`.
 
+The daemon is split by role, one file each, in `components/daemon/`. Each QML file only wires; its rules are in the `.js` next to it:
+
+| File | Role | Pure logic |
+| --- | --- | --- |
+| `TimerStore.qml` | Persistence through the DMS plugin state | |
+| `AlarmSound.qml` | Every sound: alarm, settings preview, tick (one idle `Process` each) | `Sound.js` |
+| `TimerNotifier.qml` | End notification with Stop / +5 min (one `notify-send` per ringing timer) | `Notifications.js` |
+| `TimerIpc.qml` | The `dms ipc call smartTimer …` commands | `IpcReplies.js` |
+| | State transitions, expiry, next wake-up, restore | `Lifecycle.js` |
+
 Logic that can be tested lives in **pure `.js` files** with no QML:
 
 - `TimeParser.js`: natural-language parser (English and French) and formatting.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
+- `components/daemon/*.js`: the rules of the daemon's parts (see the table above). They import `TimeParser.js` and `Timers.js` where needed.
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
 
@@ -61,6 +72,9 @@ Sands/
 ├── Timers.js                   # pure timer logic: time left, recents ranking… (tested)
 ├── Guide.js                    # "why it can't be done" notes + guide anchors (tested)
 ├── components/
+│   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
+│   │   ├── TimerStore.qml, AlarmSound.qml, TimerNotifier.qml, TimerIpc.qml
+│   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js   (tested)
 │   ├── TimerPanelContent.qml   # panel: hourglass, time, controls, other timers
 │   ├── Hourglass.qml           # the floating, volume-synced hourglass
 │   ├── ProgressRing.qml        # the ring used in the pill and lists
@@ -75,6 +89,8 @@ Sands/
 │   ├── parser.test.js
 │   ├── motion.test.js
 │   ├── timers.test.js
+│   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js
+│   ├── harness.js              # shared loader for the daemon tests
 │   └── guide.test.js
 └── docs/
     ├── GUIDE.md                # user guide
@@ -86,8 +102,11 @@ Sands/
 ```sh
 gjs tests/parser.test.js        # 108 parser tests
 gjs tests/motion.test.js
-gjs tests/timers.test.js        # timer logic and sound choice tests
+gjs tests/timers.test.js        # 25 timer logic tests
 gjs tests/guide.test.js         # 18 tests: note length, guide anchors
+gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restore
+gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command
+gjs tests/daemon-text.test.js   # 22 tests: IPC sentences, notification commands
 ```
 
 Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
