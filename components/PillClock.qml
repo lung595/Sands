@@ -4,7 +4,9 @@ import QtQuick
 // Animators: those would make every DMS window redraw at the
 // display rate for as long as the alarm rings (possibly for
 // hours if nobody is there); this only redraws the bar. 60 Hz
-// for the quick beat and bell, 30 Hz for the slow breathing.
+// only for the quick bell swing (70 ms); the final-countdown beat
+// (110 ms rise) and the slow breathing look the same at 30 Hz and
+// cost half the bar redraws.
 //
 // An alarm nobody answers does not animate forever: like the
 // sound, the pill stops moving after the alarm duration and
