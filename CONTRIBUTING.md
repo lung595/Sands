@@ -33,7 +33,7 @@ Tools: `gjs` (tests).
 | Component | File | Role |
 | --- | --- | --- |
 | Daemon | `TimerDaemon.qml` | The engine, one instance: the timer list, its actions and the clock. Delegates to `components/daemon/` |
-| Widget | `TimerWidget.qml` | Bar pill and its popout (the panel). Only displays the daemon's state and forwards actions |
+| Widget | `TimerWidget.qml` | Host wiring only: visibility, click and IPC hooks, the pill and the panel. Only displays the daemon's state and forwards actions |
 | Launcher | `TimerLauncher.qml` | Launcher provider: answers only when the input looks like a duration |
 | Settings | `TimerSettings.qml` | Settings page |
 
@@ -66,7 +66,7 @@ Timers are stored as **end times**, not countdowns, so they survive a restart.
 Sands/
 ├── plugin.json                 # manifest: id, version, components, permissions
 ├── TimerDaemon.qml             # engine (see Architecture)
-├── TimerWidget.qml             # bar pill + native DMS popout
+├── TimerWidget.qml             # host wiring: picks the pills and the panel
 ├── TimerLauncher.qml           # launcher provider
 ├── TimerSettings.qml           # settings page
 ├── TimeParser.js               # natural-language parser + formatting (tested)
@@ -74,6 +74,12 @@ Sands/
 ├── Preview.js                  # launcher preview lines: « Pasta · 12 min · ends 12:42 » (tested)
 ├── Guide.js                    # "why it can't be done" notes + guide anchors (tested)
 ├── components/
+│   ├── HorizontalPill.qml      # horizontal bar pill: state, layout (uses the Pill* parts below)
+│   ├── VerticalPill.qml        # vertical bar pill: ring + short time
+│   ├── PillGlyph.qml, PillNameLabel.qml, PillTimeLabel.qml, PillBadge.qml  # one part each of the horizontal pill
+│   ├── PillClock.qml           # the pill's 30/60 Hz motion clock and the ringing limit
+│   ├── HoverDwell.qml          # damped hover (opens after 120 ms, closes after 450 ms)
+│   ├── PillClicks.qml          # middle click and wheel on the pill
 │   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
 │   │   ├── TimerStore.qml, AlarmSound.qml, TimerNotifier.qml, TimerIpc.qml
 │   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js   (tested)
@@ -99,13 +105,10 @@ Sands/
 │   ├── parser.test.js
 │   ├── motion.test.js
 │   ├── timers.test.js
-<<<<<<< HEAD
 │   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
 │   ├── hourglass.test.js
 │   ├── harness.js              # shared loader for the daemon tests
-=======
 │   ├── preview.test.js
->>>>>>> eb18e4c (fix(launcher): preview and created timer share one label, reuse displayLabel, document Preview.js (NAK-152))
 │   └── guide.test.js
 └── docs/
     ├── GUIDE.md                # user guide
@@ -121,12 +124,8 @@ The panel parts show what they are given and report what the user does with sign
 ```sh
 gjs tests/parser.test.js        # 108 parser tests
 gjs tests/motion.test.js
-<<<<<<< HEAD
-gjs tests/timers.test.js        # 25 timer logic tests
-=======
 gjs tests/timers.test.js        # timer logic and sound choice tests
 gjs tests/preview.test.js       # launcher preview lines
->>>>>>> eb18e4c (fix(launcher): preview and created timer share one label, reuse displayLabel, document Preview.js (NAK-152))
 gjs tests/guide.test.js         # 18 tests: note length, guide anchors
 gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restore
 gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command

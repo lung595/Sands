@@ -14,6 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - The panel code is split by role (hourglass and gestures, clock, controls, other timers, frost): no change in look or behavior, checked pixel for pixel against the offscreen references. The frost layers and the list of other timers are now built only while they are visible.
 - Internal: `components/Hourglass.qml` (33 KB) is split into short single-role files in `components/hourglass/` (geometry and frost shapes in tested `.js`, one canvas per layer, the two Glass of Time layers loaded only in that style, one clock Timer). No visible change: all offscreen preview scenes match their references pixel for pixel, and no animation loop was added.
+- Internal only: `TimerWidget.qml` (19 KB) is split by role into small files in `components/` (horizontal and vertical pill, glyph, name, time, badge, motion clock, hover, clicks). The pill scenes are byte-identical to their reference pictures (panel scenes within their tolerance), and the pill's timers and animations are unchanged (nothing runs at rest). See *Project layout* in `CONTRIBUTING.md`.
 - The default alarm is now **Hourglass**, a soft four-note glass ring made for Sands, instead of the freedesktop alarm clock. **Silt Chime**, a short bell (CC0), is the second choice in *Sound*.
 - The former default is now a normal entry in the list of installed sounds. A sound you picked yourself keeps playing; only an unset *Sound* (or the former "Alarm clock (default)") now plays Hourglass.
 
