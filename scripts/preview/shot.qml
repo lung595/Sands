@@ -9,9 +9,7 @@ import "mock"
 // Usage: QT_QPA_PLATFORM=offscreen qml -I imports shot.qml -- <mode> <out.png>
 // Modes:
 //   pill-idle, pill-running, pill-label (right after a start), pill-done,
-//   pill-4 (four timers), pill-beat (final-countdown beat), pill-bell (ringing
-//   with the sound on, the bell swings), pill-short (a 2 min timer: the ring
-//   steps 0.8 % a second, so its Behavior plays; the three bench only), panel, panel-paused, panel-ringing, panel-4
+//   pill-4 (four timers), panel, panel-paused, panel-ringing, panel-4
 //   (four 1 h timers), panel-toggle (pause and resume every 2 s, bench
 //   only, with "-hold"), hourglass-running, hourglass-frozen, hourglass-ringing
 // Suffixes: "-reduce" turns Reduce motion on (the sand and the float stand
@@ -37,9 +35,6 @@ Window {
             "pill-running": [["running", "Pasta", 20 * mm, 12 * mm + 34000, 0]],
             "pill-label": [["running", "Pasta", 20 * mm, 12 * mm + 34000, 0]],
             "pill-done": [["ringing", "Tea", 4 * mm, 0, 0]],
-            "pill-beat": [["running", "Tea", 4 * mm, 9000, 0]],
-            "pill-bell": [["ringing", "Tea", 4 * mm, 0, 0]],
-            "pill-short": [["running", "Tea", 2 * mm, 110000, 0]],
             "pill-4": [["running", "Run", 60 * mm, 59 * mm, 0], ["running", "Bake", 60 * mm, 59 * mm + 1000, 1], ["running", "Read", 60 * mm, 59 * mm + 2000, 2], ["running", "Laundry", 60 * mm, 59 * mm + 3000, 3]],
             "panel": [["running", "Pasta", 20 * mm, 12 * mm + 34000, 0], ["running", "Laundry", 45 * mm, 31 * mm, 1]],
             "panel-paused": [["paused", "Pasta", 20 * mm, 12 * mm + 34000, 0]],
@@ -70,7 +65,6 @@ Window {
     property bool ready: false
     Component.onCompleted: {
         SettingsData.reduceMotion = win.reduce;
-        daemon.soundActive = win.mode === "pill-bell";
         daemon.load(win.scenes[win.mode] ?? []);
         PluginService.pluginDaemonInstances = {
             "smartTimer": daemon

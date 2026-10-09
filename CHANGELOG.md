@@ -5,28 +5,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+## 1.5.0 - 2026-10-09
+
 ### Added
 
 - **Natural clock times** in the launcher parser (NAK-151, part 2 of 4): `réveille-moi à 7h`, `wake me up at 7`, `until 6pm`, `ce soir à 9h`, `tonight at 9`, `demain 8h`, `tomorrow at 8`, `midi`, `minuit`, `noon`, `midnight`, `7 du soir`, `7 in the morning`. A bare hour after `at`/`à` is the next occurrence within 24 h (tomorrow if already past); `tomorrow` is the next calendar day. `8h` alone lists both readings (8 h timer, then 08:00). A timer keyword with nothing readable sets `results.hint` (`Unknown word « … »`) for the launcher.
 - **Natural durations** in the launcher parser: `timer 20m pâtes`, `timer jours 3 entretien`, `timer 1h30 réunion` and context verbs (`timer cooked 25m`, `timer folded 45m`). Bare minutes work too (`timer 20 pasta`). Unit typos are tolerated when the first letter is kept (`durées` ➜ `durées`, `jours` ➜ `jours`, `hors` ➜ `hors`). This is **NAK-150, part 1 of 4** (durations only); NAK-151 will add hours.
 - **One-line preview in the launcher** when you type a timer: `Pasta · 12 min · ends 12:42`, `Wake up · at 07:00 tomorrow`, or just `Timer · 12 min · ends 12:42` (no label). The line below keeps `Rings in/at …`. Ambiguous inputs (`14h30`) still list both readings ranked, and Enter starts the one you pick. This is **NAK-152, part 3 of 4** (preview only); NAK-151 will add hours, NAK-153 will add names.
-
-### Changed
-
-- The bar pill's final-countdown beat now ticks at 30 Hz instead of 60 Hz (the bell swing keeps 60 Hz): half the bar redraws during the last ten seconds, same beat. Offscreen bench, pill in its final countdown: 0.36 % → 0.21 % of one core (below the noise of this bench).
-- The panel code is split by role (hourglass and gestures, clock, controls, other timers, frost): no change in look or behavior, checked pixel for pixel against the offscreen references. The frost layers and the list of other timers are now built only while they are visible.
-- Internal: `components/Hourglass.qml` (33 KB) is split into short single-role files in `components/hourglass/` (geometry and frost shapes in tested `.js`, one canvas per layer, the two Glass of Time layers loaded only in that style, one clock Timer). No visible change: all offscreen preview scenes match their references pixel for pixel, and no animation loop was added.
-- Internal only: `TimerWidget.qml` (19 KB) is split by role into small files in `components/` (horizontal and vertical pill, glyph, name, time, badge, motion clock, hover, clicks). The pill scenes are byte-identical to their reference pictures (panel scenes within their tolerance), and the pill's timers and animations are unchanged (nothing runs at rest). See *Project layout* in `CONTRIBUTING.md`.
-- The default alarm is now **Hourglass**, a soft four-note glass ring made for Sands, instead of the freedesktop alarm clock. **Silt Chime**, a short bell (CC0), is the second choice in *Sound*.
-- The former default is now a normal entry in the list of installed sounds. A sound you picked yourself keeps playing; only an unset *Sound* (or the former "Alarm clock (default)") now plays Hourglass.
-
-### Added
-
 - `sounds/` with the two rings (41 KB), and `tools/sounds/`, the script that renders Hourglass bit for bit (python3 and ffmpeg).
 - Offscreen preview scenes in `scripts/preview/` (pill, panel, hourglass, four timers) rendered from made-up timers, with reference pictures and a compare script, so refactors can be proven pixel-identical. Development tooling only: the plugin loads nothing from it and nothing changes for users. See *Offscreen previews and bench* in `CONTRIBUTING.md`.
 
 ### Changed
 
+- The panel code is split by role (hourglass and gestures, clock, controls, other timers, frost): no change in look or behavior, checked pixel for pixel against the offscreen references. The frost layers and the list of other timers are now built only while they are visible.
+- Internal: `components/Hourglass.qml` (33 KB) is split into short single-role files in `components/hourglass/` (geometry and frost shapes in tested `.js`, one canvas per layer, the two Glass of Time layers loaded only in that style, one clock Timer). No visible change: all offscreen preview scenes match their references pixel for pixel, and no animation loop was added.
+- Internal only: `TimerWidget.qml` (19 KB) is split by role into small files in `components/` (horizontal and vertical pill, glyph, name, time, badge, motion clock, hover, clicks). The pill scenes are byte-identical to their reference pictures (panel scenes within their tolerance), and the pill's timers and animations are unchanged (nothing runs at rest). See *Project layout* in `CONTRIBUTING.md`.
+- The default alarm is now **Hourglass**, a soft four-note glass ring made for Sands, instead of the freedesktop alarm clock. **Silt Chime**, a short bell (CC0), is the second choice in *Sound*.
+- The former default is now a normal entry in the list of installed sounds. A sound you picked yourself keeps playing; only an unset *Sound* (or the former "Alarm clock (default)") now plays Hourglass.
 - A lighter download: the README and guide images weigh 1.62 MB instead of 1.97 MB (-18 %). PNGs are recompressed without any pixel change; the two animations (`freeze.gif`, `flip.gif`) use a light lossy GIF pass whose largest per-frame difference is invisible (worst frame 49.8 dB PSNR). Names, sizes, frame counts, delays and looping are unchanged.
 - Internal: `TimerDaemon.qml` (27 KB) is split by role into `components/daemon/` (persistence, sounds, end notification, `dms ipc` commands) with its pure rules in tested `.js` files. Behaviour is unchanged: same IPC answers, alarm, notification and saved state, and nothing new runs at rest. A small test (`tests/daemon-surface.test.js`) checks that every daemon member the views read is still declared.
 

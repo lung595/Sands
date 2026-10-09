@@ -58,8 +58,6 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
 
-**Motion timers.** Nothing animates with QML animations while idle. The pill's single motion clock is `components/PillClock.qml`, driven by `HorizontalPill.qml`: 16 ms only for the bell swing, 33 ms for the final-countdown beat and the breathing; it runs only while ringing or beating and stops after the alarm duration. The panel's sand clock is `components/hourglass/MotionClock.qml` (33 ms once the sand is settled, stopped under Reduce motion).
-
 Timers are stored as **end times**, not countdowns, so they survive a restart.
 
 ## Project layout
