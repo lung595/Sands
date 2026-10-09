@@ -5,6 +5,7 @@ import qs.Common
 import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
+import "Timers.js" as Timers
 
 PluginSettings {
     id: root
@@ -13,19 +14,18 @@ PluginSettings {
 
     readonly property var daemon: PluginService.pluginDaemonInstances[pluginId] ?? null
 
-    // Sounds installed on the machine (sound themes + ~/.local/share/sounds),
-    // without the audio channel test sounds.
-    property var soundOptions: [
-        {
-            // Not "": DMS's dropdown would save the label instead (P126)
-            label: "Alarm clock (default)",
-            value: "default"
-        },
-        {
+    // The shipped rings first, then the sounds installed on the machine
+    // (sound themes + ~/.local/share/sounds, without the audio channel test
+    // sounds), then a file of the user's own.
+    readonly property var ringOptions: Timers.RINGS.map(r => ({
+                label: r.label,
+                value: r.value
+            }))
+    readonly property var customOption: ({
             label: "Custom file…",
             value: "custom"
-        }
-    ]
+        })
+    property var soundOptions: ringOptions.concat([customOption])
 
     function prettify(path) {
         const parts = path.split("/");
@@ -43,16 +43,11 @@ PluginSettings {
         stdout: StdioCollector {
             onStreamFinished: {
                 const skip = /\/alsa\/|speech-dispatcher|audio-channel-|audio-test-signal|\/sf2\//;
-                const found = text.split("\n").filter(p => p && !skip.test(p) && p !== "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga").map(p => ({
+                const found = text.split("\n").filter(p => p && !skip.test(p)).map(p => ({
                             label: root.prettify(p),
                             value: p
                         }));
-                root.soundOptions = [root.soundOptions[0]].concat(found, [
-                    {
-                        label: "Custom file…",
-                        value: "custom"
-                    }
-                ]);
+                root.soundOptions = root.ringOptions.concat(found, [root.customOption]);
             }
         }
     }
