@@ -21,11 +21,13 @@ function dimensions(width, height, gotStyle) {
         bulbR: hgW / 2 - hgW * 0.07,
         neck: Math.max(2.2, hgW * 0.028),
         // Glass of Time: sphere radius (the gold caps are its top and bottom)
-        sphereR: bulbL + capH * 2.4
+        sphereR: bulbL + capH * 2.4,
+        // Side of the square canvas holding the sphere layers (room for the stroke)
+        gotSize: (bulbL + capH * 2.4) * 2 + 8
     };
 }
 
-// Radius of the bulb at u (0 = neck, 1 = rim).
+// Radius of the bulb at u (0 = rim end, 1 = neck).
 function profile(dim, u) {
     u = Math.max(0, Math.min(1, u));
     const shoulder = 0.8 + 0.2 * Math.sin(Math.min(1, u / 0.28) * Math.PI / 2);

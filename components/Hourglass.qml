@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import "hourglass"
 import "hourglass/Geometry.js" as Geometry
@@ -126,13 +127,16 @@ Item {
         rotation: turn.flipAngle + Math.sin(clocks.floatClock * 0.85) * 1.6 * clocks.floatAmp / 5
 
         // Behind the glass: the sphere and the ring's inner face
-        GotBack {
-            visible: root.gotStyle
+        GotSlot {
             dim: root.dim
-            gotColors: gotPalette
-            frost: root.frost
-            frostColor: root.frostColor
-            frostStep: root.frostStep
+            active: root.gotStyle
+            sourceComponent: GotBack {
+                dim: root.dim
+                gotColors: gotPalette
+                frost: root.frost
+                frostColor: root.frostColor
+                frostStep: root.frostStep
+            }
         }
 
         Glass {
@@ -161,14 +165,17 @@ Item {
         }
 
         // In front of the glass: the gold band, caps and sphere rim
-        GotFront {
-            visible: root.gotStyle
+        GotSlot {
             dim: root.dim
-            gotColors: gotPalette
-            bulbL: root.dim.bulbL
-            frost: root.frost
-            frostColor: root.frostColor
-            frostStep: root.frostStep
+            active: root.gotStyle
+            sourceComponent: GotFront {
+                dim: root.dim
+                gotColors: gotPalette
+                bulbL: root.dim.bulbL
+                frost: root.frost
+                frostColor: root.frostColor
+                frostStep: root.frostStep
+            }
         }
     }
 }

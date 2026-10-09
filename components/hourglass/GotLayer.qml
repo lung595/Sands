@@ -14,7 +14,7 @@ Canvas {
     // for every frame of the freeze.
     required property int frostStep
 
-    width: dim.sphereR * 2 + 8
+    width: dim.gotSize
     height: width
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
