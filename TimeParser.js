@@ -7,8 +7,8 @@
 //   [{ kind: "duration", ms: 5400000, label: "pâtes" }]
 //   [{ kind: "at", at: <epoch ms>, ms: <ms until that time>, label: "" }]
 // An empty list means "this is not a timer": the launcher then stays
-// silent for every other search. The list always carries a string `hint`:
-// a short message when the user clearly asked for a timer but a word was not
+// silent for every other search. Every list carries a string `hint`: a short
+// message when the user clearly asked for a timer but a word was not
 // understood, "" otherwise (see Preview.hintOf).
 //
 // A duration can be repeated: « 4x 1h », « 4*1h », « 1h x4 » → count: 4
@@ -93,9 +93,9 @@ var RE_DAY = new RegExp("(?:^|[^a-z])(" + Object.keys(DAY_WORDS).join("|") + ")(
 // 1 preposition, 2 midi, 3 minuit, 4 hour, 5 « h » word, 6 minutes after h,
 // 7 minutes after a colon, 8 period
 var RE_CLOCK = new RegExp("(?:^|[\\s\\u0000])(?:(a|at|vers|until|jusqu'a|@)\\s*)?(?:(midi|noon)|(minuit|midnight)|" +
-    "(\\d{1,2})(?:\\s*(heures?|h)\\s*(\\d{2})?|:(\\d{2}))?(?:\\s*(" + PERIOD + "))?)(?![\\w:])");
+    "(\\d{1,2})(?:\\s*(heures?|h)\\s*(\\d{2})?|:(\\d{2}))?(?:\\s*(" + PERIOD + "))?)(?![\\w:])", "g");
 // A bare hour followed by a unit is a duration: « pasta a 12 min »
-var RE_UNIT_AHEAD = new RegExp("^\\s*(?:" + "heures?|hours?|hrs?|h|minutes?|mins?|mn|m|secondes?|seconds?|secs?|s" + ")(?![a-z])");
+var RE_UNIT_AHEAD = new RegExp("^\\s*(?:" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")(?![a-z])");
 var RE_UNIT_WORD = new RegExp("^(?:" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")$");
 var RE_AFTER_NUMBER = new RegExp("(^|[^a-z0-9.,'])" + NUM + "\\s*([a-z]{3,})(?![a-z])", "g");
 
@@ -269,42 +269,53 @@ function tooLong(input) {
     return String(input || "").length > MAX_INPUT;
 }
 
-// The clock time in the text, or null: { at: epoch ms, spans: [[start, end], …] }
-// where the spans (the time and its day word) are to be consumed. A bare hour
-// needs a preposition (« at 7 »): without one « 7 » could be anything, and
-// « a 12 min » is a duration. A bare hour is the next occurrence of that
-// hour within 24 h; « tomorrow » is the calendar day after today.
-function readClockTime(work, now) {
-    var m = RE_CLOCK.exec(work);
-    if (!m)
+// The hour and minutes one RE_CLOCK match stands for, or null when it is not a
+// clock time. A bare hour needs a preposition (« at 7 »): without one « 7 »
+// could be anything (« room 12 »), and « a 12 min » is a duration.
+function clockOfMatch(m, rest, dayInfo) {
+    if (m[2])
+        return { hh: 12, mm: 0 };
+    if (m[3])
+        return { hh: 0, mm: 0 };
+    var hh = parseInt(m[4]);
+    var mm = parseInt(m[6] || m[7] || "0");
+    var explicit = m[5] || m[7] !== undefined || m[8];
+    if (!m[1] && !(explicit && (m[8] || dayInfo)))
         return null;
+    if (!explicit && RE_UNIT_AHEAD.test(rest))
+        return null;
+    if (m[8]) {
+        // « at 13pm » keeps its 24 h reading; without a preposition it is no hour
+        if ((hh < 1 || hh > 12) && !m[1])
+            return null;
+        if (hh >= 1 && hh <= 12)
+            hh = (hh % 12) + (/soir|evening|afternoon|apres|pm/.test(m[8]) ? 12 : 0);
+    } else if (dayInfo && dayInfo.pm && hh >= 1 && hh <= 11) {
+        hh += 12;
+    } else if (dayInfo && dayInfo.night && hh === 12) {
+        hh = 0;
+    }
+    return hh > 23 || mm > 59 ? null : { hh: hh, mm: mm };
+}
+
+// The clock time in the text, or null: { at: epoch ms, spans: [[start, end], …] }
+// where the spans (the time and its day word) are to be consumed. Every match
+// is tried, because a number earlier in the text (« room 12 at 7pm ») must not
+// hide the real time. A bare hour is the next occurrence of that hour within
+// 24 h; « tomorrow » is the calendar day after today.
+function readClockTime(work, now) {
     var day = RE_DAY.exec(work);
     var dayInfo = day ? DAY_WORDS[day[1]] : null;
-    var hh, mm = 0;
-    if (m[2]) {
-        hh = 12;
-    } else if (m[3]) {
-        hh = 0;
-    } else {
-        hh = parseInt(m[4]);
-        mm = parseInt(m[6] || m[7] || "0");
-        var explicit = m[5] || m[7] !== undefined || m[8];
-        if (!m[1] && !(explicit && (m[8] || dayInfo)))
-            return null;
-        if (!explicit && RE_UNIT_AHEAD.test(work.substring(m.index + m[0].length)))
-            return null;
-        if (m[8]) {
-            if (hh < 1 || hh > 12)
-                return null;
-            hh = (hh % 12) + (/soir|evening|afternoon|apres|pm/.test(m[8]) ? 12 : 0);
-        } else if (dayInfo && dayInfo.pm && hh >= 1 && hh <= 11) {
-            hh += 12;
-        } else if (dayInfo && dayInfo.night && hh === 12) {
-            hh = 0;
-        }
+    var m, clock = null;
+    RE_CLOCK.lastIndex = 0;
+    while ((m = RE_CLOCK.exec(work)) !== null) {
+        clock = clockOfMatch(m, work.substring(m.index + m[0].length), dayInfo);
+        if (clock)
+            break;
     }
-    if (hh > 23 || mm > 59)
+    if (!clock)
         return null;
+    var hh = clock.hh, mm = clock.mm;
     var at;
     if (dayInfo && dayInfo.shift) {
         var d = new Date(now);
@@ -320,11 +331,14 @@ function readClockTime(work, now) {
     return { at: at, spans: spans };
 }
 
-// An empty result carrying the message for the launcher (see Preview.hintOf).
+// Attaches the message for the launcher to a result list (see Preview.hintOf).
+function withHint(list, hint) {
+    list.hint = hint;
+    return list;
+}
+
 function noResult(hint) {
-    var r = [];
-    r.hint = hint || "";
-    return r;
+    return withHint([], hint);
 }
 
 // « Unknown word », when a timer was clearly asked for (keyword or context
@@ -513,7 +527,7 @@ function parse(input, now, options) {
     label = label.substring(0, MAX_LABEL).trim();
 
     if (target)
-        return [{ kind: "at", at: target, ms: target - now, label: label }];
+        return withHint([{ kind: "at", at: target, ms: target - now, label: label }], "");
     if (!found)
         return noResult(hasKeyword ? unknownWordHint(original, work) : "");
 
@@ -536,7 +550,7 @@ function parse(input, now, options) {
                 results.unshift(alt);
         }
     }
-    return results;
+    return withHint(results, "");
 }
 
 // ---------------------------------------------------------------------------

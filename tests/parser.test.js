@@ -302,6 +302,25 @@ if (TP.parse("99x 1h", NOW)[0]?.capped !== true || TP.parse("4x 1h", NOW)[0]?.ca
     }
 }
 
+// A number earlier in the text must not hide the real clock time
+check("timer room 12 at 7pm", [{ at: "19:00", label: "room 12" }]);
+check("timer call 5 until 6pm", [{ at: "18:00", label: "call 5" }]);
+check("timer 3 eggs à 7h", [{ at: "7:00", label: "3 eggs" }]);
+check("rappelle-moi 2 choses à 18h", [{ at: "18:00", label: "2 choses" }]);
+check("timer 2 days at 9h", [{ at: "9:00", label: "2 days" }]);
+check("meeting 3 at 9am", [{ at: "9:00", label: "meeting 3" }]);
+// « at 13pm » keeps its 24 h reading (as before the natural clock times)
+check("timer at 13pm", [{ at: "13:00", label: "" }]);
+
+// Every result list carries a string hint
+for (const t of ["timer at 7", "timer 20 min", "hello", "", "timer gloubi"]) {
+    count++;
+    if (typeof TP.parse(t, NOW, {}).hint !== "string") {
+        failures++;
+        print("✗ hint is not a string for " + JSON.stringify(t));
+    }
+}
+
 // Formatting
 function eq(a, b) {
     count++;
