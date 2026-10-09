@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+### Added
+
+- **Natural durations** in the launcher parser: `timer 20m pâtes`, `timer jours 3 entretien`, `timer 1h30 réunion` and context verbs (`timer cooked 25m`, `timer folded 45m`). Bare minutes work too (`timer 20 pasta`). Unit typos are tolerated when the first letter is kept (`durées` ➜ `durées`, `jours` ➜ `jours`, `hors` ➜ `hors`). This is **NAK-150, part 1 of 4** (durations only); NAK-151 will add hours.
+
 ### Changed
 
 - The panel code is split by role (hourglass and gestures, clock, controls, other timers, frost): no change in look or behavior, checked pixel for pixel against the offscreen references. The frost layers and the list of other timers are now built only while they are visible.
