@@ -8,6 +8,7 @@ Everything needed to work on Sands or take over the project.
 - [Architecture](#architecture)
 - [Project layout](#project-layout)
 - [Tests](#tests)
+- [Offscreen previews and bench](#offscreen-previews-and-bench)
 - [Performance rules](#performance-rules)
 - [Conventions](#conventions)
 - [Releasing a version](#releasing-a-version)
@@ -67,6 +68,7 @@ Sands/
 │   ├── GitHubMark.qml          # GitHub logo that opens the guide section
 │   ├── RoundButton.qml, Chip.qml
 │   └── Motion.js               # looping motion as pure functions of time (tested)
+├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
 ├── tests/
 │   ├── parser.test.js
 │   ├── motion.test.js
@@ -87,6 +89,31 @@ gjs tests/guide.test.js         # 18 tests: note length, guide anchors
 ```
 
 Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
+
+## Offscreen previews and bench
+
+`scripts/preview/` renders the real `TimerWidget.qml` (pill and panel), `TimerPanelContent.qml` and `Hourglass.qml` with a made-up daemon (`mock/FakeDaemon.qml`), made-up timers and stand-ins for the DMS modules (`imports/qs/*`). Nothing of the live shell is read or touched, and the plugin never loads anything from this folder. It needs `qml-qt6` (Qt 6) and the DMS install for the Material Symbols font.
+
+```sh
+scripts/preview/shots.sh /tmp/sands-shots              # every scene of manifest.txt, as PNGs
+scripts/preview/shots.sh /tmp/sands-shots panel pill-4 # only some of them
+scripts/preview/cmp.sh /tmp/sands-shots                # compare with scripts/preview/reference/
+```
+
+Scenes (`shot.qml -- <scene> <out.png>`): `pill-idle`, `pill-running`, `pill-label` (right after a start), `pill-done`, `pill-4`, `panel`, `panel-paused`, `panel-ringing`, `panel-4` (four 1 h timers), `hourglass-running`, `hourglass-frozen`, `hourglass-ringing`. The suffix `-reduce` turns Reduce motion on.
+
+**Refactors must keep the pictures.** `cmp.sh` checks each picture against `reference/` and the hash in `manifest.txt`. A scene is byte-identical (tolerance 0) when nothing moves: the pills and most `-reduce` scenes (`panel-4-reduce` and `panel-ringing-reduce` showed 3 and 5 px in some runs, so they have 10). The scenes with sand and float moving carry a few pixels of noise between two runs of the same code (0 to 7 px measured), so they have a small tolerance in `manifest.txt`. When a change is meant to alter the look, re-render and run `cmp.sh --update <dir>` in the same commit, and say why in the message.
+
+**Bench (`outils/banc-ab.sh`).** Add `-hold` to a scene and it takes no picture: it keeps running on the real clock until stopped, which is what the A/B bench wants. Both revisions run the very same scenes through `-s`:
+
+```sh
+banc-ab.sh -s scripts/preview <repo> <refA> <refB> -- \
+  sh -c 'cd scripts/preview && exec qml-qt6 -I imports shot.qml -- panel-hold /dev/null'
+```
+
+Useful cases: `panel-hold` (sand flowing), `panel-paused-hold` (frozen), `pill-done-hold` (alarm pill), `panel-4-hold`, `hourglass-running-hold`, plus `-reduce`. `outils/essai.sh Sands <commit>` opens `panel-hold` in a window (see `essai.conf`).
+
+When you change a stand-in, keep it as small as the real module's surface Sands uses; if Qt prints anything while rendering, `shots.sh` lists the log (a missing property in a stand-in shows up there).
 
 ## Performance rules
 
