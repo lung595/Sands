@@ -75,7 +75,12 @@ Sands/
 │   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
 │   │   ├── TimerStore.qml, AlarmSound.qml, TimerNotifier.qml, TimerIpc.qml
 │   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js   (tested)
-│   ├── TimerPanelContent.qml   # panel: hourglass, time, controls, other timers
+│   ├── TimerPanelContent.qml   # panel: state, switching between timers, wiring of the parts below
+│   ├── PanelGlass.qml          # hourglass, gestures (GlassGestures), dots (TimerDots), frost (FrostMist, FrostDust)
+│   ├── PanelClock.qml          # name, big time, end time (FrostHalo behind it)
+│   ├── AdjustChips.qml         # −1 / +1 / +5 min
+│   ├── PanelControls.qml       # cancel, pause/resume, restart; StopButton once finished
+│   ├── OtherTimers.qml         # the other timers, one OtherTimerRow each
 │   ├── Hourglass.qml           # the floating, volume-synced hourglass
 │   ├── ProgressRing.qml        # the ring used in the pill and lists
 │   ├── HelpNote.qml            # the short note at the top of the panel
@@ -96,6 +101,10 @@ Sands/
     ├── GUIDE.md                # user guide
     └── images/                 # screenshots and animations
 ```
+
+## Panel parts
+
+The panel parts show what they are given and report what the user does with signals; only `TimerPanelContent.qml` talks to the daemon's state and decides. Parts that are only needed sometimes (frost while a timer is paused, the list of other timers) sit behind a `Loader` whose `active` follows the need, so they cost nothing the rest of the time. After touching them, run `scripts/preview/shots.sh` and `scripts/preview/cmp.sh`: the panel scenes must stay identical to `scripts/preview/reference/`.
 
 ## Tests
 
