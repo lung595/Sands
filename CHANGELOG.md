@@ -8,6 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Added
 
 - **Natural durations** in the launcher parser: `timer 20m pâtes`, `timer jours 3 entretien`, `timer 1h30 réunion` and context verbs (`timer cooked 25m`, `timer folded 45m`). Bare minutes work too (`timer 20 pasta`). Unit typos are tolerated when the first letter is kept (`durées` ➜ `durées`, `jours` ➜ `jours`, `hors` ➜ `hors`). This is **NAK-150, part 1 of 4** (durations only); NAK-151 will add hours.
+- **One-line preview in the launcher** when you type a timer: `Pasta · 12 min · ends 12:42`, `Wake up · at 07:00 tomorrow`, or just `Timer · 12 min · ends 12:42` (no label). The line below keeps `Rings in/at …`. Ambiguous inputs (`14h30`) still list both readings ranked, and Enter starts the one you pick. This is **NAK-152, part 3 of 4** (preview only); NAK-151 will add hours, NAK-153 will add names.
 
 ### Changed
 

@@ -2,6 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
+import "Preview.js" as Preview
 
 // Launcher provider. No prefix by default: it only answers when the
 // input looks like a duration (« timer 20 min », « 1h30 pâtes », « à 18h »),
@@ -57,7 +58,7 @@ Item {
             return [{
                     name: "No duration found in \u201c" + q + "\u201d",
                     icon: "material:help",
-                    comment: "Try \u201c12 min pasta\u201d or \u201cat 6pm\u201d · Enter: open the guide",
+                    comment: (Preview.hintOf(results) || "Try \u201c12 min pasta\u201d or \u201cat 6pm\u201d") + " · Enter: open the guide",
                     action: "guide:syntax",
                     categories: ["Minuteur"]
                 }];
@@ -100,24 +101,15 @@ Item {
     }
 
     function _startItem(r, now) {
-        const end = TP.formatTimeOfDay(r.at || now + r.ms, use24h);
-        const tomorrow = TP.isTomorrow(r.at || now + r.ms, now);
-        let name, comment;
-        if (r.kind === "at") {
-            name = (r.label ? r.label + " — " : "Alarm ") + "at " + end + (tomorrow ? " (tomorrow)" : "");
-            comment = "Rings in " + TP.formatRelative(r.ms);
-        } else {
-            const times = r.count > 1 ? r.count + " × " : "";
-            name = (r.label ? r.label + " — " : "Timer ") + times + TP.formatHuman(r.ms);
-            comment = "Rings at " + end + (tomorrow ? " tomorrow" : "") + (r.capped ? " · at most 20 at once" : "");
-        }
+        const name = Preview.previewLine(r, now, use24h);
+        const comment = Preview.ringsLine(r, now, use24h);
         return {
             name: name,
             icon: r.kind === "at" ? "material:alarm" : "material:timer",
             comment: comment,
             action: "start:" + JSON.stringify({
                 ms: r.ms,
-                label: r.label,
+                label: Preview.title(r.label),
                 kind: r.kind,
                 at: r.at || 0,
                 count: r.count || 1
