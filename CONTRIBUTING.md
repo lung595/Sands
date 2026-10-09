@@ -89,7 +89,7 @@ Sands/
 │   ├── parser.test.js
 │   ├── motion.test.js
 │   ├── timers.test.js
-│   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js
+│   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
 │   ├── harness.js              # shared loader for the daemon tests
 │   └── guide.test.js
 └── docs/
@@ -107,6 +107,7 @@ gjs tests/guide.test.js         # 18 tests: note length, guide anchors
 gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restore
 gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command
 gjs tests/daemon-text.test.js   # 22 tests: IPC sentences, notification commands
+gjs tests/daemon-surface.test.js # 21 tests: every daemon member a view reads is still declared
 ```
 
 Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.

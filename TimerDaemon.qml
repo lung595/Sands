@@ -41,6 +41,8 @@ Item {
     readonly property int count: timers.length
     readonly property bool hasTimers: timers.length > 0
     readonly property bool ringing: timers.some(t => t.state === "ringing")
+    // The pill shakes its bell only while a sound really plays, not for a muted ring
+    readonly property bool soundActive: alarm.active
 
     // Durations used before, most frequent and recent first:
     // [{ ms, label, uses, last }]. Feeds a bare "timer" in the launcher.
