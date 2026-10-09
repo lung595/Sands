@@ -97,6 +97,10 @@ Type in English or French, words or digits, in any order:
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
 | `timer 14h30` | Offers both: *alarm at 14:30* first, *14 h 30 timer* second |
 
+**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together (`4x 1h` with two places left starts two and says *Started 2 of 4*), a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
+
+The interface is in English. Want Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues).
+
 ### Natural phrases
 
 Sands also reads sentences, in English or French. These all work with or without the word `timer` in front.
@@ -121,7 +125,7 @@ Sands also reads sentences, in English or French. These all work with or without
 
 **Typos.** A unit one letter off is still read: `20 mni`, `1 heur`, `20 minuts pasta`, `10 secnds tea`. Names are never corrected: `20 min pasat` keeps *pasat*. Real words near a unit stay words: `3 jours`, `4 cours` and `2 hors` are not hours.
 
-**A bare number.** It counts as minutes only right after a word and up to 180: `pasta 12` is 12 min, `pasta 181` and `12` alone are not timers. After a preposition (`dans 12`) it is left alone.
+**A bare number.** When you type without the word `timer`, a number counts as minutes only right after a word and up to 180: `pasta 12` is 12 min, `pasta 181` and `12` alone are not timers, and after a preposition (`dans 12`) it is left alone. With `timer` in front the number is yours to give: `timer 12` is 12 min and `timer pasta 181` is 181 min.
 
 **Unknown words.** If you ask for a timer but Sands cannot read it (`timer blorp`), the launcher says *Unknown word « blorp »* instead of staying empty. <kbd>Enter</kbd> opens this guide.
 
@@ -137,10 +141,6 @@ When your text is a timer, the first line says exactly what <kbd>Enter</kbd> wil
 | `Pasta · 4 × 12 min · ends 12:42` | Several timers at once |
 
 Nothing starts before <kbd>Enter</kbd>. Everything is read on your machine; Sands makes no network call.
-
-**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together (`4x 1h` with two places left starts two and says *Started 2 of 4*), a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
-
-The interface is in English. Want Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues).
 
 ## Settings
 
