@@ -59,7 +59,7 @@ Item {
         id: clock
         daemon: pill.daemon
         timerState: pill.st
-        fast: pill.beating || pill.bellShaking
+        fast: pill.bellShaking
         running: !pill.asleep && ((pill.st === "ringing" && !clock.settled) || pill.beating)
     }
 
