@@ -46,6 +46,36 @@ var U_SEC = "secondes?|seconds?|secs?|s";
 var UNIT = "(" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")";
 var HALF = "(?:\\s*(?:et|and)\\s*(demie?|quart|a half|half|a quarter|quarter))?";
 
+// Verbs that only introduce the request: « rappelle-moi de », « remind me to »,
+// « set a timer for », « mets un minuteur de ». They are dropped, never shown
+// as the label. The optional connector goes with them.
+var CONTEXT = new RegExp("^\\s*(?:" +
+    "rappelle[sz]?[- ]moi|remind me|" +
+    "(?:set|start|create|add|put)\\s+(?:me\\s+)?(?:an?\\s+|the\\s+|my\\s+)?(?:timer|alarm|reminder|countdown)|" +
+    "(?:mets?|lance|lancer|demarre|regle|programme|cree)(?:-moi)?\\s+(?:un|une|le|la)?\\s*(?:timer|minuteur|minuterie|alarme|rappel|compte a rebours|chrono|reveil)" +
+    ")(?![a-z])(?:\\s+(?:for|to|of|about|that|de|pour|que)(?![a-z])|\\s+d'|\\s+qu')?");
+// Left over at the start of the label when the time came first: « remind me in 20 minutes to … »
+var CONNECTOR = /^(?:(?:to|that|about|que)\s+|qu'\s*)/i;
+
+// The longest bare number read as minutes (« pasta 12 »): above this it is
+// more likely a name or a version than a duration.
+var MAX_BARE_MINUTES = 180;
+
+// Unit words that a typo can be matched against (see fixUnitTypos), with the
+// short unit they stand for.
+var TYPO_UNITS = [
+    ["minute", "min"], ["minutes", "min"], ["heure", "h"], ["heures", "h"],
+    ["hour", "h"], ["hours", "h"], ["seconde", "s"], ["secondes", "s"],
+    ["second", "s"], ["seconds", "s"]
+];
+// Three-letter units are too close to ordinary words (« men », « sex ») to
+// allow anything but two swapped letters: « mni », « esc ».
+var TYPO_ABBREVIATIONS = [["min", "min"], ["sec", "s"]];
+
+// Built once: parse runs on every keystroke.
+var RE_UNIT_WORD = new RegExp("^(?:" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")$");
+var RE_AFTER_NUMBER = new RegExp("(^|[^a-z0-9.,'])" + NUM + "\\s*([a-z]{3,})(?![a-z])", "g");
+
 var RE_HOUR = new RegExp("^(?:" + U_HOUR + ")$");
 var RE_MIN = new RegExp("^(?:" + U_MIN + ")$");
 
@@ -84,6 +114,94 @@ function wordToNumber(w) {
         total += WORD_VALUES[parts[i]];
     }
     return total;
+}
+
+// True when a and b differ by exactly one swapped pair of adjacent letters.
+function isSwap(a, b) {
+    if (a.length !== b.length)
+        return false;
+    var i = 0;
+    while (i < a.length && a.charAt(i) === b.charAt(i))
+        i++;
+    return i + 1 < a.length && a.charAt(i) === b.charAt(i + 1) && a.charAt(i + 1) === b.charAt(i)
+        && a.substring(i + 2) === b.substring(i + 2);
+}
+
+// True when a and b differ by one substituted letter.
+function isSubstitution(a, b) {
+    if (a.length !== b.length)
+        return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+        if (a.charAt(i) !== b.charAt(i))
+            diff++;
+    }
+    return diff === 1;
+}
+
+// True when longer is shorter plus one letter somewhere.
+function isMissingLetter(shorter, longer) {
+    if (longer.length !== shorter.length + 1)
+        return false;
+    var i = 0;
+    while (i < shorter.length && shorter.charAt(i) === longer.charAt(i))
+        i++;
+    return shorter.substring(i) === longer.substring(i + 1);
+}
+
+// Real words one letter off a unit: they stay words (« 2 hors » is
+// « 2 outside », not two hours).
+var TYPO_STOPWORDS = ["hors"];
+
+// The short unit a word one letter off a unit stands for, or "". Short words
+// are matched strictly: « four » and « pour » are one letter from « hour ».
+// A dropped or substituted letter must not be the first one: « jours »,
+// « cours » and « tours » are one letter from « hours » but are French words
+// for days, classes and laps.
+function typoUnit(word) {
+    var i, w;
+    if (TYPO_STOPWORDS.indexOf(word) >= 0)
+        return "";
+    for (i = 0; i < TYPO_ABBREVIATIONS.length; i++) {
+        if (isSwap(word, TYPO_ABBREVIATIONS[i][0]))
+            return TYPO_ABBREVIATIONS[i][1];
+    }
+    for (i = 0; i < TYPO_UNITS.length; i++) {
+        w = TYPO_UNITS[i][0];
+        if (isSwap(word, w))
+            return TYPO_UNITS[i][1];
+        if (word.charAt(0) !== w.charAt(0))
+            continue;
+        if ((word.length >= 5 && isSubstitution(word, w))
+                || (word.length >= 4 && isMissingLetter(word, w))
+                || (word.length >= 6 && isMissingLetter(w, word)))
+            return TYPO_UNITS[i][1];
+    }
+    return "";
+}
+
+// « 20 mni », « 1 heur »: a misspelled unit right after a number is replaced
+// by the unit itself, in the normalized text and in the original alike so the
+// two stay aligned (the replaced word never reaches the label).
+function fixUnitTypos(original, work) {
+    var re = RE_AFTER_NUMBER;
+    var fixes = [];
+    var m;
+    re.lastIndex = 0;
+    while ((m = re.exec(work))) {
+        var word = m[m.length - 1];
+        if (RE_UNIT_WORD.test(word))
+            continue;
+        var unit = typoUnit(word);
+        if (unit)
+            fixes.push({ start: m.index + m[0].length - word.length, end: m.index + m[0].length, unit: unit });
+    }
+    for (var i = fixes.length - 1; i >= 0; i--) {
+        var f = fixes[i];
+        original = original.substring(0, f.start) + f.unit + original.substring(f.end);
+        work = work.substring(0, f.start) + f.unit + work.substring(f.end);
+    }
+    return { original: original, work: work };
 }
 
 function unitMs(u) {
@@ -137,6 +255,18 @@ function parse(input, now, options) {
     var work = normalize(original);
     var hasKeyword = !!options.keyword;
     var m;
+
+    var fixed = fixUnitTypos(original, work);
+    original = fixed.original;
+    work = fixed.work;
+
+    var hasContext = false;
+    m = CONTEXT.exec(work);
+    if (m) {
+        hasContext = true;
+        hasKeyword = true;
+        work = consume(work, 0, m[0].length);
+    }
 
     var kw = new RegExp("^\\s*(?:" + KEYWORDS + ")(?![a-z])").exec(work);
     if (kw) {
@@ -299,9 +429,27 @@ function parse(input, now, options) {
                 work = consume(work, s0, s0 + m[1].length);
             }
         }
+
+        // 5b. Bare number closing a text, minutes: « pasta 12 ». Never a number
+        // alone, never one above MAX_BARE_MINUTES, and the text must be a label.
+        if (!found && !hasKeyword) {
+            m = /(?:^|\s)(\d{1,3})\s*$/.exec(work);
+            if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= MAX_BARE_MINUTES) {
+                var b0 = m.index + m[0].indexOf(m[1]);
+                var rest = consume(work, b0, b0 + m[1].length);
+                if (/[^\s\d\u0000!-\/:-@\[-`{-~]/.test(cleanLabel(original, rest))) {
+                    total = parseInt(m[1]) * 60000;
+                    found = true;
+                    work = rest;
+                }
+            }
+        }
     }
 
-    var label = cleanLabel(original, work).substring(0, MAX_LABEL).trim();
+    var label = cleanLabel(original, work);
+    if (hasContext)
+        label = label.replace(CONNECTOR, "");
+    label = label.substring(0, MAX_LABEL).trim();
 
     if (target)
         return [{ kind: "at", at: target, ms: target - now, label: label }];
