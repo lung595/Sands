@@ -109,7 +109,7 @@ Item {
             comment: comment,
             action: "start:" + JSON.stringify({
                 ms: r.ms,
-                label: r.label,
+                label: Preview.title(r.label),
                 kind: r.kind,
                 at: r.at || 0,
                 count: r.count || 1

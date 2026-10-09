@@ -1,41 +1,45 @@
 .pragma library
 .import "TimeParser.js" as TP
+.import "Timers.js" as Timers
 
 // What the launcher shows for a parsed result: one line saying exactly what
 // Enter will create, so the user can trust the natural-language input.
 // Pure functions, tested by tests/preview.test.js.
 
-var DEFAULT_LABEL = "Timer";
-var DEFAULT_ALARM = "Alarm";
+// The parser keeps the label as typed (« pasta »); it is shown, and stored
+// on the timer, with a capital so the preview matches what Enter creates.
+function title(label) {
+    return label ? label.charAt(0).toUpperCase() + label.slice(1) : "";
+}
 
-// The parser keeps the label as typed (« pasta »); the preview shows it
-// with a capital, like a title.
-function _title(label, fallback) {
-    return label ? label.charAt(0).toUpperCase() + label.slice(1) : fallback;
+// When the result ends or rings, and the « tomorrow » suffix if it is not today.
+function _ends(r, now, use24) {
+    var when = r.at || now + r.ms;
+    return { time: TP.formatTimeOfDay(when, use24), tomorrow: TP.isTomorrow(when, now) ? " tomorrow" : "" };
 }
 
 // « Pasta · 12 min · ends 12:42 », « Wake up · at 07:00 tomorrow »
 function previewLine(r, now, use24) {
-    var when = r.at || now + r.ms;
-    var end = TP.formatTimeOfDay(when, use24);
-    var tomorrow = TP.isTomorrow(when, now) ? " tomorrow" : "";
+    var e = _ends(r, now, use24);
+    // A label-less result falls back to « Timer » / « Alarm », like everywhere else.
+    var name = title(Timers.displayLabel({ label: r.label, kind: r.kind }));
     if (r.kind === "at")
-        return _title(r.label, DEFAULT_ALARM) + " · at " + end + tomorrow;
+        return name + " · at " + e.time + e.tomorrow;
     var times = r.count > 1 ? r.count + " × " : "";
-    return _title(r.label, DEFAULT_LABEL) + " · " + times + TP.formatHuman(r.ms) + " · ends " + end + tomorrow;
+    return name + " · " + times + TP.formatHuman(r.ms) + " · ends " + e.time + e.tomorrow;
 }
 
 // Second line, under the preview: when it will ring, relative to now.
 function ringsLine(r, now, use24) {
-    var when = r.at || now + r.ms;
-    var tomorrow = TP.isTomorrow(when, now) ? " tomorrow" : "";
     if (r.kind === "at")
         return "Rings in " + TP.formatRelative(r.ms);
-    return "Rings at " + TP.formatTimeOfDay(when, use24) + tomorrow + (r.capped ? " · at most 20 at once" : "");
+    var e = _ends(r, now, use24);
+    return "Rings at " + e.time + e.tomorrow + (r.capped ? " · at most 20 at once" : "");
 }
 
-// Short note the parser may attach to an empty result (« results.hint »,
-// e.g. an unknown word). Empty string when there is none.
+// Short note the parser may attach to an empty result as « results.hint »
+// (e.g. an unknown word). No story sets it yet: the parser story that adds
+// unknown-word detection must use exactly this field name. Empty string when there is none.
 function hintOf(results) {
     return results && typeof results.hint === "string" ? results.hint : "";
 }

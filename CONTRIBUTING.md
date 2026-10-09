@@ -54,6 +54,7 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 - `TimeParser.js`: natural-language parser (English and French) and formatting.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
 - `components/daemon/*.js`: the rules of the daemon's parts (see the table above). They import `TimeParser.js` and `Timers.js` where needed.
+- `Preview.js`: the one-line preview and the « Rings at … » line the launcher shows before Enter.
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
 
@@ -70,6 +71,7 @@ Sands/
 ├── TimerSettings.qml           # settings page
 ├── TimeParser.js               # natural-language parser + formatting (tested)
 ├── Timers.js                   # pure timer logic: time left, recents ranking… (tested)
+├── Preview.js                  # launcher preview lines: « Pasta · 12 min · ends 12:42 » (tested)
 ├── Guide.js                    # "why it can't be done" notes + guide anchors (tested)
 ├── components/
 │   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
@@ -97,9 +99,13 @@ Sands/
 │   ├── parser.test.js
 │   ├── motion.test.js
 │   ├── timers.test.js
+<<<<<<< HEAD
 │   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
 │   ├── hourglass.test.js
 │   ├── harness.js              # shared loader for the daemon tests
+=======
+│   ├── preview.test.js
+>>>>>>> eb18e4c (fix(launcher): preview and created timer share one label, reuse displayLabel, document Preview.js (NAK-152))
 │   └── guide.test.js
 └── docs/
     ├── GUIDE.md                # user guide
@@ -115,7 +121,12 @@ The panel parts show what they are given and report what the user does with sign
 ```sh
 gjs tests/parser.test.js        # 108 parser tests
 gjs tests/motion.test.js
+<<<<<<< HEAD
 gjs tests/timers.test.js        # 25 timer logic tests
+=======
+gjs tests/timers.test.js        # timer logic and sound choice tests
+gjs tests/preview.test.js       # launcher preview lines
+>>>>>>> eb18e4c (fix(launcher): preview and created timer share one label, reuse displayLabel, document Preview.js (NAK-152))
 gjs tests/guide.test.js         # 18 tests: note length, guide anchors
 gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restore
 gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command
@@ -134,6 +145,7 @@ Run them all before every commit. Every new syntax goes with a test in `tests/pa
 scripts/preview/shots.sh /tmp/sands-shots              # every scene of manifest.txt, as PNGs
 scripts/preview/shots.sh /tmp/sands-shots panel pill-4 # only some of them
 scripts/preview/cmp.sh /tmp/sands-shots                # compare with scripts/preview/reference/
+TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher.qml   # launcher: prints each query's lines as text
 ```
 
 Scenes (`shot.qml -- <scene> <out.png>`): `pill-idle`, `pill-running`, `pill-label` (right after a start), `pill-done`, `pill-4`, `panel`, `panel-paused`, `panel-ringing`, `panel-4` (four 1 h timers), `hourglass-running`, `hourglass-frozen`, `hourglass-ringing`. The suffix `-reduce` turns Reduce motion on.

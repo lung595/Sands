@@ -8,8 +8,9 @@ const read = f => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + f)
 // parser is loaded the same way as in the other tests and handed in as TP.
 const parserSrc = read("TimeParser.js").replace(".pragma library", "");
 const TP = new Function(parserSrc + "; return { formatTimeOfDay, isTomorrow, formatHuman, formatRelative };")();
+const TM = new Function(read("Timers.js").replace(".pragma library", "") + "; return { displayLabel };")();
 const src = read("Preview.js").split("\n").filter(l => !/^\.(pragma|import)/.test(l)).join("\n");
-const P = new Function("TP", src + "; return { previewLine, ringsLine, hintOf };")(TP);
+const P = new Function("TP", "Timers", src + "; return { title, previewLine, ringsLine, hintOf };")(TP, TM);
 
 let failures = 0, count = 0;
 function eq(got, expected, what) {
@@ -33,6 +34,10 @@ eq(P.previewLine({ kind: "at", at: at(7, 0, 1), ms: at(7, 0, 1) - now, label: "W
 eq(P.previewLine({ kind: "at", at: at(18, 0), ms: at(18, 0) - now, label: "" }, now, true), "Alarm · at 18:00", "label-less alarm today");
 
 eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: "pasta", count: 1 }, now, true), "Pasta · 12 min · ends 12:42", "label gets a capital");
+eq(P.title("pasta"), "Pasta", "title adds a capital");
+eq(P.title(""), "", "title keeps an empty label empty");
+// The label the action carries must read exactly like the preview's.
+eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: P.title("pasta"), count: 1 }, now, true), P.previewLine({ kind: "duration", ms: 12 * MIN, label: "pasta", count: 1 }, now, true), "action label matches preview");
 eq(P.ringsLine({ kind: "duration", ms: 12 * MIN, label: "", count: 1 }, now, true), "Rings at 12:42", "rings at");
 eq(P.ringsLine({ kind: "duration", ms: 12 * MIN, count: 25, capped: true }, now, true), "Rings at 12:42 · at most 20 at once", "capped count");
 eq(P.ringsLine({ kind: "at", at: at(18, 0), ms: at(18, 0) - now }, now, true), "Rings in 5 h 30", "rings in");

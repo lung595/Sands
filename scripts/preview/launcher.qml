@@ -3,7 +3,7 @@ import "../.."
 
 // Offscreen check of the launcher provider: prints what each query would show
 // (name, comment) from made-up input. No window, nothing of the live shell is read.
-// Usage: TZ=UTC QT_QPA_PLATFORM=offscreen qml-qt6 -I imports launcher.qml
+// Usage: TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports launcher.qml
 Item {
     TimerLauncher {
         id: launcher
