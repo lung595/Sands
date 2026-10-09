@@ -1,8 +1,5 @@
 import QtQuick
 import qs.Common
-import qs.Widgets
-import "../TimeParser.js" as TP
-import "Motion.js" as Motion
 
 // Panel content: hourglass, time, controls, other timers.
 Column {
@@ -133,549 +130,76 @@ Column {
     onVisibleChanged: if (visible)
         d?.silence()
 
-    // --- Hourglass ---
-    Item {
+    PanelGlass {
         id: glassArea
         width: parent.width
-        height: 236
         opacity: 1 - Math.abs(pop.slide)
         transform: Translate {
             x: pop.slide * 56
         }
-
-        Hourglass {
-            id: glass
-            anchors.fill: parent
-            progress: pop.d ? pop.d.progressOf(pop.t) : 0
-            running: pop.st === "running"
-            paused: pop.st === "paused"
-            ringing: pop.st === "ringing"
-            frost: pop.frost
-            frostColor: pop.frostColor
-            animate: pop.shown
-            reducedMotion: pop.reducedMotion
-            sandColor: pop.st === "ringing" ? Theme.error : ((pop.st === "running" && pop.rem <= 60000) ? Theme.warning : pop.accent)
-            glassColor: Theme.surfaceText
-            capColor: Theme.surfaceContainerHighest
-            style: pop.d ? pop.d.hourglassStyle : "classic"
-
-            // Restart: the hourglass turns over.
-            Connections {
-                target: pop.d
-                function onTimerStarted(id) {
-                    if (pop.t && pop.t.id === id)
-                        glass.flip();
-                }
-            }
-        }
-
-        // Frost around the hourglass: cold mist behind, frost dust
-        // in front. Drawn once; their slow drift and the sparkle follow the
-        // hourglass effects clock (glass.fxTime, a 30 Hz Timer), not looping
-        // QML animations, which would redraw the whole shell (Motion.js).
-        Item {
-            id: mistHolder
-            z: -1
-            anchors.fill: parent
-            visible: pop.frost > 0.005
-            opacity: pop.frost
-
-            Canvas {
-                id: mist
-                // Full panel width, from the top of the panel to below
-                // the clock: the mist passes behind the text (drawn afterwards,
-                // so on top) instead of stopping under the hourglass.
-                width: pop.width
-                height: 360
-                x: baseX + (pop.reducedMotion ? 0 : Motion.wave(glass.fxTime, 18, -10, 10))
-                y: baseY + (pop.reducedMotion ? 0 : Motion.wave(glass.fxTime, 13, -4, 6))
-                opacity: pop.reducedMotion ? 1 : Motion.wave(glass.fxTime, 10, 1, 0.8)
-                renderTarget: Canvas.FramebufferObject
-                onPaint: {
-                    const ctx = getContext("2d");
-                    ctx.reset();
-                    const c = pop.frostColor;
-                    // Overlapping cold clouds: a mist, not a circle.
-                    // In canvas pixels (340 × 360, hourglass centered around y = 118);
-                    // each cloud fits entirely in the canvas and fades out before
-                    // its edge: no seam, with no mask (Qt does not support
-                    // "destination-in"). [x, y, radius, opacity at the center]
-                    const blobs = [[170, 130, 124, 0.34], [120, 95, 80, 0.22], [220, 100, 84, 0.2], [125, 190, 80, 0.2], [215, 195, 84, 0.22], [170, 250, 100, 0.2], [170, 62, 56, 0.16]];
-                    const sx = width / 340;
-                    for (const b of blobs) {
-                        const x = b[0] * sx, y = b[1], r = b[2];
-                        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-                        g.addColorStop(0, Qt.rgba(c.r, c.g, c.b, b[3]));
-                        g.addColorStop(0.5, Qt.rgba(c.r, c.g, c.b, b[3] * 0.4));
-                        g.addColorStop(0.75, Qt.rgba(c.r, c.g, c.b, b[3] * 0.12));
-                        g.addColorStop(1, Qt.rgba(c.r, c.g, c.b, 0));
-                        ctx.fillStyle = g;
-                        // Only the cloud's square: beyond it, it is transparent.
-                        ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
-                    }
-                }
-
-                // The mist floats gently in the background: drifts sideways,
-                // rises and falls, breathes. Different periods (18 s, 13 s,
-                // 10 s): the motion never quite repeats. Amplitudes chosen so
-                // the clouds stay inside the panel.
-                readonly property real baseX: (mistHolder.width - width) / 2
-                readonly property real baseY: -pop.topPadding
-            }
-        }
-
-        // Frost dust: fine suspended crystals that sparkle.
-        Item {
-            id: dust
-            anchors.fill: parent
-            visible: pop.frost > 0.005
-            opacity: pop.frost
-
-            Repeater {
-                model: 16
-
-                // Carrier positioned once; the crystal moves inside it.
-                Item {
-                    id: slot
-                    required property int index
-                    readonly property real h1: Math.abs(Math.sin(index * 91.7) * 43758.5) % 1
-                    readonly property real h2: Math.abs(Math.sin(index * 17.3) * 24634.6) % 1
-                    readonly property real h3: Math.abs(Math.sin(index * 53.1) * 12345.6) % 1
-                    // Spread around the hourglass, not on it
-                    readonly property real ang: index / 16 * Math.PI * 2 + h1 * 0.4
-                    readonly property real dist: 0.34 + h2 * 0.14
-                    x: dust.width / 2 + Math.cos(ang) * dust.height * dist * 0.85
-                    y: dust.height / 2 + Math.sin(ang) * dust.height * dist
-
-                    Rectangle {
-                        id: mote
-                        width: 1.5 + slot.h3 * 2
-                        height: width
-                        radius: width / 2
-                        x: -width / 2
-                        color: Theme.surfaceText
-                        // Reduce motion: the crystals stay still, dimly lit.
-                        opacity: pop.reducedMotion ? 0.3 : Motion.sparkle(glass.fxTime * 1000, slot.h1, slot.h2, slot.h3)
-                        y: pop.reducedMotion ? 0 : Motion.drift(glass.fxTime * 1000, slot.h2, slot.h3)
-                    }
-                }
-            }
-        }
-
-        // Gestures on the hourglass: click = just a wild animation (it
-        // never changes the timer: restart is the button's job),
-        // wheel = ±1 min, swipe / horizontal wheel = another timer.
-        MouseArea {
-            anchors.centerIn: parent
-            width: 190
-            height: parent.height
-            cursorShape: Qt.PointingHandCursor
-            property real pressX: 0
-            property bool swiped: false
-            property real accX: 0
-            property real accY: 0
-
-            onPressed: m => {
-                pressX = m.x;
-                swiped = false;
-            }
-            onPositionChanged: m => {
-                if (!swiped && Math.abs(m.x - pressX) > 40) {
-                    swiped = true;
-                    pop.go(m.x < pressX ? 1 : -1);
-                }
-            }
-            onClicked: {
-                if (!swiped)
-                    glass.wild();
-            }
-            onWheel: w => {
-                if (!pop.t)
-                    return;
-                if (Math.abs(w.angleDelta.x) > Math.abs(w.angleDelta.y)) {
-                    accX += w.angleDelta.x;
-                    if (Math.abs(accX) >= 120) {
-                        pop.go(accX < 0 ? 1 : -1);
-                        accX = 0;
-                    }
-                } else {
-                    accY += w.angleDelta.y;
-                    while (Math.abs(accY) >= 120) {
-                        const step = accY > 0 ? 1 : -1;
-                        accY -= step * 120;
-                        if (step > 0 || pop.rem > 61000)
-                            pop.d.adjust(pop.t.id, step * 60000);
-                    }
-                }
-                w.accepted = true;
-            }
-        }
-
-        // Dots: where you are among the timers (each in its color).
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: -4
-            spacing: 6
-            visible: pop.ids.length > 1
-
-            Repeater {
-                model: pop.ids
-
-                Rectangle {
-                    id: dot
-                    required property var modelData
-                    required property int index
-                    readonly property bool current: pop.t && pop.t.id === modelData
-                    readonly property var tm: pop.d ? pop.d.find(modelData) : null
-                    width: current ? 18 : 6
-                    height: 6
-                    radius: 3
-                    color: pop.d && tm ? pop.d.colorFor(tm) : Theme.primary
-                    opacity: current ? 1 : 0.45
-
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: 220
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        anchors.margins: -6
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: pop.showId(dot.modelData, dot.index > pop.index ? 1 : -1)
-                    }
-                }
-            }
+        daemon: pop.d
+        timer: pop.t
+        timerState: pop.st
+        remaining: pop.rem
+        accent: pop.accent
+        frost: pop.frost
+        frostColor: pop.frostColor
+        reducedMotion: pop.reducedMotion
+        animate: pop.shown
+        topInset: pop.topPadding
+        ids: pop.ids
+        index: pop.index
+        onSwitchTimer: step => pop.go(step)
+        onPickTimer: (id, dir) => pop.showId(id, dir)
+        // One minute per wheel notch, never below the last minute.
+        onAddMinute: step => {
+            if (step > 0 || pop.rem > 61000)
+                pop.d.adjust(pop.t.id, step * 60000);
         }
     }
 
-    // --- Time ---
-    Item {
+    PanelClock {
         width: parent.width
-        height: timeCol.implicitHeight
         opacity: 1 - Math.abs(pop.slide)
         transform: Translate {
             x: pop.slide * 40
         }
-
-        // Cold halo behind the clock (drawn once, animated opacity)
-        Canvas {
-            anchors.centerIn: parent
-            width: 220
-            height: 90
-            visible: pop.frost > 0.005
-            opacity: pop.frost
-            renderTarget: Canvas.FramebufferObject
-            onPaint: {
-                const ctx = getContext("2d");
-                ctx.reset();
-                const c = pop.frostColor;
-                ctx.translate(width / 2, height / 2);
-                ctx.scale(1, height / width);
-                const g = ctx.createRadialGradient(0, 0, 0, 0, 0, width / 2);
-                g.addColorStop(0, Qt.rgba(c.r, c.g, c.b, 0.26));
-                g.addColorStop(0.6, Qt.rgba(c.r, c.g, c.b, 0.07));
-                g.addColorStop(1, Qt.rgba(c.r, c.g, c.b, 0));
-                ctx.fillStyle = g;
-                ctx.beginPath();
-                ctx.arc(0, 0, width / 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        Column {
-            id: timeCol
-            width: parent.width
-            spacing: 0
-
-            StyledText {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: pop.d ? pop.d.displayLabel(pop.t) : ""
-                font.pixelSize: Theme.fontSizeMedium
-                color: Qt.tint(Theme.surfaceVariantText, Qt.rgba(pop.frostColor.r, pop.frostColor.g, pop.frostColor.b, pop.frost * 0.6))
-                elide: Text.ElideRight
-                wrapMode: Text.NoWrap
-            }
-
-            StyledText {
-                id: bigTime
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: TP.formatClock(pop.rem)
-                font.pixelSize: Math.round(Theme.fontSizeXLarge * 2.6)
-                font.weight: Font.Light
-                font.features: {
-                    "tnum": 1
-                }
-                wrapMode: Text.NoWrap
-                // Frozen: the digits turn ice blue.
-                color: pop.st === "ringing" ? Theme.error : Qt.tint(Theme.surfaceText, Qt.rgba(pop.frostColor.r, pop.frostColor.g, pop.frostColor.b, pop.frost * 0.85))
-                style: pop.frost > 0.01 ? Text.Outline : Text.Normal
-                styleColor: Qt.rgba(pop.frostColor.r, pop.frostColor.g, pop.frostColor.b, 0.25 * pop.frost)
-
-                // Ringing: blinks between 1 and 0.35 every 1.3 s.
-                opacity: pop.st === "ringing" ? Motion.wave(glass.fxTime, 1.3, 1, 0.35) : 1
-            }
-
-            Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 4
-
-                DankIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    name: pop.st === "paused" ? "ac_unit" : (pop.st === "ringing" ? "alarm" : "notifications")
-                    size: Theme.iconSizeSmall
-                    filled: true
-                    color: pop.st === "ringing" ? Theme.error : (pop.st === "paused" ? pop.frostColor : Theme.surfaceVariantText)
-                }
-
-                StyledText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: {
-                        if (!pop.t)
-                            return "";
-                        if (pop.st === "paused")
-                            return "Paused";
-                        if (pop.st === "ringing")
-                            return "Done";
-                        const end = TP.formatTimeOfDay(pop.t.endAt, pop.use24h);
-                        return TP.isTomorrow(pop.t.endAt, pop.d.now) ? "Tomorrow " + end : end;
-                    }
-                    font.pixelSize: Theme.fontSizeMedium
-                    font.features: {
-                        "tnum": 1
-                    }
-                    color: pop.st === "ringing" ? Theme.error : (pop.st === "paused" ? pop.frostColor : Theme.surfaceVariantText)
-                }
-            }
-        }
+        daemon: pop.d
+        timer: pop.t
+        timerState: pop.st
+        remaining: pop.rem
+        frost: pop.frost
+        frostColor: pop.frostColor
+        fxTime: glassArea.fxTime
+        use24h: pop.use24h
     }
 
-    // --- Adjustments ---
-    Row {
+    AdjustChips {
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: Theme.spacingS
-
-        Chip {
-            visible: pop.st !== "ringing" && pop.rem > 61000
-            text: "−1 min"
-            onClicked: pop.d.adjust(pop.t.id, -60000)
-        }
-        Chip {
-            text: "+1 min"
-            onClicked: pop.d.adjust(pop.t.id, 60000)
-        }
-        Chip {
-            text: "+5 min"
-            onClicked: pop.d.adjust(pop.t.id, 300000)
-        }
+        daemon: pop.d
+        timer: pop.t
+        timerState: pop.st
+        remaining: pop.rem
     }
 
-    // --- Controls ---
-    Item {
+    PanelControls {
         width: parent.width
-        height: 64
-
-        // Running / paused: cancel · pause/resume · restart.
-        Row {
-            anchors.centerIn: parent
-            spacing: Theme.spacingXL
-            visible: pop.st !== "ringing"
-
-            RoundButton {
-                anchors.verticalCenter: parent.verticalCenter
-                iconName: "close"
-                tooltip: "Cancel timer"
-                onClicked: pop.d.remove(pop.t.id)
-            }
-
-            RoundButton {
-                anchors.verticalCenter: parent.verticalCenter
-                size: 64
-                filled: true
-                // Color of the displayed timer; dark or light text depending on the background.
-                accent: pop.accent
-                accentText: pop.accentText
-                iconName: pop.st === "paused" ? "play_arrow" : "pause"
-                tooltip: pop.st === "paused" ? "Resume" : "Pause"
-                onClicked: pop.d.toggle(pop.t.id)
-            }
-
-            RoundButton {
-                anchors.verticalCenter: parent.verticalCenter
-                iconName: "replay"
-                tooltip: "Restart (" + (pop.t ? TP.formatHuman(pop.t.total) : "") + ")"
-                onClicked: pop.d.restart(pop.t.id)
-            }
-        }
-
-        // Finished: one obvious action, and "restart" next to it.
-        Row {
-            anchors.centerIn: parent
-            spacing: Theme.spacingM
-            visible: pop.st === "ringing"
-
-            Rectangle {
-                id: stopBtn
-                anchors.verticalCenter: parent.verticalCenter
-                width: 168
-                height: 56
-                radius: height / 2
-                color: stopMouse.pressed ? Qt.darker(Theme.error, 1.12) : (stopMouse.containsMouse ? Qt.lighter(Theme.error, 1.08) : Theme.error)
-                scale: stopMouse.pressed ? 0.96 : 1
-
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: 120
-                    }
-                }
-
-                Row {
-                    anchors.centerIn: parent
-                    spacing: Theme.spacingS
-
-                    DankIcon {
-                        anchors.verticalCenter: parent.verticalCenter
-                        name: "stop"
-                        filled: true
-                        size: Theme.iconSize
-                        color: Theme.onError
-                    }
-                    StyledText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Stop"
-                        font.pixelSize: Theme.fontSizeLarge
-                        font.weight: Font.DemiBold
-                        color: Theme.onError
-                    }
-                }
-
-                MouseArea {
-                    id: stopMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: pop.d.dismiss(pop.t.id)
-                }
-            }
-
-            RoundButton {
-                anchors.verticalCenter: parent.verticalCenter
-                size: 56
-                iconName: "replay"
-                tooltip: "Restart " + (pop.t ? TP.formatHuman(pop.t.total) : "")
-                onClicked: pop.d.restart(pop.t.id)
-            }
-        }
+        daemon: pop.d
+        timer: pop.t
+        timerState: pop.st
+        accent: pop.accent
+        accentText: pop.accentText
     }
 
-    // --- Other timers ---
-    Column {
+    // Built only while there are other timers.
+    Loader {
         width: parent.width
-        spacing: 2
-        visible: pop.others.length > 0
-
-        Rectangle {
-            width: parent.width - Theme.spacingM * 2
-            anchors.horizontalCenter: parent.horizontalCenter
-            height: 1
-            color: Theme.withAlpha(Theme.outline, 0.18)
-        }
-
-        Item {
-            width: 1
-            height: Theme.spacingXS
-        }
-
-        Repeater {
-            model: pop.othersKey === "" ? [] : pop.othersKey.split(",").map(Number)
-
-            delegate: Rectangle {
-                id: line
-
-                required property var modelData
-                readonly property var tm: pop.d ? pop.d.find(modelData) : null
-                readonly property string lst: tm ? tm.state : ""
-                readonly property real lrem: (pop.d && tm) ? pop.d.remainingOf(tm, pop.d.now) : 0
-
-                width: pop.width
-                height: 48
-                radius: Theme.cornerRadius
-                color: lineMouse.containsMouse ? Theme.surfaceTextHover : "transparent"
-
-                MouseArea {
-                    id: lineMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: pop.showId(line.modelData, 1)
-                }
-
-                ProgressRing {
-                    id: miniRing
-                    anchors.left: parent.left
-                    anchors.leftMargin: Theme.spacingM
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 22
-                    height: 22
-                    thickness: 3
-                    progress: pop.d ? pop.d.progressOf(line.tm) : 0
-                    color: line.lst === "ringing" ? Theme.error : (line.lst === "paused" ? Theme.surfaceVariantText : (pop.d && line.tm ? pop.d.colorFor(line.tm) : Theme.primary))
-                    trackColor: Theme.surfaceContainerHighest
-                }
-
-                StyledText {
-                    anchors.left: miniRing.right
-                    anchors.leftMargin: Theme.spacingM
-                    anchors.right: lineTime.left
-                    anchors.rightMargin: Theme.spacingS
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: pop.d ? pop.d.displayLabel(line.tm) : ""
-                    font.pixelSize: Theme.fontSizeMedium
-                    color: Theme.surfaceText
-                    elide: Text.ElideRight
-                    wrapMode: Text.NoWrap
-                }
-
-                StyledText {
-                    id: lineTime
-                    anchors.right: lineActions.left
-                    anchors.rightMargin: Theme.spacingS
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: TP.formatClock(line.lrem)
-                    font.pixelSize: Theme.fontSizeLarge
-                    font.weight: Font.Medium
-                    font.features: {
-                        "tnum": 1
-                    }
-                    color: line.lst === "ringing" ? Theme.error : (line.lst === "paused" ? Theme.surfaceVariantText : Theme.surfaceText)
-                }
-
-                Row {
-                    id: lineActions
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.spacingXS
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 0
-
-                    DankActionButton {
-                        buttonSize: 36
-                        iconName: line.lst === "running" ? "pause" : (line.lst === "paused" ? "play_arrow" : "stop")
-                        iconColor: line.lst === "ringing" ? Theme.error : Theme.surfaceText
-                        onClicked: pop.d.toggle(line.modelData)
-                    }
-                    DankActionButton {
-                        buttonSize: 36
-                        iconName: "close"
-                        iconColor: Theme.surfaceVariantText
-                        onClicked: pop.d.remove(line.modelData)
-                    }
-                }
-            }
+        active: pop.others.length > 0
+        visible: active
+        sourceComponent: OtherTimers {
+            daemon: pop.d
+            idsKey: pop.othersKey
+            onPicked: id => pop.showId(id, 1)
         }
     }
 }

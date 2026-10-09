@@ -90,6 +90,13 @@ QtObject {
     }
     function toggle(id) {
     }
+    // Bench only: what a real pause or resume does to the read API
+    function flip(id) {
+        timers = timers.map(t => t.id !== id ? t : Object.assign({}, t, {
+                state: t.state === "paused" ? "running" : "paused",
+                endAt: now + t.remaining
+            }));
+    }
     function restart(id) {
     }
     function dismiss(id) {
