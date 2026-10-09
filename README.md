@@ -91,8 +91,11 @@ The pill only shows while you have a timer (running, paused or ringing), so an e
 | `12 min pasta`, `pasta for 12 min` | A named timer |
 | `4x 1h`, `1h x4` | Four timers of one hour (up to 20) |
 | `at 18:30`, `at 6pm`, `à 18h` | An alarm at a time of day |
+| `wake me up at 7`, `tonight at 9`, `demain 8h`, `midi` | Natural clock times, English or French |
+| `pasta 12`, `timer 20m pâtes` | Without `timer`, a bare number after a word is minutes (up to 180) |
+| `timer 8h` | Ambiguous: both readings are listed, nothing starts before Enter |
 
-Type `timer` alone to get your most used timers; `timer stop` cancels one from the keyboard.
+A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). Unit typos are tolerated, names never. Type `timer` alone to get your most used timers; `timer stop` cancels one from the keyboard. All phrases: [Natural phrases](docs/GUIDE.md#natural-phrases).
 
 ### Gestures
 

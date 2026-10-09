@@ -8,7 +8,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [The bar pill](#the-bar-pill)
 - [The hourglass panel](#the-hourglass-panel)
 - [The launcher](#the-launcher)
-- [Syntax](#syntax)
+- [Syntax](#syntax) · [Natural phrases](#natural-phrases) · [What the launcher shows](#what-the-launcher-shows)
 - [Settings](#settings) · [Sound](#sound) · [If the alarm makes no sound](#if-the-alarm-makes-no-sound)
 - [Privacy](#privacy)
 - [Performance](#performance)
@@ -100,6 +100,47 @@ Type in English or French, words or digits, in any order:
 **Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together (`4x 1h` with two places left starts two and says *Started 2 of 4*), a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
 
 The interface is in English. Want Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues).
+
+### Natural phrases
+
+Sands also reads sentences, in English or French. These all work with or without the word `timer` in front.
+
+| You type | Sands understands |
+| --- | --- |
+| `timer 20m pâtes`, `timer 1h30 réunion` | A timer named *Pâtes* (20 min) or *Réunion* (1 h 30) |
+| `timer cooked 25m`, `timer folded 45m` | Context words stay in the name: *Cooked* (25 min), *Folded* (45 min) |
+| `remind me to call mum 10` | *Call mum*, 10 minutes |
+| `pasta 12`, `pâtes 12` | A bare number closing a word is minutes: *Pasta*, 12 min |
+| `wake me up at 7`, `réveille-moi à 7h` | An alarm at 07:00 (the next 07:00 within 24 h) |
+| `until 6pm`, `jusqu'à 18h` | An alarm at 18:00 |
+| `tonight at 9`, `ce soir à 9h` | An alarm at 21:00 |
+| `tomorrow at 8`, `demain 8h` | An alarm at 08:00 on the next calendar day |
+| `noon`, `midi`, `midnight`, `minuit` | An alarm at 12:00 or 00:00 |
+| `7 du soir`, `7 in the morning`, `9 du matin` | An alarm at 19:00, 07:00, 09:00 |
+| `8h`, `timer 14h30` | Ambiguous: both readings are listed (see below) |
+
+**Clock times.** A bare hour after `at` / `à` is the next time that hour comes round within 24 hours: at 21:47, `at 7` is tomorrow 07:00. `tomorrow` always means the next calendar day.
+
+**Both readings, never a guess.** `8h` can be an 8-hour timer or 08:00. Sands lists the two, the likelier first, and nothing starts until you press <kbd>Enter</kbd> on the one you pick.
+
+**Typos.** A unit one letter off is still read: `20 mni`, `1 heur`, `20 minuts pasta`, `10 secnds tea`. Names are never corrected: `20 min pasat` keeps *pasat*. Real words near a unit stay words: `3 jours`, `4 cours` and `2 hors` are not hours.
+
+**A bare number.** When you type without the word `timer`, a number counts as minutes only right after a word and up to 180: `pasta 12` is 12 min, `pasta 181` and `12` alone are not timers, and after a preposition (`dans 12`) it is left alone. With `timer` in front the number is yours to give: `timer 12` is 12 min and `timer pasta 181` is 181 min.
+
+**Unknown words.** If you ask for a timer but Sands cannot read it (`timer blorp`), the launcher says *Unknown word « blorp »* instead of staying empty. <kbd>Enter</kbd> opens this guide.
+
+### What the launcher shows
+
+When your text is a timer, the first line says exactly what <kbd>Enter</kbd> will create, and the line below says when it rings:
+
+| Preview | Meaning |
+| --- | --- |
+| `Pasta · 12 min · ends 12:42` | A named timer |
+| `Timer · 12 min · ends 12:42` | No name given |
+| `Wake up · at 07:00 tomorrow` | An alarm; *tomorrow* appears when it is not today |
+| `Pasta · 4 × 12 min · ends 12:42` | Several timers at once |
+
+Nothing starts before <kbd>Enter</kbd>. Everything is read on your machine; Sands makes no network call.
 
 ## Settings
 
