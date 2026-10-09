@@ -5,7 +5,7 @@ import qs.Common
 import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
-import "Timers.js" as Timers
+import "components/daemon/Sound.js" as Sound
 
 PluginSettings {
     id: root
@@ -17,7 +17,7 @@ PluginSettings {
     // The shipped rings first, then the sounds installed on the machine
     // (sound themes + ~/.local/share/sounds, without the audio channel test
     // sounds), then a file of the user's own.
-    readonly property var ringOptions: Timers.RINGS.map(r => ({
+    readonly property var ringOptions: Sound.RINGS.map(r => ({
                 label: r.label,
                 value: r.value
             }))

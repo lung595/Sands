@@ -18,6 +18,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Changed
 
 - A lighter download: the README and guide images weigh 1.62 MB instead of 1.97 MB (-18 %). PNGs are recompressed without any pixel change; the two animations (`freeze.gif`, `flip.gif`) use a light lossy GIF pass whose largest per-frame difference is invisible (worst frame 49.8 dB PSNR). Names, sizes, frame counts, delays and looping are unchanged.
+- Internal: `TimerDaemon.qml` (27 KB) is split by role into `components/daemon/` (persistence, sounds, end notification, `dms ipc` commands) with its pure rules in tested `.js` files. Behaviour is unchanged: same IPC answers, alarm, notification and saved state, and nothing new runs at rest. A small test (`tests/daemon-surface.test.js`) checks that every daemon member the views read is still declared.
 
 ## 1.4.3 - 2026-10-03
 

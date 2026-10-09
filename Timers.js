@@ -74,26 +74,3 @@ function freeHue(timers, hueCount) {
     }
     return timers.length % hueCount;
 }
-
-// The rings shipped in sounds/, in the order the Sound setting lists them.
-// The first is the default and keeps the saved value "default": DMS's
-// dropdown would save its label for an empty value instead (P126).
-const RINGS = [
-    { value: "default", label: "Hourglass", file: "hourglass.ogg" },
-    { value: "silt-chime", label: "Silt Chime", file: "silt-chime.ogg" }
-];
-
-// The file to play for the "sound" setting. A ring's value plays that ring,
-// a full path plays that file, and "" or anything else that is not a path,
-// such as "Alarm clock (default)", the label DMS's dropdown saved by mistake
-// (P126), plays the default ring. "custom" reads the "customSound" setting,
-// where "~/" and "file://" are accepted. `ringDir` ends with "/".
-function soundFile(choice, custom, home, ringDir) {
-    if (choice === "custom") {
-        const path = String(custom || "").trim().replace(/^file:\/\//, "").replace(/^~(?=\/)/, home);
-        return path.startsWith("/") ? path : ringDir + RINGS[0].file;
-    }
-    if (typeof choice === "string" && choice.startsWith("/"))
-        return choice;
-    return ringDir + (RINGS.find(r => r.value === choice) || RINGS[0]).file;
-}
