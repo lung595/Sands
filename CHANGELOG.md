@@ -5,9 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+## 1.5.1 - 2026-10-09
+
 ### Changed
 
 - The bar pill's final-countdown beat now ticks at 30 Hz instead of 60 Hz (the bell swing keeps 60 Hz): half the bar redraws during the last ten seconds, same beat. Offscreen bench, pill in its final countdown: 0.36 % → 0.21 % of one core (below the noise of this bench). Nothing animates while idle.
+
+### Fixed
+
+- 1.5.0 was published without the idle-timer change of NAK-194 (the pill's final-countdown beat stayed at 60 Hz). 1.5.1 ships it; the rest is documentation (launcher picture, test counts).
 
 ## 1.5.0 - 2026-10-09
 

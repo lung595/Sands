@@ -150,7 +150,7 @@ TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/pr
 TZ=UTC QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher-shot.qml -- out.png   # docs/images/launcher.png: the launcher row from made-up input, fixed clock
 ```
 
-Scenes (`shot.qml -- <scene> <out.png>`): `pill-idle`, `pill-running`, `pill-label` (right after a start), `pill-done`, `pill-4`, `panel`, `panel-paused`, `panel-ringing`, `panel-4` (four 1 h timers), `hourglass-running`, `hourglass-frozen`, `hourglass-ringing`. The suffix `-reduce` turns Reduce motion on.
+Scenes (`shot.qml -- <scene> <out.png>`): `pill-idle`, `pill-running`, `pill-label` (right after a start), `pill-done`, `pill-4`, `panel`, `panel-paused`, `panel-ringing`, `panel-4` (four 1 h timers), `hourglass-running`, `hourglass-frozen`, `hourglass-ringing`. Bench-only scenes (not in the reference set): `pill-beat`, `pill-bell`, `pill-short`. The suffix `-reduce` turns Reduce motion on.
 
 **Refactors must keep the pictures.** `cmp.sh` checks each picture against `reference/` and the hash in `manifest.txt`. A scene is byte-identical (tolerance 0) when nothing moves: the pills and most `-reduce` scenes (`panel-4-reduce` and `panel-ringing-reduce` showed 3 and 5 px in some runs, so they have 10). The scenes with sand and float moving carry a few pixels of noise between two runs of the same code (0 to 7 px measured), so they have a small tolerance in `manifest.txt`. When a change is meant to alter the look, re-render and run `cmp.sh --update <dir>` in the same commit, and say why in the message.
 
