@@ -5,6 +5,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+## 1.5.1 - 2026-10-09
+
+### Changed
+
+- The bar pill's final-countdown beat now ticks at 30 Hz instead of 60 Hz (the bell swing keeps 60 Hz): half the bar redraws during the last ten seconds, same beat. Offscreen bench, pill in its final countdown: 0.36 % → 0.21 % of one core (below the noise of this bench). Nothing animates while idle.
+
+### Fixed
+
+- 1.5.0 was published without the idle-timer change of NAK-194 (the pill's final-countdown beat stayed at 60 Hz). 1.5.1 ships it; the rest is documentation (launcher picture, test counts).
+
+## 1.5.0 - 2026-10-09
+
 ### Added
 
 - **A more natural launcher** (Win + Space), in English and French, nothing sent anywhere:
@@ -12,8 +24,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   - **Natural clock times**: `wake me up at 7`, `réveille-moi à 7h`, `until 6pm`, `tonight at 9`, `ce soir à 9h`, `tomorrow at 8`, `demain 8h`, `noon`, `midi`, `minuit`, `7 du soir`, `7 in the morning`. A bare hour after `at` / `à` is the next occurrence within 24 h; `tomorrow` is the next calendar day. `8h` alone lists both readings (8 h timer, then 08:00) and nothing starts before Enter.
   - **One-line preview** under what you type: `Pasta · 12 min · ends 12:42`, `Wake up · at 07:00 tomorrow`, `Timer · 12 min · ends 12:42` (no name), with `Rings in/at …` below.
   - **Unknown words**: a timer keyword with nothing readable shows `Unknown word « … »` and Enter opens the guide.
-  - Documented in the new guide sections *Natural phrases* and *What the launcher shows*, and in the README *Launcher syntax*. Per-keystroke cost of the parser: not measured yet (the Performance Engineer's bench of NAK-153 will give the figure).
+  - Documented in the new guide sections *Natural phrases* and *What the launcher shows*, and in the README *Launcher syntax*. Per-keystroke cost of the parser: not measured.
   - Delivered in four parts: NAK-150 (durations), NAK-151 (clock times), NAK-152 (preview), NAK-153 (documentation).
+- `sounds/` with the two rings (41 KB), and `tools/sounds/`, the script that renders Hourglass bit for bit (python3 and ffmpeg).
+- Offscreen preview scenes in `scripts/preview/` (pill, panel, hourglass, four timers) rendered from made-up timers, with reference pictures and a compare script, so refactors can be proven pixel-identical. Development tooling only: the plugin loads nothing from it and nothing changes for users. See *Offscreen previews and bench* in `CONTRIBUTING.md`.
 
 ### Changed
 
@@ -22,14 +36,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Internal only: `TimerWidget.qml` (19 KB) is split by role into small files in `components/` (horizontal and vertical pill, glyph, name, time, badge, motion clock, hover, clicks). The pill scenes are byte-identical to their reference pictures (panel scenes within their tolerance), and the pill's timers and animations are unchanged (nothing runs at rest). See *Project layout* in `CONTRIBUTING.md`.
 - The default alarm is now **Hourglass**, a soft four-note glass ring made for Sands, instead of the freedesktop alarm clock. **Silt Chime**, a short bell (CC0), is the second choice in *Sound*.
 - The former default is now a normal entry in the list of installed sounds. A sound you picked yourself keeps playing; only an unset *Sound* (or the former "Alarm clock (default)") now plays Hourglass.
-
-### Added
-
-- `sounds/` with the two rings (41 KB), and `tools/sounds/`, the script that renders Hourglass bit for bit (python3 and ffmpeg).
-- Offscreen preview scenes in `scripts/preview/` (pill, panel, hourglass, four timers) rendered from made-up timers, with reference pictures and a compare script, so refactors can be proven pixel-identical. Development tooling only: the plugin loads nothing from it and nothing changes for users. See *Offscreen previews and bench* in `CONTRIBUTING.md`.
-
-### Changed
-
 - A lighter download: the README and guide images weigh 1.62 MB instead of 1.97 MB (-18 %). PNGs are recompressed without any pixel change; the two animations (`freeze.gif`, `flip.gif`) use a light lossy GIF pass whose largest per-frame difference is invisible (worst frame 49.8 dB PSNR). Names, sizes, frame counts, delays and looping are unchanged.
 - Internal: `TimerDaemon.qml` (27 KB) is split by role into `components/daemon/` (persistence, sounds, end notification, `dms ipc` commands) with its pure rules in tested `.js` files. Behaviour is unchanged: same IPC answers, alarm, notification and saved state, and nothing new runs at rest. A small test (`tests/daemon-surface.test.js`) checks that every daemon member the views read is still declared.
 
