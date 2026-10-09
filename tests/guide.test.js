@@ -39,6 +39,13 @@ eq(notes.partial.title, "Started 2 of 4", "a partial start says how many started
 eq(notes.full.hint.includes("50"), true, "the limit is named");
 eq(G.toastText(notes.silent), "Sands: The alarm made no sound. Pick another sound in the settings", "toast joins title and hint");
 
+// The README links to the phrases section; every linked guide anchor must exist
+const readmeLinks = [...read("README.md").matchAll(/docs\/GUIDE\.md#([a-z0-9-]+)/g)].map(m => m[1]);
+eq(readmeLinks.includes("natural-phrases"), true, "the README links to the natural phrases section");
+for (const a of readmeLinks)
+    eq(anchors.includes(a), true, "README link #" + a + " exists in the guide");
+eq(anchors.includes("what-the-launcher-shows"), true, "the preview section exists");
+
 print(failures === 0 ? count + " tests passed" : failures + " of " + count + " tests failed");
 if (failures)
     imports.system.exit(1);
