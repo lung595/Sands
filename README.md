@@ -120,7 +120,7 @@ Type `timer` alone to get your most used timers; `timer stop` cancels one from t
 | Setting | Default |
 | --- | --- |
 | Hourglass: Classic or Glass of Time | Classic |
-| Sound: a system sound or your own file | Alarm clock |
+| Sound: Hourglass, Silt Chime, a system sound or your own file | Hourglass |
 | Volume | 80 % |
 | Alarm duration | 60 s |
 | Notification when done (*Stop*, *+5 min*) | On |
@@ -166,7 +166,7 @@ bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 | --- | --- |
 | A timer runs but nothing shows in the bar | Add the widget, see [Add a widget](#3-add-a-widget) |
 | The launcher does not suggest a timer | Type a duration (`20 min`); if *Automatic detection* is off, type your prefix first |
-| The alarm makes no sound | Pick another sound, check the volume and Do Not Disturb: see [If the alarm makes no sound](docs/GUIDE.md#if-the-alarm-makes-no-sound) |
+| The alarm makes no sound | Pick another sound in *Sound*, check the volume and Do Not Disturb: see [If the alarm makes no sound](docs/GUIDE.md#if-the-alarm-makes-no-sound) |
 
 ## Privacy
 
@@ -183,7 +183,7 @@ No network access, no telemetry. Only short-lived local tools run (`pw-play` to 
 
 ## Credits
 
-*Glass of Time* is a nod to *Steven Universe*, drawn from scratch. Built on [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) and [Quickshell](https://quickshell.org).
+*Glass of Time* is a nod to *Steven Universe*, drawn from scratch. The default ring, *Hourglass*, is synthesised by [`tools/sounds/`](tools/sounds). *Silt Chime* is "Pleasing Bell Sound Effect" by Spring Spring, released under [CC0](https://creativecommons.org/publicdomain/zero/1.0/) and found on [OpenGameArt](https://opengameart.org/content/pleasing-bell-sound-effect): thank you. Sands only struck it twice, faded it and re-encoded it (full sha256 of the shipped files in [`tools/sounds/README.md`](tools/sounds/README.md)). Built on [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell) and [Quickshell](https://quickshell.org).
 
 ## License
 

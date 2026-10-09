@@ -5,8 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+### Changed
+
+- The default alarm is now **Hourglass**, a soft four-note glass ring made for Sands, instead of the freedesktop alarm clock. **Silt Chime**, a short bell (CC0), is the second choice in *Sound*.
+- The former default is now a normal entry in the list of installed sounds. A sound you picked yourself keeps playing; only an unset *Sound* (or the former "Alarm clock (default)") now plays Hourglass.
+
 ### Added
 
+- `sounds/` with the two rings (41 KB), and `tools/sounds/`, the script that renders Hourglass bit for bit (python3 and ffmpeg).
 - Offscreen preview scenes in `scripts/preview/` (pill, panel, hourglass, four timers) rendered from made-up timers, with reference pictures and a compare script, so refactors can be proven pixel-identical. Development tooling only: the plugin loads nothing from it and nothing changes for users. See *Offscreen previews and bench* in `CONTRIBUTING.md`.
 
 ## 1.4.3 - 2026-10-03

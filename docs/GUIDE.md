@@ -9,7 +9,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [The hourglass panel](#the-hourglass-panel)
 - [The launcher](#the-launcher)
 - [Syntax](#syntax)
-- [Settings](#settings) · [If the alarm makes no sound](#if-the-alarm-makes-no-sound)
+- [Settings](#settings) · [Sound](#sound) · [If the alarm makes no sound](#if-the-alarm-makes-no-sound)
 - [Privacy](#privacy)
 - [Performance](#performance)
 
@@ -106,7 +106,7 @@ The interface is in English. Want Sands to understand another language? [Open an
 | Setting | Description | Default |
 | --- | --- | --- |
 | Hourglass | Classic or Glass of Time | Classic |
-| Sound | Any installed sound theme file, or your own `.oga/.ogg/.wav/.mp3/.flac` (with *Preview*) | Alarm clock |
+| Sound | One of the two rings that come with Sands, any installed sound theme file, or your own file: see [Sound](#sound) | Hourglass |
 | Volume | | 80 % |
 | Alarm duration | The sound stops by itself; the pill keeps pulsing | 60 s |
 | Notification when done | With *Stop* and *+5 min* | On |
@@ -117,12 +117,23 @@ The interface is in English. Want Sands to understand another language? [Open an
 
 DMS's *Reduce motion* is respected: no floating, no spin or flip animation.
 
+### Sound
+
+The list starts with the two rings that come with Sands, then the sounds installed on the machine, then *Custom file…*. *Preview* plays the choice shown, at the volume you set.
+
+- **Hourglass** (default): four soft rising glass notes, one grain after the other. Made for Sands.
+- **Silt Chime**: a short, soft bell struck twice.
+- **A system sound**: any `.oga`, `.ogg`, `.wav`, `.mp3` or `.flac` of the installed sound themes or of `~/.local/share/sounds`. The former default, *Alarm clock elapsed*, is now one of them.
+- **Custom file…**: type a full path, or one starting with `~/`, in *Sound file*.
+
+Both rings start within 150 ms and begin and end on silence, so they work with *Gentle alarm* (which starts at 30 %) and loop without a click. An unset *Sound* plays Hourglass; a sound you chose yourself keeps playing as saved.
+
 ### If the alarm makes no sound
 
 When the alarm cannot play its sound, Sands says so instead of staying quiet: **The alarm made no sound** (in the panel if it is open, otherwise as a DMS notification). **Preview** in the settings does the same with **Could not play this sound**. The pill still pulses either way.
 
 - **A file of your own**: check the path in *Sound file* (a full path, or one starting with `~/`) and that the file is an `.oga`, `.ogg`, `.wav`, `.mp3` or `.flac` you can open.
-- **A sound theme file**: pick another one in *Sound*; the default *Alarm clock* comes with the `sound-theme-freedesktop` package.
+- **A sound theme file**: pick another one in *Sound*. Hourglass and Silt Chime are files of Sands itself, so they need nothing else; the system sounds come from your sound theme packages, such as `sound-theme-freedesktop`.
 - **No player**: Sands plays with `pw-play` (PipeWire) and falls back to `paplay`. Run `pw-play /usr/share/sounds/freedesktop/stereo/complete.oga` in a terminal: an error there is the same one Sands met.
 - **Nothing is wrong but it is silent**: *Volume* is at 0, the output device is muted, or *Respect Do Not Disturb* is on while Do Not Disturb is active (no message then: that silence is on purpose).
 

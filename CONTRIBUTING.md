@@ -68,6 +68,8 @@ Sands/
 │   ├── GitHubMark.qml          # GitHub logo that opens the guide section
 │   ├── RoundButton.qml, Chip.qml
 │   └── Motion.js               # looping motion as pure functions of time (tested)
+├── sounds/                     # the shipped rings (hourglass.ogg, silt-chime.ogg)
+├── tools/sounds/               # renders hourglass.ogg (python3 tools/sounds/generate.py OUT), check.py inspects rings; README.md lists hashes
 ├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
 ├── tests/
 │   ├── parser.test.js
@@ -84,7 +86,7 @@ Sands/
 ```sh
 gjs tests/parser.test.js        # 108 parser tests
 gjs tests/motion.test.js
-gjs tests/timers.test.js        # 34 timer logic tests
+gjs tests/timers.test.js        # timer logic and sound choice tests
 gjs tests/guide.test.js         # 18 tests: note length, guide anchors
 ```
 

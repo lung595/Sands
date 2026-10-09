@@ -22,7 +22,8 @@ Item {
     property string pluginId: "smartTimer"
     property var pluginService: null
 
-    readonly property string defaultSound: "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga"
+    // The rings shipped with the plugin, as a local path ending with "/".
+    readonly property string ringDir: decodeURIComponent(Qt.resolvedUrl("sounds/").toString().replace(/^file:\/\//, ""))
 
     // { id, label, kind: "duration"|"at", total, endAt, remaining,
     //   state: "running"|"paused"|"ringing", finishedAt }
@@ -494,7 +495,7 @@ Item {
     // The file the alarm plays; `choice` and `custom` default to the saved
     // settings, Preview passes what is shown in the settings page.
     function soundPath(choice, custom) {
-        return Timers.soundFile(choice === undefined ? setting("sound", "") : choice, custom === undefined ? setting("customSound", "") : custom, Quickshell.env("HOME"), defaultSound);
+        return Timers.soundFile(choice === undefined ? setting("sound", "") : choice, custom === undefined ? setting("customSound", "") : custom, Quickshell.env("HOME"), ringDir);
     }
 
     function _volume() {
