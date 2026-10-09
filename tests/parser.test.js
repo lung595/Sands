@@ -153,6 +153,13 @@ check("5 hurs", [{ ms: 5 * H, label: "" }]);
 check("5 four", []);
 check("5 pour pasta", []);
 check("2 men", []);
+// Real French words one letter off a unit are not hours
+check("3 jours", []);
+check("dans 3 jours", []);
+check("4 cours", []);
+check("3 tours de piste", []);
+check("2 hors", []);
+check("timer 3 jours", [{ ms: 3 * MIN, label: "jours" }]);
 // Labels are never corrected
 check("20 min pasat", [{ ms: 20 * MIN, label: "pasat" }]);
 

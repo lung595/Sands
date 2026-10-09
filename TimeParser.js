@@ -149,18 +149,30 @@ function isMissingLetter(shorter, longer) {
     return shorter.substring(i) === longer.substring(i + 1);
 }
 
+// Real words one letter off a unit: they stay words (« 2 hors » is
+// « 2 outside », not two hours).
+var TYPO_STOPWORDS = ["hors"];
+
 // The short unit a word one letter off a unit stands for, or "". Short words
 // are matched strictly: « four » and « pour » are one letter from « hour ».
+// A dropped or substituted letter must not be the first one: « jours »,
+// « cours » and « tours » are one letter from « hours » but are French words
+// for days, classes and laps.
 function typoUnit(word) {
     var i, w;
+    if (TYPO_STOPWORDS.indexOf(word) >= 0)
+        return "";
     for (i = 0; i < TYPO_ABBREVIATIONS.length; i++) {
         if (isSwap(word, TYPO_ABBREVIATIONS[i][0]))
             return TYPO_ABBREVIATIONS[i][1];
     }
     for (i = 0; i < TYPO_UNITS.length; i++) {
         w = TYPO_UNITS[i][0];
-        if (isSwap(word, w)
-                || (word.length >= 5 && isSubstitution(word, w))
+        if (isSwap(word, w))
+            return TYPO_UNITS[i][1];
+        if (word.charAt(0) !== w.charAt(0))
+            continue;
+        if ((word.length >= 5 && isSubstitution(word, w))
                 || (word.length >= 4 && isMissingLetter(word, w))
                 || (word.length >= 6 && isMissingLetter(w, word)))
             return TYPO_UNITS[i][1];
