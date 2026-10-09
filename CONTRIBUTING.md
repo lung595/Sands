@@ -122,15 +122,15 @@ The panel parts show what they are given and report what the user does with sign
 ## Tests
 
 ```sh
-gjs tests/parser.test.js        # 108 parser tests
+gjs tests/parser.test.js        # 216 parser tests
 gjs tests/motion.test.js
 gjs tests/timers.test.js        # timer logic and sound choice tests
 gjs tests/preview.test.js       # launcher preview lines
-gjs tests/guide.test.js         # 18 tests: note length, guide anchors
+gjs tests/guide.test.js         # 23 tests: note length, guide anchors
 gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restore
 gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command
 gjs tests/daemon-text.test.js   # 22 tests: IPC sentences, notification commands
-gjs tests/daemon-surface.test.js # 21 tests: every daemon member a view reads is still declared
+gjs tests/daemon-surface.test.js # 11 tests: every daemon member a view reads is still declared
 gjs tests/hourglass.test.js     # 35 checks: hourglass geometry, volumes, outline, frost shapes
 ```
 
@@ -145,6 +145,7 @@ scripts/preview/shots.sh /tmp/sands-shots              # every scene of manifest
 scripts/preview/shots.sh /tmp/sands-shots panel pill-4 # only some of them
 scripts/preview/cmp.sh /tmp/sands-shots                # compare with scripts/preview/reference/
 TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher.qml   # launcher: prints each query's lines as text
+TZ=UTC QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher-shot.qml -- out.png   # docs/images/launcher.png: the launcher row from made-up input, fixed clock
 ```
 
 Scenes (`shot.qml -- <scene> <out.png>`): `pill-idle`, `pill-running`, `pill-label` (right after a start), `pill-done`, `pill-4`, `panel`, `panel-paused`, `panel-ringing`, `panel-4` (four 1 h timers), `hourglass-running`, `hourglass-frozen`, `hourglass-ringing`. The suffix `-reduce` turns Reduce motion on.
