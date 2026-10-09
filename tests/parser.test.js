@@ -106,6 +106,56 @@ check("1h laundry", [{ ms: H, label: "laundry" }]);
 check("timer 50 min meeting", [{ ms: 50 * MIN, label: "meeting" }]);
 check("90 min", [{ ms: 90 * MIN, label: "" }]);
 
+// Natural durations (NAK-150)
+check("dans 20 minutes", [{ ms: 20 * MIN, label: "" }]);
+check("in 20 minutes", [{ ms: 20 * MIN, label: "" }]);
+check("vingt minutes", [{ ms: 20 * MIN, label: "" }]);
+check("un quart d'heure", [{ ms: 15 * MIN, label: "" }]);
+check("trois quarts d'heure", [{ ms: 45 * MIN, label: "" }]);
+check("20 minutes et demie", [{ ms: 20.5 * MIN, label: "" }]);
+check("quarter of an hour", [{ ms: 15 * MIN, label: "" }]);
+check("three quarters of an hour", [{ ms: 45 * MIN, label: "" }]);
+check("an hour and a half", [{ ms: 90 * MIN, label: "" }]);
+
+// Context verbs are dropped, the rest is the label
+check("rappelle-moi de sortir le linge dans 20 minutes", [{ ms: 20 * MIN, label: "sortir le linge" }]);
+check("rappelle-moi dans vingt minutes de sortir le linge", [{ ms: 20 * MIN, label: "sortir le linge" }]);
+check("rappelle moi d'appeler maman dans 10 min", [{ ms: 10 * MIN, label: "appeler maman" }]);
+check("remind me to take out the laundry in 20 minutes", [{ ms: 20 * MIN, label: "take out the laundry" }]);
+check("remind me in 20 minutes to take out the laundry", [{ ms: 20 * MIN, label: "take out the laundry" }]);
+check("set a timer for 20 minutes", [{ ms: 20 * MIN, label: "" }]);
+check("set a timer for 20 minutes for the pasta", [{ ms: 20 * MIN, label: "pasta" }]);
+check("mets un minuteur de 20 minutes pour les pâtes", [{ ms: 20 * MIN, label: "pâtes" }]);
+check("remind me to call mum 10", [{ ms: 10 * MIN, label: "call mum" }]);
+
+// A bare number closing a text is minutes, within limits
+check("pasta 12", [{ ms: 12 * MIN, label: "pasta" }]);
+check("Pasta 12", [{ ms: 12 * MIN, label: "Pasta" }]);
+check("pâtes 12", [{ ms: 12 * MIN, label: "pâtes" }]);
+check("pasta 180", [{ ms: 180 * MIN, label: "pasta" }]);
+check("12", []);
+check("pasta 181", []);
+check("pasta 200", []);
+check("pasta 0", []);
+check("dans 12", []);
+check("= 2+2", []);
+check("mes 2 chats", []);
+
+// Unit typos: one letter off, units only
+check("20 mni", [{ ms: 20 * MIN, label: "" }]);
+check("1 heur", [{ ms: H, label: "" }]);
+check("1 heur 30", [{ ms: 90 * MIN, label: "" }]);
+check("20 minuts pasta", [{ ms: 20 * MIN, label: "pasta" }]);
+check("vingt minuts", [{ ms: 20 * MIN, label: "" }]);
+check("10 secnds tea", [{ ms: 10 * S, label: "tea" }]);
+check("5 hurs", [{ ms: 5 * H, label: "" }]);
+// Ordinary words next to a number stay words
+check("5 four", []);
+check("5 pour pasta", []);
+check("2 men", []);
+// Labels are never corrected
+check("20 min pasat", [{ ms: 20 * MIN, label: "pasat" }]);
+
 // What is not a timer
 check("firefox", []);
 check("timer", []);
