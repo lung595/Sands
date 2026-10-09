@@ -81,7 +81,10 @@ Sands/
 │   ├── AdjustChips.qml         # −1 / +1 / +5 min
 │   ├── PanelControls.qml       # cancel, pause/resume, restart; StopButton once finished
 │   ├── OtherTimers.qml         # the other timers, one OtherTimerRow each
-│   ├── Hourglass.qml           # the floating, volume-synced hourglass
+│   ├── Hourglass.qml           # the floating hourglass: only wires the pieces of hourglass/
+│   ├── hourglass/              # one role per file: Geometry.js (sizes, volumes; tested), Colors.js, FrostDraw.js (tested),
+│   │                           #   MotionClock (the one Timer), Turn (flip, wild), SandLevel (eased level), SandStream (grains),
+│   │                           #   Glass (the glass canvas), Halos/Halo, Shadow, GotLayer/GotBack/GotFront/GotPalette (Glass of Time)
 │   ├── ProgressRing.qml        # the ring used in the pill and lists
 │   ├── HelpNote.qml            # the short note at the top of the panel
 │   ├── GitHubMark.qml          # GitHub logo that opens the guide section
@@ -95,6 +98,7 @@ Sands/
 │   ├── motion.test.js
 │   ├── timers.test.js
 │   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
+│   ├── hourglass.test.js
 │   ├── harness.js              # shared loader for the daemon tests
 │   └── guide.test.js
 └── docs/
@@ -113,10 +117,14 @@ gjs tests/parser.test.js        # 108 parser tests
 gjs tests/motion.test.js
 gjs tests/timers.test.js        # 25 timer logic tests
 gjs tests/guide.test.js         # 18 tests: note length, guide anchors
+<<<<<<< HEAD
 gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restore
 gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command
 gjs tests/daemon-text.test.js   # 22 tests: IPC sentences, notification commands
 gjs tests/daemon-surface.test.js # 21 tests: every daemon member a view reads is still declared
+=======
+gjs tests/hourglass.test.js     # 23 checks: hourglass geometry, volumes, frost shapes
+>>>>>>> 87e040d (refactor(hourglass): split Hourglass.qml into single-role files, gjs-tested geometry (NAK-143))
 ```
 
 Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
