@@ -163,6 +163,86 @@ check("timer 3 jours", [{ ms: 3 * MIN, label: "jours" }]);
 // Labels are never corrected
 check("20 min pasat", [{ ms: 20 * MIN, label: "pasat" }]);
 
+// Natural clock times (NAK-151). NOW is Wednesday 21:47: a bare hour that has
+// passed today rolls over to tomorrow, an hour still to come stays today.
+check("réveille-moi à 7h", [{ at: "7:00", label: "" }]);
+check("wake me up at 7", [{ at: "7:00", label: "" }]);
+check("wake up at 7 gym", [{ at: "7:00", label: "gym" }]);
+check("réveille-moi à 7", [{ at: "7:00", label: "" }]);
+check("jusqu'à 18h", [{ at: "18:00", label: "" }]);
+check("until 6pm", [{ at: "18:00", label: "" }]);
+check("ce soir à 9h", [{ at: "21:00", label: "" }]);
+check("tonight at 9", [{ at: "21:00", label: "" }]);
+check("tonight at 11", [{ at: "23:00", label: "" }]);
+check("demain 8h", [{ at: "8:00", label: "" }]);
+check("tomorrow at 8", [{ at: "8:00", label: "" }]);
+check("dîner demain à 20h", [{ at: "20:00", label: "dîner" }]);
+check("midi", [{ at: "12:00", label: "" }]);
+check("minuit", [{ at: "0:00", label: "" }]);
+check("noon", [{ at: "12:00", label: "" }]);
+check("midnight", [{ at: "0:00", label: "" }]);
+check("demain midi", [{ at: "12:00", label: "" }]);
+check("ce soir minuit", [{ at: "0:00", label: "" }]);
+check("at 7", [{ at: "7:00", label: "" }]);
+check("à 22", [{ at: "22:00", label: "" }]);
+check("at 7pm", [{ at: "19:00", label: "" }]);
+check("7 du soir", [{ at: "19:00", label: "" }]);
+check("7 du matin", [{ at: "7:00", label: "" }]);
+check("4 de l'après-midi", [{ at: "16:00", label: "" }]);
+check("7 in the evening", [{ at: "19:00", label: "" }]);
+check("à 7h30 du matin", [{ at: "7:30", label: "" }]);
+// A bare number after a preposition followed by a unit stays a duration
+check("pasta à 12 min", [{ ms: 12 * MIN, label: "pasta" }]);
+check("at 5 minutes", [{ ms: 5 * MIN, label: "" }]);
+// Not a time: out of range, or no preposition
+check("à 25", []);
+check("7", [], {});
+// Ambiguous: « 8h » is a duration or a time, both listed
+check("8h", [{ ms: 8 * H, label: "" }, { at: "8:00", label: "" }]);
+check("20h", [{ at: "20:00", label: "" }, { ms: 20 * H, label: "" }]);
+check("1h", [{ ms: H, label: "" }]);
+
+// Day boundaries: the epoch itself, not just the clock face
+function checkAt(input, now, y, mo, d, h, mi) {
+    count++;
+    const r = TP.parse(input, now)[0];
+    const want = new Date(y, mo, d, h, mi, 0, 0).getTime();
+    if (!r || r.kind !== "at" || r.at !== want || r.ms !== want - now) {
+        failures++;
+        print("✗ " + JSON.stringify(input) + " at " + new Date(now).toString() + ": expected " + new Date(want).toString() + ", got " + (r ? new Date(r.at).toString() : "nothing"));
+    }
+}
+checkAt("at 7", NOW, 2026, 8, 25, 7, 0);                                    // past: tomorrow
+checkAt("at 23", NOW, 2026, 8, 24, 23, 0);                                   // still to come: today
+checkAt("tomorrow at 8", NOW, 2026, 8, 25, 8, 0);
+checkAt("midnight", NOW, 2026, 8, 25, 0, 0);
+const AFTER_MIDNIGHT = new Date(2026, 8, 25, 0, 30, 0, 0).getTime();
+checkAt("tomorrow at 8", AFTER_MIDNIGHT, 2026, 8, 26, 8, 0);                  // calendar day, not 24 h
+checkAt("at 8", AFTER_MIDNIGHT, 2026, 8, 25, 8, 0);
+checkAt("midnight", AFTER_MIDNIGHT, 2026, 8, 26, 0, 0);
+checkAt("tonight at 9", AFTER_MIDNIGHT, 2026, 8, 25, 21, 0);
+const MONTH_END = new Date(2026, 8, 30, 22, 0, 0, 0).getTime();
+checkAt("tomorrow at 8", MONTH_END, 2026, 9, 1, 8, 0);                        // month rollover
+checkAt("at 7", MONTH_END, 2026, 9, 1, 7, 0);
+// The very minute: already rung, so tomorrow
+checkAt("at 22", new Date(2026, 8, 24, 22, 0, 0, 0).getTime(), 2026, 8, 25, 22, 0);
+
+// Unknown word: only when a timer was asked for, carried as results.hint
+function checkHint(input, expected, opts) {
+    count++;
+    const res = TP.parse(input, NOW, opts);
+    if (res.length !== 0 || res.hint !== expected) {
+        failures++;
+        print("✗ hint " + JSON.stringify(input) + ": expected " + JSON.stringify(expected) + ", got " + JSON.stringify(res.hint) + " (" + res.length + " results)");
+    }
+}
+checkHint("minuteur pâtes", "Unknown word « pâtes »");
+checkHint("timer banana split", "Unknown word « banana »");
+checkHint("timer", "");
+checkHint("firefox", "");
+checkHint("firefox", "Unknown word « firefox »", { keyword: true });
+checkHint("", "");
+
 // What is not a timer
 check("firefox", []);
 check("timer", []);
@@ -219,6 +299,25 @@ if (TP.parse("99x 1h", NOW)[0]?.capped !== true || TP.parse("4x 1h", NOW)[0]?.ca
     if (!long || long.label.length > TP.MAX_LABEL || long.ms !== 12 * MIN) {
         failures++;
         print("✗ a long label is cut to " + TP.MAX_LABEL + " characters");
+    }
+}
+
+// A number earlier in the text must not hide the real clock time
+check("timer room 12 at 7pm", [{ at: "19:00", label: "room 12" }]);
+check("timer call 5 until 6pm", [{ at: "18:00", label: "call 5" }]);
+check("timer 3 eggs à 7h", [{ at: "7:00", label: "3 eggs" }]);
+check("rappelle-moi 2 choses à 18h", [{ at: "18:00", label: "2 choses" }]);
+check("timer 2 days at 9h", [{ at: "9:00", label: "2 days" }]);
+check("meeting 3 at 9am", [{ at: "9:00", label: "meeting 3" }]);
+// « at 13pm » keeps its 24 h reading (as before the natural clock times)
+check("timer at 13pm", [{ at: "13:00", label: "" }]);
+
+// Every result list carries a string hint
+for (const t of ["timer at 7", "timer 20 min", "hello", "", "timer gloubi"]) {
+    count++;
+    if (typeof TP.parse(t, NOW, {}).hint !== "string") {
+        failures++;
+        print("✗ hint is not a string for " + JSON.stringify(t));
     }
 }
 

@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- **Natural clock times** in the launcher parser (NAK-151, part 2 of 4): `réveille-moi à 7h`, `wake me up at 7`, `until 6pm`, `ce soir à 9h`, `tonight at 9`, `demain 8h`, `tomorrow at 8`, `midi`, `minuit`, `noon`, `midnight`, `7 du soir`, `7 in the morning`. A bare hour after `at`/`à` is the next occurrence within 24 h (tomorrow if already past); `tomorrow` is the next calendar day. `8h` alone lists both readings (8 h timer, then 08:00). A timer keyword with nothing readable sets `results.hint` (`Unknown word « … »`) for the launcher.
 - **Natural durations** in the launcher parser: `timer 20m pâtes`, `timer jours 3 entretien`, `timer 1h30 réunion` and context verbs (`timer cooked 25m`, `timer folded 45m`). Bare minutes work too (`timer 20 pasta`). Unit typos are tolerated when the first letter is kept (`durées` ➜ `durées`, `jours` ➜ `jours`, `hors` ➜ `hors`). This is **NAK-150, part 1 of 4** (durations only); NAK-151 will add hours.
 - **One-line preview in the launcher** when you type a timer: `Pasta · 12 min · ends 12:42`, `Wake up · at 07:00 tomorrow`, or just `Timer · 12 min · ends 12:42` (no label). The line below keeps `Rings in/at …`. Ambiguous inputs (`14h30`) still list both readings ranked, and Enter starts the one you pick. This is **NAK-152, part 3 of 4** (preview only); NAK-151 will add hours, NAK-153 will add names.
 
