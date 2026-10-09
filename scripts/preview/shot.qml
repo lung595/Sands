@@ -14,7 +14,8 @@ import "mock"
 //   only, with "-hold"), hourglass-running, hourglass-frozen, hourglass-ringing
 // Suffixes: "-reduce" turns Reduce motion on (the sand and the float stand
 // still, so the picture is the same on every run), "-hold" takes no picture and
-// keeps running on the real clock (what banc-ab.sh and essai.sh want).
+// keeps running on the real clock (what banc-ab.sh and essai.sh want), "-got"
+// draws the hourglass in the Glass of Time style (bench only, no reference).
 Window {
     id: win
 
@@ -23,7 +24,8 @@ Window {
     readonly property string out: args[args.length - 1]
     readonly property bool hold: rawMode.endsWith("-hold")
     readonly property bool reduce: rawMode.indexOf("-reduce") >= 0
-    readonly property string mode: rawMode.replace("-hold", "").replace("-reduce", "")
+    readonly property bool got: rawMode.indexOf("-got") >= 0
+    readonly property string mode: rawMode.replace("-hold", "").replace("-reduce", "").replace("-got", "")
     readonly property string kind: mode.split("-")[0]
 
     // [state, label, total ms, ms left, hue]; Mm are minutes, Hh hours
@@ -122,6 +124,7 @@ Window {
         ringing: win.mode === "hourglass-ringing"
         frost: paused ? 1 : 0
         reducedMotion: win.reduce
+        style: win.got ? "glassOfTime" : "classic"
         sandColor: ringing ? Theme.error : Theme.primary
         glassColor: Theme.surfaceText
         capColor: Theme.surfaceContainerHighest
