@@ -22,4 +22,8 @@ for (const f of views)
 eq(used.size > 0, true, "the views read some daemon members");
 for (const name of [...used].sort())
     eq(declared.has(name), true, "TimerDaemon.qml declares '" + name + "', read by a view");
+
+// The IPC handler reads the engine too (`engine.X`), `status` included
+for (const name of [...new Set([...read("components/daemon/TimerIpc.qml").matchAll(/\bengine\.(\w+)/g)].map(m => m[1]))].sort())
+    eq(declared.has(name), true, "TimerDaemon.qml declares '" + name + "', read by TimerIpc.qml");
 done();

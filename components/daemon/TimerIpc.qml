@@ -3,6 +3,7 @@ import Quickshell.Io
 import qs.Services
 import "../../TimeParser.js" as TP
 import "IpcReplies.js" as Replies
+import "Status.js" as Status
 
 // dms ipc call smartTimer <function> [arguments]
 // Only translates a command line into engine calls and their answer into
@@ -81,5 +82,10 @@ IpcHandler {
 
     function list(): string {
         return Replies.list(engine.sorted, engine.now);
+    }
+
+    // JSON for scripts: timers, remaining seconds, phase. Built on call only.
+    function status(): string {
+        return Status.build(engine.sorted, engine.now);
     }
 }
