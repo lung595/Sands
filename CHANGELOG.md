@@ -18,6 +18,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Anonymous diagnostics module: an in-memory log of codes and an allowlisted report, with no name, path or command line, written to nothing on disk (`diagnostics/`, NAK-471). Not wired to any view yet; covered by `tests/diagnostics.test.js`.
 - Pure sections table and search index for the settings page (`components/settings/Sections.js` and `Search.js`, NAK-506). Not wired to any view yet; covered by `tests/settings-sections.test.js` and `tests/settings-search.test.js`.
 
+### Documentation
+
+- Design mockup and spec of the "Copy report" row in the settings Help section, with a GitHub mark that opens a new issue (`docs/design/copy-report.md` and `docs/design/copy-report/`, NAK-535). Design only: no code change.
+
 ## 1.5.1 - 2026-10-09
 
 ### Changed
