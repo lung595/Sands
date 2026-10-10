@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+### Added
+
+- Pure parser for focus-cycle and chained-timer phrases (`Plans.js`, NAK-398). Not wired to any view yet; covered by `tests/plans.test.js`.
+
 ## 1.5.1 - 2026-10-09
 
 ### Changed
