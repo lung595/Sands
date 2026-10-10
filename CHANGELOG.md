@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Pure parser for focus-cycle and chained-timer phrases (`Plans.js`, NAK-398). Not wired to any view yet; covered by `tests/plans.test.js`.
 - Pure logic for the end-of-timer actions and the free launcher words (`EndActions.js`, `LauncherWords.js`, NAK-399). Not wired to any view yet; covered by `tests/end-actions.test.js` and `tests/launcher-words.test.js`.
 - Pure logic for the time journal and the favourites (`History.js`, NAK-400). Not wired to any view yet; covered by `tests/history.test.js`.
+- Pure logic for known durations: the built-in table and the user's own durations (`KnownDurations.js`, NAK-429). Not wired to any view yet; covered by `tests/known-durations.test.js`.
 
 ## 1.5.1 - 2026-10-09
 
