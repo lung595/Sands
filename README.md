@@ -173,7 +173,7 @@ bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 
 ## Privacy
 
-No network access, no telemetry. Only short-lived local tools run (`pw-play` to ring, `notify-send` for the notification). Your running and recent timers are saved by DMS, nothing else. Details in the [user guide](docs/GUIDE.md#privacy).
+No network access, no telemetry. Only short-lived local tools run (`pw-play` to ring, `notify-send` for the notification). Your running and recent timers are saved by DMS, nothing else. If the Alex plugin is installed, Sands hands it the label you typed (60 characters at most) and the end time when a timer ends; without Alex nothing is sent. See [Alex](docs/GUIDE.md#alex) and the [user guide](docs/GUIDE.md#privacy).
 
 ## Documentation
 

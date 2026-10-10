@@ -178,6 +178,10 @@ When the alarm cannot play its sound, Sands says so instead of staying quiet: **
 - **No player**: Sands plays with `pw-play` (PipeWire) and falls back to `paplay`. Run `pw-play /usr/share/sounds/freedesktop/stereo/complete.oga` in a terminal: an error there is the same one Sands met.
 - **Nothing is wrong but it is silent**: *Volume* is at 0, the output device is muted, or *Respect Do Not Disturb* is on while Do Not Disturb is active (no message then: that silence is on purpose).
 
+## Alex
+
+If the Alex plugin is loaded, Sands publishes one event when a timer ends: an id, the timer label (60 characters at most) and the end time. Nothing is written to disk, no process starts, and without Alex Sands makes no call at all. Sands always plays its sound and keeps its bar pill. Only if you chose « alarm in the Alex island » in Alex does Sands leave the large alarm to Alex; if that choice cannot be read, Sands shows its own alarm.
+
 ## Privacy
 
 - **No network access, no telemetry.** The guide links in messages open in your browser only when you click them.

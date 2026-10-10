@@ -4,6 +4,7 @@ import qs.Services
 import "TimeParser.js" as TP
 import "Timers.js" as Timers
 import "Guide.js" as Guide
+import "AlexBridge.js" as AlexBridge
 import "components/daemon"
 import "components/daemon/Lifecycle.js" as Lifecycle
 import "components/daemon/Notifications.js" as Notifications
@@ -325,7 +326,30 @@ Item {
             _commit(r.list);
             alarm.startRinging();
             newly.forEach(t => _notify(t));
+            newly.forEach(t => _tellAlex(t));
         }
+    }
+
+    // True while Alex shows the alarm in its island instead of Sands' large
+    // one (sound and bar pill stay). Set at the ring, read by nobody else.
+    property bool alarmInAlex: false
+    property int _ringSeq: 0
+
+    // One event per ended timer, and no call at all when Alex is not loaded.
+    // The label is never logged.
+    function _tellAlex(t) {
+        if (!PluginService.isPluginLoaded(AlexBridge.ALEX_ID)) {
+            alarmInAlex = false;
+            return;
+        }
+        PluginService.setGlobalVar(pluginId, AlexBridge.EVENT_KEY, AlexBridge.buildEvent(t, ++_ringSeq));
+        let choice;
+        try {
+            choice = PluginService.loadPluginData(AlexBridge.ALEX_ID, AlexBridge.CHOICE_KEY, "sands");
+        } catch (e) {
+            choice = undefined;
+        }
+        alarmInAlex = AlexBridge.alexShowsAlarm(choice);
     }
 
     function _notify(t) {
