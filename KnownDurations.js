@@ -13,14 +13,14 @@ var MAX_QUERY = 80;
 // [seconds, names...]; every name is looked up through key(), so accents
 // and case do not matter here either.
 var BUILT_IN = [
-    [180, "green tea", "thé vert", "the vert"],
-    [240, "black tea", "thé noir", "the noir"],
-    [300, "tea", "thé", "the", "herbal tea", "tisane", "infusion"],
-    [240, "french press", "cafetière à piston", "cafetiere a piston"],
-    [360, "soft-boiled egg", "soft boiled egg", "œuf à la coque", "oeuf a la coque"],
-    [420, "medium egg", "œuf mollet", "oeuf mollet"],
-    [600, "hard-boiled egg", "hard boiled egg", "œuf dur", "oeuf dur"],
-    [600, "pasta", "pâtes", "pates"],
+    [180, "green tea", "thé vert"],
+    [240, "black tea", "thé noir"],
+    [300, "tea", "thé", "herbal tea", "tisane", "infusion"],
+    [240, "french press", "cafetière à piston"],
+    [360, "soft-boiled egg", "œuf à la coque"],
+    [420, "medium egg", "œuf mollet"],
+    [600, "hard-boiled egg", "œuf dur"],
+    [600, "pasta", "pâtes"],
     [720, "rice", "riz"],
     [1200, "brown rice", "riz complet"],
     [900, "quinoa"],
@@ -29,14 +29,14 @@ var BUILT_IN = [
 ];
 
 // Lowercase, no accents, ligatures spelled out, punctuation folded to single
-// spaces, so "Thé-vert" and "the  vert" are the same key.
+// spaces, so "Thé-vert" and "the  vert" are the same key. English and French
+// only (D89): any other script folds to nothing, so such a name has an empty
+// key and is ignored. Over-long text is refused, not truncated.
 function key(text) {
-    if (typeof text !== "string")
+    if (typeof text !== "string" || text.length > MAX_QUERY)
         return "";
-    var s = text.slice(0, MAX_QUERY).toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae");
-    if (s.normalize)
-        s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");
-    return s.replace(/[^a-z0-9]+/g, " ").trim();
+    var s = text.toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae");
+    return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 // The valid, capped entries of `raw` ([{name, seconds}, …]) as a map
