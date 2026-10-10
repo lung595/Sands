@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sands · NAK-535 · Copy report row</title>
 <style>
 /* Every colour below is a DMS Theme role; the palettes are fictitious theme data set from JS (same as NAK-502). */
-:root{--r:12px;--ease:cubic-bezier(.2,0,0,1)}
+:root{--r:12px;--ease:cubic-bezier(.33,1,.68,1)}
 *{box-sizing:border-box}
 body{margin:0;padding:24px;background:var(--bg);color:var(--text);font:14px/1.4 Inter,'Noto Sans',sans-serif}
 h1{font-size:20px;font-weight:600;margin:0 0 4px}h2{font-size:16px;font-weight:600;margin:32px 0 12px}
@@ -35,26 +35,26 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .rowi{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
 .txt{flex:1 1 160px;min-width:0}
 .txt b{display:block;font-weight:500;line-height:20px;overflow-wrap:anywhere}.txt small{display:block;font-size:12px;line-height:16px;color:var(--variant);overflow-wrap:anywhere}
-.ctl{flex:0 1 auto;min-width:0;max-width:100%;display:flex}
+.ctl{position:relative;flex:0 1 auto;min-width:0;max-width:100%;display:flex;flex-wrap:wrap;gap:8px}
 .seg{font:inherit;font-size:14px;min-height:44px;padding:0 12px;border-radius:var(--r);border:1px solid var(--outline);background:none;color:var(--text);cursor:pointer;max-width:100%}
 /* The Copy report button. Its two labels share one grid cell, so its width never changes between states. */
-.cr{position:relative;overflow:hidden;font:inherit;font-size:14px;line-height:20px;height:44px;min-width:112px;padding:0 16px;border-radius:var(--r);border:1px solid var(--outline);background:none;color:var(--text);cursor:pointer;display:grid;place-items:center;white-space:nowrap;transition:transform .05s var(--ease)}
-.cr::before{content:"";position:absolute;inset:0;background:var(--high);opacity:0;transition:opacity .08s var(--ease)}
+.cr{position:relative;overflow:hidden;font:inherit;font-size:14px;line-height:20px;height:44px;min-width:112px;padding:0 16px;border-radius:var(--r);border:1px solid var(--outline);background:none;color:var(--text);cursor:pointer;display:grid;place-items:center;white-space:nowrap;transition:transform .1s var(--ease)}
+.cr::before{content:"";position:absolute;inset:0;background:var(--high);opacity:0;transition:opacity .1s var(--ease)}
 .cr:hover::before,.cr.f-hover::before,.cr.f-press::before{opacity:1;transition-duration:.15s}
-.cr:active,.cr.f-press{transform:scale(.97);transition-duration:.08s}
+.cr:active,.cr.f-press{transform:scale(.97);transition-duration:.1s}
 .cr.f-focus{outline:2px solid var(--primary);outline-offset:2px}
-.cr>span{grid-area:1/1;position:relative;display:inline-flex;align-items:center;gap:8px;transition:opacity .08s var(--ease)}
+.cr>span{grid-area:1/1;position:relative;display:inline-flex;align-items:center;gap:8px;transition:opacity .1s var(--ease)}
 .cr .l-busy,.cr .l-done{opacity:0}
 .cr .l-done svg{color:var(--primary)}
 /* Copied: the report has been poured into the clipboard, a heap of sand settles at the foot of the button. */
-.cr .tintc{position:absolute;inset:0;background:var(--primary);opacity:0;transition:opacity .08s var(--ease)}
-.cr .heap{position:absolute;left:0;bottom:0;width:100%;height:8px;color:var(--primary);opacity:0;transform:scaleY(.3);transform-origin:50% 100%;transition:opacity .08s var(--ease),transform .08s var(--ease)}
+.cr .tintc{position:absolute;inset:0;background:var(--primary);opacity:0;transition:opacity .1s var(--ease)}
+.cr .heap{position:absolute;left:0;bottom:0;width:100%;height:8px;color:var(--primary);opacity:0;transform:scaleY(.3);transform-origin:50% 100%;transition:opacity .1s var(--ease),transform .1s var(--ease)}
 .s-busy .cr{cursor:default;color:var(--variant)}.s-busy .cr::before{opacity:0}.s-busy .cr:active{transform:none}
 .s-busy .cr .l-rest,.s-copied .cr .l-rest{opacity:0}
 .s-busy .cr .l-busy,.s-copied .cr .l-done{opacity:1;transition-duration:.15s}
 .s-copied .cr{border-color:var(--primary)}.s-copied .cr::before{opacity:0}
 .s-copied .cr .tintc{opacity:.14;transition-duration:.15s}
-.s-copied .cr .heap{opacity:1;transform:none;transition:opacity .15s var(--ease),transform .18s var(--ease)}
+.s-copied .cr .heap{opacity:1;transform:none;transition:opacity .15s var(--ease),transform .2s var(--ease)}
 /* Guided message (D228): Sands' existing HelpNote, laid under the row at full width. */
 .hn{flex:1 1 100%;min-width:0;display:none;align-items:center;gap:4px;padding:8px 4px 8px 12px;border-radius:var(--r);background:var(--high);border:1px solid var(--line)}
 #row.s-none .hn{animation:fade .15s var(--ease) both}
@@ -62,8 +62,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .hn div{flex:1 1 0;min-width:0}
 .hn b{display:block;font-weight:700;line-height:20px;overflow-wrap:anywhere}
 .hn small{display:block;font-size:12px;line-height:16px;color:var(--variant);overflow-wrap:anywhere}
-.gh{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:var(--r);background:none;color:var(--variant);cursor:pointer;display:grid;place-items:center;transition:color .08s var(--ease)}
-.gh:hover{color:var(--primary);transition-duration:.15s}
+.gh{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:var(--r);background:none;color:var(--variant);cursor:pointer;display:grid;place-items:center;transition:color .1s var(--ease)}
+.gh:hover,.gh.f-hover{color:var(--primary);transition-duration:.15s}
+.gh.f-focus{outline:2px solid var(--primary);outline-offset:2px}
+/* The always visible mark (D451): same GitHubMark, beside the button. Once the report is copied it takes the primary colour: the next step is there. */
+.s-copied .gi{color:var(--primary);transition-duration:.15s}
+.tip{position:absolute;z-index:2;left:0;top:calc(100% + 4px);padding:4px 8px;border-radius:var(--r);background:var(--high);border:1px solid var(--line);color:var(--text);font-size:12px;line-height:16px;width:max-content;max-width:100%;overflow-wrap:anywhere;pointer-events:none;opacity:0;transition:opacity .1s var(--ease)}
+.gi:hover~.tip,.gi:focus-visible~.tip,.g-tip .tip{opacity:1;transition-duration:.15s}
 @keyframes fade{from{opacity:0}}
 /* Reduce motion: states swap with a 150 ms fade, nothing scales or settles. */
 .rm .cr,.rm .cr .heap{transition:opacity .15s var(--ease)!important}.rm .cr:active,.rm .cr.f-press{transform:none}.rm .cr .heap{transform:none}
@@ -72,17 +77,19 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 #said{min-height:20px;margin-top:8px}
 .sheet{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
 .cell{background:var(--surface);border-radius:var(--r);padding:16px}
+.cell .g-tip{margin-bottom:32px}
 .cell>i{display:block;font-style:normal;font-size:12px;line-height:16px;color:var(--variant);margin-bottom:8px}
 table{border-collapse:collapse;font-size:14px;max-width:100%}th,td{text-align:left;padding:8px 16px 8px 0;border-bottom:1px solid var(--outline);vertical-align:top}th{color:var(--variant);font-weight:500}
 </style>
 <body>
 <h1>Sands · NAK-535 · The "Copy report" row in Help</h1>
-<p>The anonymous diagnostics report, as the last row of the Help section of the approved settings (rail A · Dune). Press the button: the report is poured into the clipboard and a heap of sand settles at the foot of the button, then leaves by itself. Switch "Clipboard tool" to "Missing" to see the guided message. Every state is also drawn side by side under the panel.</p>
+<p>The anonymous diagnostics report, as the last row of the Help section of the approved settings (rail A · Dune). Press the button: the report is poured into the clipboard and a heap of sand settles at the foot of the button, then leaves by itself. Beside the button, the GitHub mark is always there: it opens a new issue for Sands, where the report is pasted. Once the report is copied the mark takes the primary colour, so the next step shows itself. Switch "Clipboard tool" to "Missing" to see the guided message. Every state is also drawn side by side under the panel.</p>
 <p>Why it is not generic: the confirmation is not a toast nor a green tick. It is the same settling heap as the rail marker, so "done" reads as sand that has landed.</p>
 <div class="switches" id="sw"></div>
 <div id="stage"><div id="panel"></div></div>
 <p id="said" aria-live="polite"></p>
 <h2>Every state, at the width of the settings column</h2><div class="sheet" id="sheet"></div>
+<h2>Where the GitHub mark leads (same rule for every plugin)</h2><div id="dest"></div>
 <h2>Motion</h2><div id="motion"></div>
 <h2>Contrast, measured from the palette shown (WCAG formula, tints composited)</h2><div id="contrast"></div>
 <h2>Exact copy</h2><div id="copy"></div>
@@ -100,7 +107,7 @@ let live="rest",timer=0;
 const C={title:"Anonymous report",help:"Versions, states and error codes only. It stays on this PC until you paste it.",
  button:"Copy report",busy:"Collecting…",done:"Copied",helpDone:"Report copied. Read it, then paste it in a GitHub issue.",
  noneTitle:"The report could not be copied",noneHint:"Install wl-clipboard, or run dms ipc call smartTimer diagnostics in a terminal.",
- gh:"Open the guide: Report a problem"};
+ gh:"Open the guide: Report a problem",issue:"Open a new issue for Sands on GitHub",tip:"Open an issue on GitHub"};
 const LOGO={timers:"M4 2.5h8M4 13.5h8M5 2.5c0 3 2.6 3.6 3 5.5c.4-1.9 3-2.5 3-5.5M5 13.5c0-3 2.6-3.6 3-5.5c.4 1.9 3 2.5 3 5.5",
 look:"M8 2.5a5.5 5.5 0 1 0 0 11a5.5 5.5 0 0 0 0-11zM3.5 10.5c2-2.6 4-2.6 5.5-.5s2.5 1 3.5 0",
 fx:"M2.5 5.5h10v6h-10zM14 7.5v2M4.5 10l5-3",
@@ -113,14 +120,14 @@ const CHECK=`<svg class="logo" width="16" height="16" viewBox="0 0 16 16" aria-h
 const SW=[["theme","Theme",[["stock","Stock"],["green","Green"],["wall","Wallpaper"]]],["mode","",[["dark","Dark"],["light","Light"]]],
 ["w","Panel width",[[518,"518 px wide"],[436,"436 px narrow"],[360,"360 px stress"]]],["rm","Reduce motion",[[false,"Off"],[true,"On"]]],
 ["tool","Clipboard tool",[["yes","Present"],["no","Missing"]]],
-["st","Panel shows",[["live","Live (press it)"],["hover","Hover"],["press","Pressed"],["focus","Focus"],["busy","Collecting"],["copied","Copied"],["none","No clipboard tool"]]]];
-const STATES=[["rest","Rest"],["hover","Hover"],["press","Pressed"],["focus","Focus-visible"],["busy","Collecting (about 2 s at most)"],["copied","Copied (leaves alone after 4 s)"],["none","No clipboard tool (guided message)"]];
+["st","Panel shows",[["live","Live (press it)"],["hover","Hover"],["press","Pressed"],["focus","Focus"],["busy","Collecting"],["copied","Copied"],["none","No clipboard tool"],["ghover","Mark hover"],["gfocus","Mark focus"]]]];
+const STATES=[["rest","Rest"],["hover","Hover"],["press","Pressed"],["focus","Focus-visible"],["busy","Collecting (about 2 s at most)"],["copied","Copied (leaves alone after 4 s)"],["none","No clipboard tool (guided message)"],["ghover","GitHub mark: hover (label shown)"],["gfocus","GitHub mark: focus-visible (label shown)"]];
 const $=id=>document.getElementById(id);
 // One row, in the asked state. `id` only on the live row so the sheet stays inert.
-function rowHTML(st,isLive){const sc=st==="busy"||st==="copied"||st==="none"?" s-"+st:"",f=st==="hover"||st==="press"||st==="focus"?" f-"+st:"";
+function rowHTML(st,isLive){const sc=st==="busy"||st==="copied"||st==="none"?" s-"+st:"",f=st==="hover"||st==="press"||st==="focus"?" f-"+st:"",g=st==="ghover"?" f-hover":st==="gfocus"?" f-focus":"";
  return`<div class="rowi${sc}"${isLive?' id="row"':""}><div class="txt"><b>${C.title}</b><small${isLive?' aria-live="polite"':""}>${st==="copied"?C.helpDone:C.help}</small></div>
-<div class="ctl"><button class="cr${f}"${isLive?' id="cr"':' tabindex="-1"'}${st==="busy"?' aria-disabled="true"':""} aria-label="${st==="busy"?C.busy:st==="copied"?C.done:C.button}"><i class="tintc"></i><svg class="heap" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true"><path fill="currentColor" d="M0 8V7C22 7 30 1 42 1S66 6 100 7V8Z"/></svg>
-<span class="l-rest">${C.button}</span><span class="l-busy">${C.busy}</span><span class="l-done">${CHECK}${C.done}</span></button></div>
+<div class="ctl${g?" g-tip":""}"><button class="cr${f}"${isLive?' id="cr"':' tabindex="-1"'}${st==="busy"?' aria-disabled="true"':""} aria-label="${st==="busy"?C.busy:st==="copied"?C.done:C.button}"><i class="tintc"></i><svg class="heap" viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true"><path fill="currentColor" d="M0 8V7C22 7 30 1 42 1S66 6 100 7V8Z"/></svg>
+<span class="l-rest">${C.button}</span><span class="l-busy">${C.busy}</span><span class="l-done">${CHECK}${C.done}</span></button><button class="gh gi${g}"${isLive?"":' tabindex="-1"'} aria-label="${C.issue}">${GH}</button><span class="tip" role="tooltip">${C.tip}</span></div>
 <div class="hn" role="status"><div><b>${C.noneTitle}</b><small>${C.noneHint}</small></div><button class="gh"${isLive?"":' tabindex="-1"'} aria-label="${C.gh}">${GH}</button></div></div>`;}
 const shown=()=>S.st==="live"?live:S.st;
 function content(){$("content").innerHTML=`<h3>Help</h3>
@@ -141,7 +148,7 @@ function pairs(t){const s=rgb(t.surface),h=rgb(t.high),p=rgb(t.primary),tx=rgb(t
  return[["Title (text) / surface",4.5,cr(tx,s)],["Help line (variant) / surface",4.5,cr(v,s)],["Button label (text) / surface, rest",4.5,cr(tx,s)],["Button label (text) / hover fill (high)",4.5,cr(tx,h)],
  ["Collecting label (variant) / surface",4.5,cr(v,s)],["Copied label (text) / primary tint 14 %",4.5,cr(tx,ti)],["Check and heap (primary) / primary tint 14 %",3,cr(p,ti)],
  ["Button outline / surface",3,cr(o,s)],["Copied outline and focus ring (primary) / surface",3,cr(p,s)],
- ["Note title (text) / note fill (high)",4.5,cr(tx,h)],["Note hint (variant) / note fill (high)",4.5,cr(v,h)],["GitHub mark (variant) / note fill (high)",3,cr(v,h)],["GitHub mark hover (primary) / note fill (high)",3,cr(p,h)]];}
+ ["Note title (text) / note fill (high)",4.5,cr(tx,h)],["Note hint (variant) / note fill (high)",4.5,cr(v,h)],["GitHub mark at rest (variant) / surface",3,cr(v,s)],["GitHub mark hover and after copy (primary) / surface",3,cr(p,s)],["Mark label (text) / label fill (high)",4.5,cr(tx,h)],["GitHub mark in the note (variant) / note fill (high)",3,cr(v,h)],["GitHub mark in the note, hover (primary) / note fill (high)",3,cr(p,h)]];}
 function render(){const t=TH[S.theme][S.mode],de=document.documentElement;for(const k in t)de.style.setProperty("--"+k,t[k]);
  // Theme.withAlpha(Theme.outline, 0.24), as in HelpNote: a decorative edge, composited here on the note fill.
  de.style.setProperty("--line","rgb("+mix(rgb(t.outline),rgb(t.high),.24).map(Math.round).join(",")+")");
@@ -156,13 +163,17 @@ ${SECS.map(s=>`<div class="ent${s[0]==="help"?" on":""}">${lg(s[0])}<span>${s[1]
  content();
  const cw=S.w-32-176-16;
  $("sheet").innerHTML=STATES.map(s=>`<div class="cell"><i>${s[1]}</i><div style="width:${cw}px">${rowHTML(s[0],false)}</div></div>`).join("");
- $("motion").innerHTML=`<table><tr><th>What moves</th><th>Property</th><th>Duration</th><th>Easing</th></tr>${[["Hover: fill appears under the label","opacity","150 ms in, 80 ms out"],["Press: button shrinks to 97 %","transform scale","80 ms in, 50 ms out"],["Copied: label swaps to the check and \"Copied\", tint appears","opacity","150 ms in, 80 ms out"],["Copied: heap settles at the foot of the button","transform scaleY .3 to 1","180 ms in, 80 ms out"],["Guided message appears","opacity","150 ms in, 80 ms out"]].map(r=>`<tr>${r.map(c=>`<td class="num">${c}</td>`).join("")}<td class="num">(.2,0,0,1)</td></tr>`).join("")}<tr><td>Reduce motion</td><td>opacity only</td><td class="num">150 ms</td><td>nothing scales or settles</td></tr><tr><td>At rest</td><td colspan="3">nothing moves and no timer runs; the 4 s timer exists only while "Copied" is shown</td></tr></table>`;
+ $("motion").innerHTML=`<table><tr><th>What moves</th><th>Property</th><th>Duration</th><th>Easing</th></tr>${[["Hover: fill appears under the label","opacity","150 ms in, 100 ms out"],["Press: button shrinks to 97 %","transform scale","100 ms in, 100 ms out"],["Copied: label swaps to the check and \"Copied\", tint appears","opacity","150 ms in, 100 ms out"],["Copied: heap settles at the foot of the button","transform scaleY .3 to 1","200 ms in, 100 ms out"],["Guided message appears","opacity","150 ms in, 100 ms out"],["GitHub mark: colour on hover and after copy, label on hover or focus","opacity (colour in QML)","150 ms in, 100 ms out"]].map(r=>`<tr>${r.map(c=>`<td class="num">${c}</td>`).join("")}<td class="num">OutCubic</td></tr>`).join("")}<tr><td>Reduce motion</td><td>opacity only</td><td class="num">150 ms</td><td>nothing scales or settles</td></tr><tr><td>At rest</td><td colspan="3">nothing moves and no timer runs; the 4 s timer exists only while "Copied" is shown</td></tr></table>`;
  $("contrast").innerHTML=`<table><tr><th>Pair</th><th>Need</th><th>${S.theme} dark</th><th>${S.theme} light</th></tr>${pairs(TH[S.theme].dark).map((r,i)=>{const l=pairs(TH[S.theme].light)[i][2];return`<tr><td>${r[0]}</td><td class="num">${r[1]}:1</td><td class="num">${r[2].toFixed(2)}${r[2]<r[1]?" FAIL":""}</td><td class="num">${l.toFixed(2)}${l<r[1]?" FAIL":""}</td></tr>`}).join("")}</table>`;
- $("copy").innerHTML=`<table><tr><th>Part</th><th>Text</th></tr>${[["Title",C.title],["Help line",C.help],["Button",C.button],["Button while collecting",C.busy],["Button once copied",C.done],["Help line once copied",C.helpDone],["Guided message, reason",C.noneTitle],["Guided message, what to do",C.noneHint],["GitHub mark, accessible name",C.gh]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>`;}
+ $("dest").innerHTML=`<table><tr><th>Option</th><th>Opens</th><th>For</th><th>Against</th></tr>
+<tr><td>1. New issue, bug form (drawn here, recommended)</td><td>github.com/lung595/Sands/issues/new/choose</td><td>the report is in the clipboard, the next gesture is paste; one click to the form</td><td>each repo needs a bug form with a "Paste the report" field (one small story per plugin)</td></tr>
+<tr><td>2. List of issues</td><td>github.com/lung595/Sands/issues</td><td>nothing to add to the repos; the user can look for the same problem first</td><td>one more click ("New issue") before pasting</td></tr></table>
+<p>In both cases the page opens in the browser on click only; the plugin itself never touches the network. For every plugin the address is built from its own repository name.</p>`;
+ $("copy").innerHTML=`<table><tr><th>Part</th><th>Text</th></tr>${[["Title",C.title],["Help line",C.help],["Button",C.button],["Button while collecting",C.busy],["Button once copied",C.done],["Help line once copied",C.helpDone],["Guided message, reason",C.noneTitle],["Guided message, what to do",C.noneHint],["GitHub mark beside the button, accessible name",C.issue],["GitHub mark beside the button, label on hover or focus",C.tip],["GitHub mark in the guided message, accessible name",C.gh]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>`;}
 document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
  if(b.dataset.sw){const k=b.dataset.sw,raw=b.dataset.v;S[k]=k==="w"?+raw:k==="rm"?raw==="true":raw;clearTimeout(timer);live="rest";render();const n=document.querySelector(`[data-sw="${k}"][aria-pressed=true]`);if(n)n.focus();return;}
  if(b.id==="cr"){press();return;}
- if(b.classList.contains("gh")||b.classList.contains("seg"))$("said").textContent=b.classList.contains("gh")?"In the plugin: opens docs/GUIDE.md, section \"Report a problem\", in your browser. This page opens nothing.":"In the plugin: opens the guide in your browser. This page opens nothing.";});
+ if(b.classList.contains("gh")||b.classList.contains("seg"))$("said").textContent=b.classList.contains("gi")?"In the plugin: opens github.com/lung595/Sands/issues/new/choose in your browser, on click only. This page opens nothing.":b.classList.contains("gh")?"In the plugin: opens docs/GUIDE.md, section \"Report a problem\", in your browser. This page opens nothing.":"In the plugin: opens the guide in your browser. This page opens nothing.";});
 render();
 </script>
 </body></html>

@@ -25,7 +25,28 @@ Help section of the settings with the left rail (NAK-502 / NAK-505), last row, a
 
 The button width is fixed (112 px) so it does not move when its label changes. Heap path on a 100 x 8 box, stretched to the button width: `M0 8V7C22 7 30 1 42 1S66 6 100 7V8Z`.
 
-Layout, measured in WebKit: at 518 px the column is 294 px wide, text 166 px and button on the same line; at 436 px (narrowest real width) the column is 212 px, the button drops under the help line, left aligned, 8 px below; same at 360 px. The guided message always takes the full column under the row.
+Layout, measured in WebKit: see the next section (the first version, without the mark, kept the button on the text line at 518 px).
+
+## GitHub mark beside the button (D451, owner 2026-10-10, for every plugin)
+
+The existing `GitHubMark` (18 px in a 44 x 44 target) is always visible, 8 px to the right of "Copy report", in every state. It opens the plugin's GitHub page where a problem is reported, in the browser, on click only (the plugin itself never touches the network).
+
+| State | What is drawn |
+|---|---|
+| Rest | `Theme.surfaceVariantText` |
+| Hover | `Theme.primary`, label "Open an issue on GitHub" 4 px under the controls |
+| Focus-visible | 2 px `Theme.primary` ring, 2 px offset, same label |
+| After "Copied" | `Theme.primary` while "Copied" is shown: the next step shows itself |
+
+Label: 12 / 16 px, padding 4 / 8 px, radius 12, fill `Theme.surfaceContainerHigh`, text `Theme.surfaceText`, edge `Theme.withAlpha(Theme.outline, 0.24)`; it wraps and never leaves the column (use the DMS tooltip if it gives the same result).
+
+Destination, proposed to the owner (not decided):
+1. [recommended, drawn] new issue with the bug form: `github.com/lung595/<repo>/issues/new/choose`. The report is in the clipboard, the next gesture is paste. Needs a bug form with a "Paste the report" field in each repo (one small story per plugin). Not checked here: what GitHub shows at this address while a repo has no form.
+2. list of issues: `github.com/lung595/<repo>/issues`. Nothing to add to the repos, one more click before pasting.
+
+Layout change: button + mark are 164 px wide, so with the 160 px text block they no longer fit on one line in the 294 px column: at 518, 436 and 360 px the controls sit under the help line, left aligned, 8 px below (at 360 px the mark drops under the button). They return to the text's line from a 340 px column. The mark of the guided message keeps its own target (the guide section, D228).
+
+Contrast: mark at rest = variant / surface (lowest 8.83), hover and after copy = primary / surface (lowest 6.08), label = text / high (lowest 9.47); all in the table below.
 
 ## States
 
@@ -40,17 +61,18 @@ Layout, measured in WebKit: at 518 px the column is 294 px wide, text 166 px and
 | No clipboard tool | button back to rest, guided message under the row; stays until the next press or until the section closes |
 | Disabled, empty, error, loading | no disabled or empty form: the row is always available. Error = the guided message. Loading = Collecting |
 
-Keyboard order: "Open the guide on GitHub", "Copy report", then the GitHub mark when the message is shown. Enter and Space press the button. The help line and the message are announced (polite live region; in QML `Accessible.name` / `Accessible.description` updated with the state).
+Keyboard order: "Open the guide on GitHub", "Copy report", the GitHub mark beside it, then the mark of the message when it is shown. Enter and Space press the button. The help line and the message are announced (polite live region; in QML `Accessible.name` / `Accessible.description` updated with the state).
 
-## Motion (one curve `cubic-bezier(.2,0,0,1)`, exits shorter than entries)
+## Motion (kit durations, `OutCubic`, D449; exits never longer than entries)
 
 | What | Property | Duration |
 |---|---|---|
-| Hover fill | opacity | 150 ms in, 80 ms out |
-| Press | scale to 0.97 | 80 ms in, 50 ms out |
-| Copied label and tint | opacity | 150 ms in, 80 ms out |
-| Heap settles | scaleY 0.3 to 1, origin bottom | 180 ms in, 80 ms out |
-| Guided message | opacity | 150 ms in, 80 ms out |
+| Hover fill | opacity | 150 ms in, 100 ms out |
+| Press | scale to 0.97 | 100 ms in, 100 ms out |
+| Copied label and tint | opacity | 150 ms in, 100 ms out |
+| Heap settles | scaleY 0.3 to 1, origin bottom | 200 ms in, 100 ms out |
+| Guided message | opacity | 150 ms in, 100 ms out |
+| GitHub mark colour, mark label | colour / opacity | 150 ms in, 100 ms out |
 | Reduce motion (`SettingsData.reduceMotion`) | opacity only | 150 ms, nothing scales or settles |
 
 All are one-shot `Behavior`s. Nothing moves at rest. The only `Timer` (4000 ms, single shot) runs while "Copied" is shown, as in `HelpNote`.
@@ -67,7 +89,9 @@ All are one-shot `Behavior`s. Nothing moves at rest. The only `Timer` (4000 ms, 
 | Help line once copied | Report copied. Read it, then paste it in a GitHub issue. |
 | Guided message, reason | The report could not be copied |
 | Guided message, what to do | Install wl-clipboard, or run dms ipc call smartTimer diagnostics in a terminal. |
-| GitHub mark, accessible name | Open the guide: Report a problem |
+| GitHub mark beside the button, accessible name | Open a new issue for Sands on GitHub |
+| GitHub mark beside the button, label on hover or focus | Open an issue on GitHub |
+| GitHub mark in the guided message, accessible name | Open the guide: Report a problem |
 
 ## Contrast (WCAG formula, tints composited on `surface`; same six palettes as NAK-502)
 
@@ -103,6 +127,6 @@ No failure. The page recomputes this table live for the palette shown. The page 
 
 ## Verification
 
-Done, offscreen in WebKitGTK 6.0 through gjs (`gjs tools/check.js "$PWD/index.html"` from `docs/design/copy-report/`): 3 themes x light / dark x 3 widths x 7 states, panel and state sheet each time = 126 cases. 0 console error, 0 overlap, 0 overflow, 0 clipped text, button 112 x 44 and mark target 44 x 44 everywhere, 0 contrast failure, no em or en dash, no URL / src / href / import. One real-size render looked at in dark (436 px) and one in light.
+Done, offscreen in WebKitGTK 6.0 through gjs (`gjs tools/check.js "$PWD/index.html"` from `docs/design/copy-report/`): 3 themes x light / dark x 3 widths x 9 states (7 of the button, hover and focus of the mark), panel and state sheet each time = 162 cases. 0 console error, 0 overlap, 0 overflow, 0 clipped text, button 112 x 44 and mark target 44 x 44 everywhere, 0 contrast failure, no em or en dash, no URL / src / href / import. One real-size render looked at in dark (436 px, panel and the 9 states).
 
 Not done: HiDPI render; the live press sequence and its transitions were not watched (the offscreen view has no frame clock), only its end states; Reduce motion checked by reading the CSS, not measured.

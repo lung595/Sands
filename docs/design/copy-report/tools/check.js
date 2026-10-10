@@ -15,7 +15,7 @@ const out={errs:__errs.slice(),bad:[],cases:0,geo:{}};
 const sel='.txt b,.txt small,.cr,.seg,.hn b,.hn small,.gh,.note,h3,.ent';
 const R=e=>e.getBoundingClientRect();
 const hit=(a,b)=>a.left<b.right-.5&&b.left<a.right-.5&&a.top<b.bottom-.5&&b.top<a.bottom-.5;
-for(const theme of ['stock','green','wall'])for(const mode of ['dark','light'])for(const w of [518,436,360])for(const st of ['live','hover','press','focus','busy','copied','none']){
+for(const theme of ['stock','green','wall'])for(const mode of ['dark','light'])for(const w of [518,436,360])for(const st of ['live','hover','press','focus','busy','copied','none','ghover','gfocus']){
  Object.assign(S,{theme,mode,w,st});render();out.cases++;const tag=[theme,mode,w,st].join('/');
  for(const box of [document.getElementById('panel'),...document.querySelectorAll('.cell')]){
   const B=R(box),els=[...box.querySelectorAll(sel)].filter(e=>e.offsetParent!==null);
@@ -28,7 +28,7 @@ for(const theme of ['stock','green','wall'])for(const mode of ['dark','light'])f
   for(const g of box.querySelectorAll('.gh'))if(g.offsetParent){const r=R(g);if(r.width!==44||r.height!==44)out.bad.push(tag+' gh size');}}
  if(document.getElementById('contrast').textContent.includes('FAIL'))out.bad.push(tag+' contrast');
  if(theme==='stock'&&mode==='dark'&&(st==='live'||st==='none')){const row=document.getElementById('row'),t=R(row.querySelector('.txt')),c=R(row.querySelector('.cr'));
-  out.geo[w+'/'+st]={content:R(document.getElementById('content')).width,txt:[t.width,t.height],btn:[c.width,c.height],sameLine:c.top<t.bottom,btnLeftMinusTxtLeft:c.left-t.left,gapY:c.top-t.bottom,note:st==='none'?[R(row.querySelector('.hn')).width,R(row.querySelector('.hn')).height]:null};}}
+  out.geo[w+'/'+st]={content:R(document.getElementById('content')).width,txt:[t.width,t.height],btn:[c.width,c.height],mark:(m=>[m.left-c.right,m.top-c.top,m.width])(R(row.querySelector('.gi'))),tipFits:(q=>q.left>=R(document.getElementById('content')).left&&q.right<=R(document.getElementById('content')).right&&q.bottom<=R(document.getElementById('panel')).bottom)(R(row.querySelector('.tip'))),sameLine:c.top<t.bottom,btnLeftMinusTxtLeft:c.left-t.left,gapY:c.top-t.bottom,note:st==='none'?[R(row.querySelector('.hn')).width,R(row.querySelector('.hn')).height]:null};}}
 out.dash=/[\\u2013\\u2014]/.test(document.documentElement.outerHTML);
 out.net=/https?:|src=|href=|@import|url\\(/.test(document.documentElement.outerHTML);
 return JSON.stringify(out);})()`;
