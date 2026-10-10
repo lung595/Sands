@@ -78,6 +78,7 @@ var SETTINGS = [
       "words": ["dnd", "silent", "quiet", "mute", "ne pas déranger", "silence", "muet"] }
 ];
 
+// The battery levels a setting may declare, for the view and the tests
 var LEVELS = ["high", "some", "light"];
 
 function _visible(s) {

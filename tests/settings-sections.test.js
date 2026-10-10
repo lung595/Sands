@@ -13,7 +13,12 @@ const existing = ["trigger", "noTrigger", "hourglassStyle", "sound", "customSoun
 for (const k of existing)
     eq(keys.filter(x => x === k).length, 1, "key present once: " + k);
 eq(new Set(keys).size, keys.length, "no key is listed twice");
-const defaults = { trigger: "timer", noTrigger: true, hourglassStyle: "classic", sound: "default", customSound: "", volume: 80, rampUp: true, ringDuration: 60, tick: false, notify: true, respectDnd: true };
+// Defaults are read from the QML page (defaultValue next to each settingKey) so a drift fails here
+const qmlDefault = k => {
+    const m = qml.match(new RegExp('settingKey:\\s*"' + k + '"[^}]*?defaultValue:\\s*([^\\n]+)'));
+    return m ? JSON.parse(m[1].trim().replace(/,$/, "")) : undefined;
+};
+const defaults = Object.fromEntries(existing.map(k => [k, qmlDefault(k)]));
 for (const k of existing)
     eq(S.SETTINGS.find(s => s.key === k).default, defaults[k], "default unchanged: " + k);
 

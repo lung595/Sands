@@ -8,9 +8,10 @@
 // The matching engine is copied from Orbit's SettingsSearch.js (lung595/orbitBluetooth,
 // same author, MIT) so this repo has no cross-repo dependency.
 //
-// find() returns [{ key, section, score, label: [[from, to)...], help: [[from, to)...], matched }]:
-// `matched` is "label", "word" or "help", the place the best hit came from, so
-// the view can show why a setting was found. An empty query and a query with no
+// find() returns [{ key, section, score, label: [[from, to)...], help: [[from, to)...], matched, text }]:
+// `matched` is "label", "word" or "help", the place the best hit came from, and
+// `text` is the matched text there (the whole synonym, or the words of the label
+// or help that matched), so the view can show why a setting was found. An empty query and a query with no
 // hit both return [] (the view says "No setting found" itself).
 
 var MAX_RESULTS = 20;
@@ -37,7 +38,8 @@ function _fold(ch) {
     return base.length ? base[0] : "";
 }
 
-// A letter or a digit of any script; everything else separates words
+// A letter or a digit of any script; everything else separates words. Plain
+// code-point ranges, because \p{...} is not available on every Qt version.
 function _isWord(ch) {
     const code = ch.charCodeAt(0);
     if (code < 0x80)
@@ -45,7 +47,9 @@ function _isWord(ch) {
     return code >= 0xc0 && !(code >= 0x2000 && code <= 0x206f) && !(code >= 0x3000 && code <= 0x303f);
 }
 
-// The words of a text: [{ t: folded word, at: offset of each letter in the text }]
+// The words of a text, walked letter by letter rather than through a table of
+// scripts. A combining mark belongs to the letter before it: _fold drops it, so
+// it never starts or splits a word. [{ t: folded word, at: offset of each letter in the text }]
 function _words(text) {
     const out = [];
     let cur = null;
@@ -83,7 +87,11 @@ function _oneEdit(a, b) {
     return la > lb ? a.slice(i + 1) === b.slice(i) : a.slice(i) === b.slice(i + 1);
 }
 
-// How a typed word matches one word of a text: { score, to } or null
+// How a typed word matches one word of a text: { score, to } or null.
+// `to` is how many letters of the word to highlight: the typed length for a
+// prefix, the whole word for an exact or one-edit match. A typo is also
+// forgiven in the start of a longer word, so a word still being typed
+// ("notificaton") finds its target before it is finished.
 function _match(q, w) {
     if (w.t === q)
         return { "score": EXACT, "to": q.length };
@@ -121,12 +129,16 @@ function prepare(settings) {
     for (const e of Array.isArray(settings) ? settings : Sections.visibleSettings()) {
         if (!e || typeof e.key !== "string" || typeof e.label !== "string")
             continue;
+        const keyTexts = (Array.isArray(e.words) ? e.words : []).filter(k => typeof k === "string");
         list.push({
             "key": e.key,
             "section": e.section,
             "label": _words(e.label),
             "help": _words(typeof e.help === "string" ? e.help : ""),
-            "keywords": (Array.isArray(e.words) ? e.words : []).filter(k => typeof k === "string").map(_words)
+            "label_text": e.label,
+            "help_text": typeof e.help === "string" ? e.help : "",
+            "keyTexts": keyTexts,
+            "keywords": keyTexts.map(_words)
         });
     }
     return { "list": list };
@@ -135,8 +147,9 @@ function prepare(settings) {
 // How the typed word `q` is found in one setting: best score and where, plus
 // the words to highlight in the label and the help
 function _scan(q, item) {
-    const out = { "score": 0, "where": "", "label": [], "help": [] };
-    const visit = (words, kind, marks) => {
+    const out = { "score": 0, "where": "", "text": "", "label": [], "help": [] };
+    // `source` gives the original text of the hit, cut where the word sits
+    const visit = (words, kind, marks, source) => {
         words.forEach((w, i) => {
             const m = _match(q, w);
             if (!m)
@@ -145,15 +158,15 @@ function _scan(q, item) {
             if (score > out.score) {
                 out.score = score;
                 out.where = MATCHED[kind];
+                out.text = kind === "keyword" ? source : source.slice(w.at[0], w.at[m.to - 1] + 1);
             }
             if (marks)
                 marks.push({ "word": i, "to": m.to });
         });
     };
-    visit(item.label, "label", out.label);
-    for (const k of item.keywords)
-        visit(k, "keyword", null);
-    visit(item.help, "help", out.help);
+    visit(item.label, "label", out.label, item.label_text);
+    item.keywords.forEach((k, i) => visit(k, "keyword", null, item.keyTexts[i]));
+    visit(item.help, "help", out.help, item.help_text);
     return out;
 }
 
@@ -168,7 +181,7 @@ function find(query, source) {
     const prepared = source && Array.isArray(source.list) ? source : prepare(source);
     const found = [];
     prepared.list.forEach((item, order) => {
-        let score = 0, best = 0, where = "";
+        let score = 0, best = 0, where = "", text = "";
         const label = [], help = [];
         for (const q of typed) {
             const hit = _scan(q, item);
@@ -179,6 +192,7 @@ function find(query, source) {
             if (hit.score > best) {
                 best = hit.score;
                 where = hit.where;
+                text = hit.text;
             }
             label.push(...hit.label);
             help.push(...hit.help);
@@ -189,11 +203,12 @@ function find(query, source) {
             "section": item.section,
             "score": score,
             "matched": where,
+            "text": text,
             "label": _ranges(item.label, label),
             "help": _ranges(item.help, help)
         });
     });
     // Equal scores keep the order of the page, so the list never shuffles
     found.sort((a, b) => b.score - a.score || a.order - b.order);
-    return found.slice(0, MAX_RESULTS).map(f => ({ "key": f.key, "section": f.section, "score": f.score, "matched": f.matched, "label": f.label, "help": f.help }));
+    return found.slice(0, MAX_RESULTS).map(f => ({ "key": f.key, "section": f.section, "score": f.score, "matched": f.matched, "text": f.text, "label": f.label, "help": f.help }));
 }
