@@ -13,6 +13,8 @@ eq(N.noticeMs(undefined), 0, "missing is silent");
 eq(N.noticeMs(0), 0, "zero is silent");
 eq(N.noticeMs(-3), 0, "negative is silent");
 eq(N.noticeMs("abc"), 0, "text is silent");
+eq(N.noticeMs(true), 0, "boolean is silent");
+eq(N.noticeMs([3]), 0, "list is silent");
 eq(N.noticeMs(2), 2 * MIN, "2 minutes");
 eq(N.noticeMs(2.9), 2 * MIN, "fraction is floored");
 eq(N.noticeMs(61), 0, "above the cap is silent");
@@ -32,6 +34,10 @@ eq(N.dueAt(run("b", MIN, MIN), 2 * MIN, []), -1, "shorter: none");
 // Never twice
 const done1 = N.markNotified([], "a");
 eq(N.isDue(t, 9 * MIN, 2 * MIN, done1), false, "already notified");
+// A restarted timer keeps its id: the caller must drop it from the list
+const restarted = run("a", 10 * MIN, 50 * MIN);
+eq(N.dueAt(restarted, 2 * MIN, done1), -1, "restarted but still listed: no notice");
+eq(N.dueAt(restarted, 2 * MIN, []), 48 * MIN, "restarted and removed from the list: notice");
 eq(N.markNotified(done1, "a"), ["a"], "marking twice keeps one");
 eq(N.markNotified([], "a") !== N.markNotified([], "a"), true, "new array each time");
 

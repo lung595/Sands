@@ -6,6 +6,11 @@
 // and gives back the time it wants to be woken at.
 //
 // A timer is the one described in Lifecycle.js.
+//
+// Rule for the caller: a timer that is restarted (Lifecycle.restart) must be
+// taken out of the notified list, otherwise dueAt keeps answering -1 and the
+// restarted run never gets its notice. The caller also runs Lifecycle.expire
+// before asking nextDueAt, so an overdue timer does not re-arm a 0 ms wake-up.
 
 // Most ids remembered, so the list cannot grow without bound
 var MAX_NOTIFIED = 64;
@@ -15,7 +20,8 @@ var MAX_NOTICE_MS = 3600000;
 // The notice length in ms, or 0 (silent) when the setting is missing,
 // negative, not a number or out of range
 function noticeMs(minutes) {
-    const n = Math.floor(Number(minutes));
+    // Only numbers and strings: Number(true) or Number([3]) would switch it on
+    const n = typeof minutes === "number" || typeof minutes === "string" ? Math.floor(Number(minutes)) : NaN;
     return n > 0 && n * 60000 <= MAX_NOTICE_MS ? n * 60000 : 0;
 }
 

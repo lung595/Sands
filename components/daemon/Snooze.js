@@ -9,6 +9,8 @@ var DEFAULTS = [1, 5, 10];
 var MAX_MINUTES = 120;
 // Most choices offered, so the row stays readable
 var MAX_CHOICES = 6;
+// Raw entries read from the settings, so a huge list costs nothing to clean
+var MAX_RAW = 50;
 
 // A snooze length in whole minutes, or 0 when it is not valid
 function minutes(value) {
@@ -21,7 +23,7 @@ function minutes(value) {
 function clean(raw) {
     const seen = {};
     const out = [];
-    for (const v of Array.isArray(raw) ? raw.slice(0, 50) : []) {
+    for (const v of Array.isArray(raw) ? raw.slice(0, MAX_RAW) : []) {
         const m = minutes(v);
         if (m && !seen[m]) {
             seen[m] = true;
