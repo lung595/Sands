@@ -31,7 +31,7 @@ eq(b.words.poweroff, [], "an empty list clears the words");
 b = E.build([], { "disconnect-device": ["deco"] });
 eq(E.fromWord(b, "deco", false), { ok: false, reason: "needs-orbit" }, "no Orbit → guided reason");
 eq(E.fromWord(b, "deco", undefined).reason, "needs-orbit", "unknown Orbit state is no Orbit");
-eq(E.fromWord(b, "deco", true).ok, true, "with Orbit it resolves");
+eq(E.fromWord(b, "deco", true), { ok: true, orbit: true, confirm: false }, "with Orbit it resolves, no command");
 
 // Personal actions: plain data
 const good = { name: "Lock screen", words: ["lock"], program: "loginctl", args: ["lock-session"] };
@@ -63,4 +63,13 @@ b = E.build(Array(17).fill(good), {});
 eq(b.actions.length, 4 + 16, "personal actions capped");
 eq(b.errors.some(e => e.reason === "too-many-personal"), true, "cap reason");
 eq(E.build("junk", null).actions.length, 4, "garbage input");
+
+// Programs: bare name or absolute path only
+["../../tmp/evil", "bin/tool", ".", "..", "./x", "a/b"].forEach(p =>
+    eq(E.build([{ name: "X", program: p }], {}).errors[0].reason, "bad-program", "relative program refused: " + p));
+eq(E.build([{ name: "X", program: "/usr/bin/foo" }], {}).errors, [], "absolute path kept");
+// An override that is not a list is reported, not silently clearing the words
+b = E.build([], { poweroff: "bye" });
+eq(b.errors, [{ action: "poweroff", word: "", reason: "bad-words" }], "non-list override reported");
+eq(b.words.poweroff, ["off"], "defaults kept");
 done();

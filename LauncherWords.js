@@ -1,4 +1,5 @@
 .pragma library
+.import "TimeParser.js" as TP
 
 // Launcher words: the free words a user picks, in the settings, to start an
 // end action from the launcher ("off 30"). Pure logic, no QML, no side
@@ -27,12 +28,28 @@ var TOO_MANY_ACTIONS = "too-many-actions";
 var RE_WORD = /^\p{L}[\p{L}\p{N}_-]*$/u;
 // Digits, optionally glued to a unit ("30", "30min", "1h30")
 var RE_NUMBER = /^\d+(?:[a-z]+\d*)?$/;
-var NUMBER_WORDS = ["zero", "un", "une", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix", "onze", "douze", "quinze", "vingt", "trente", "quarante", "cinquante", "soixante", "cent", "one", "two", "three", "four", "five", "seven", "eight", "nine", "ten", "eleven", "twelve", "fifteen", "twenty", "thirty", "forty", "fifty", "sixty", "hundred", "demi", "half", "quart", "quarter"];
-var UNIT_WORDS = ["h", "hr", "hrs", "heure", "heures", "hour", "hours", "m", "mn", "min", "mins", "minute", "minutes", "s", "sec", "secs", "seconde", "secondes", "second", "seconds"];
+// Number and unit words come from the parser itself, so a word the parser
+// reads as a number or a unit can never be accepted here (one rule, one place).
+var NUMBER_WORDS = Object.keys(TP.WORD_VALUES).concat(["demi", "demie", "half", "quart", "quarter"]);
+var UNIT_WORDS = unitWords([TP.U_HOUR, TP.U_MIN, TP.U_SEC]);
+
+// Expands the parser's unit patterns ("heures?|h") into plain words
+function unitWords(patterns) {
+    var out = [];
+    patterns.join("|").split("|").forEach(function (alt) {
+        if (alt.charAt(alt.length - 1) === "?") {
+            out.push(alt.slice(0, -2));
+            alt = alt.slice(0, -1);
+        }
+        out.push(alt);
+    });
+    return out;
+}
 
 // Lower-cased, trimmed, composed form of a typed word
 function normalize(word) {
-    return String(word === undefined || word === null ? "" : word).trim().normalize("NFC").toLowerCase();
+    // Cap first: the rest would copy a huge input for nothing
+    return String(word === undefined || word === null ? "" : word).slice(0, MAX_WORD_LENGTH + 64).trim().normalize("NFC").toLowerCase();
 }
 
 // { ok, word } with the normalized word, or { ok: false, reason }
@@ -57,9 +74,9 @@ function checkWord(raw) {
 // repeated inside one action is kept once; a word claimed by two actions is
 // refused for the later one (SHARED).
 function checkAll(actions) {
-    var words = {};
+    var words = Object.create(null);
     var errors = [];
-    var owner = {};
+    var owner = Object.create(null);
     var list = Array.isArray(actions) ? actions : [];
     if (list.length > MAX_ACTIONS) {
         errors.push({ action: "", word: "", reason: TOO_MANY_ACTIONS });

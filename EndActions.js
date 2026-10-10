@@ -19,6 +19,7 @@ var UNKNOWN_ACTION = "unknown-action";
 var BAD_NAME = "bad-name";
 var BAD_PROGRAM = "bad-program";
 var BAD_ARGS = "bad-args";
+var BAD_WORDS = "bad-words";
 var TOO_MANY_PERSONAL = "too-many-personal";
 
 // Default words are only starting points, never a choice of the user
@@ -32,7 +33,7 @@ var BUILTINS = [
 
 // A program is a bare name or an absolute path, never an option or a path
 // with a space-separated command inside
-var RE_PROGRAM = /^(?:\/)?[A-Za-z0-9._+\/-]+$/;
+var RE_PROGRAM = /^(?:[A-Za-z0-9._+-]+|\/[A-Za-z0-9._+\/-]+)$/;
 // No control character (NUL, newline…) anywhere in a name or argument
 var RE_CONTROL = /[\u0000-\u001f\u007f]/;
 
@@ -41,12 +42,13 @@ function validText(s, max) {
 }
 
 // Plain data in, { ok, action } or { ok: false, reason } out. The id is
-// derived ("personal-<n>") by the caller's position, never typed.
+// derived ("personal-<n>") by the caller's position, never typed. Words are
+// passed through as typed: only build() validates them.
 function checkPersonal(raw, index) {
     if (!raw || !validText(raw.name, MAX_NAME_LENGTH) || raw.name.trim() === "")
         return { ok: false, reason: BAD_NAME };
     var p = raw.program;
-    if (!validText(p, MAX_PROGRAM_LENGTH) || p === "" || p.charAt(0) === "-" || !RE_PROGRAM.test(p))
+    if (!validText(p, MAX_PROGRAM_LENGTH) || p === "" || p.charAt(0) === "-" || p === "." || p === ".." || !RE_PROGRAM.test(p))
         return { ok: false, reason: BAD_PROGRAM };
     var args = raw.args === undefined ? [] : raw.args;
     if (!Array.isArray(args) || args.length > MAX_ARGS)
@@ -56,7 +58,7 @@ function checkPersonal(raw, index) {
             return { ok: false, reason: BAD_ARGS };
     }
     return { ok: true, action: {
-        id: "personal-" + index, name: raw.name.trim(), words: Array.isArray(raw.words) ? raw.words : [],
+        id: "personal-" + index, name: raw.name.trim(), words: Array.isArray(raw.words) ? raw.words.slice() : [],
         program: p, args: args.slice(), confirm: raw.confirm === true, needsOrbit: false
     } };
 }
@@ -83,7 +85,10 @@ function build(personal, overrides) {
     var ov = overrides && typeof overrides === "object" ? overrides : {};
     actions.forEach(function (a) {
         if (Object.prototype.hasOwnProperty.call(ov, a.id))
-            a.words = ov[a.id];
+            if (Array.isArray(ov[a.id]))
+                a.words = ov[a.id];
+            else
+                errors.push({ action: a.id, word: "", reason: BAD_WORDS });
     });
     var checked = LW.checkAll(actions.map(function (a) { return { id: a.id, words: a.words }; }));
     actions.forEach(function (a) { a.words = checked.words[a.id] || []; });
@@ -107,6 +112,9 @@ function resolve(actions, id, orbitAvailable) {
         return { ok: false, reason: UNKNOWN_ACTION };
     if (a.needsOrbit && orbitAvailable !== true)
         return { ok: false, reason: NEEDS_ORBIT };
+    // A device action has no command: Orbit performs it
+    if (a.needsOrbit)
+        return { ok: true, orbit: true, confirm: a.confirm };
     return { ok: true, command: [a.program].concat(a.args), confirm: a.confirm };
 }
 

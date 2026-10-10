@@ -54,4 +54,14 @@ const t = { a: ["off"], b: ["zzz", "dodo"] };
 eq(W.actionFor(t, " DODO"), "b", "lookup normalizes");
 eq(W.actionFor(t, "nope"), "", "unknown word names no action");
 eq(W.actionFor(t, ""), "", "empty word names no action");
+
+// Every word the parser reads as a number or a unit is refused (one rule)
+const TP = load("TimeParser.js");
+Object.keys(TP.WORD_VALUES).forEach(k => eq(W.checkWord(k).reason, "reads-as-number", "parser number word " + k));
+["demi", "demie", "half", "quart", "quarter"].forEach(k => eq(W.checkWord(k).reason, "reads-as-number", "half word " + k));
+["h", "hr", "hrs", "heure", "heures", "hour", "hours", "m", "mn", "min", "mins", "minute", "minutes", "s", "sec", "secs", "seconde", "secondes", "second", "seconds"]
+    .forEach(k => eq(W.checkWord(k).reason, "reads-as-unit", "parser unit " + k));
+eq(W.checkAll([{ id: "a", words: ["constructor"] }]).words.a, ["constructor"], "object property names are plain words");
+eq(W.checkAll([{ id: "a", words: ["toString"] }, { id: "b", words: ["tostring"] }]).errors[0].reason, "shared", "shared still caught");
+eq(W.checkWord("x".repeat(100000)).reason, "too-long", "huge input");
 done();
