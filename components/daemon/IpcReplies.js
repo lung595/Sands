@@ -1,6 +1,7 @@
 .pragma library
 .import "../../TimeParser.js" as TP
 .import "../../Timers.js" as Timers
+.import "PlainText.js" as Plain
 
 // The sentences `dms ipc call smartTimer …` answers. Pure, so a test can
 // pin every word a script may parse. Refusals say what to do and link the
@@ -22,7 +23,7 @@ function started(r, refusal, maxTimers, guideUrl, use24h) {
     const partial = r.started < (r.count || 1);
     const times = partial ? r.started + " of " + r.count + " × " : (r.kind === "duration" && r.count > 1 ? r.count + " × " : "");
     const limit = partial ? " (at most " + maxTimers + " at once: " + guideUrl + "#syntax)" : "";
-    return "Started: " + times + (r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " — " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, use24h) : TP.formatHuman(r.ms)) + limit;
+    return "Started: " + times + Plain.plain(r.label || (r.kind === "at" ? "Alarm" : "Timer")) + " - " + (r.kind === "at" ? "at " + TP.formatTimeOfDay(r.at, use24h) : TP.formatHuman(r.ms)) + limit;
 }
 
 function notChanged(guideUrl) {
