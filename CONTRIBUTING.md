@@ -57,6 +57,7 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 - `Preview.js`: the one-line preview and the « Rings at … » line the launcher shows before Enter.
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
+- `components/settings/Sections.js`: the settings sections and every setting as one table (keys, help, synonyms, battery level); `components/settings/Search.js`: the settings search over it (copied from Orbit's engine, typo-tolerant, ranked). Not drawn yet.
 
 **Motion timers.** Nothing animates with QML animations while idle. The pill's single motion clock is `components/PillClock.qml`, driven by `HorizontalPill.qml`: 16 ms only for the bell swing, 33 ms for the final-countdown beat and the breathing; it runs only while ringing or beating and stops after the alarm duration. The panel's sand clock is `components/hourglass/MotionClock.qml` (33 ms once the sand is settled, stopped under Reduce motion).
 
@@ -95,6 +96,7 @@ Sands/
 │   ├── hourglass/              # one role per file: Geometry.js (sizes, volumes; tested), Colors.js, FrostDraw.js (tested),
 │   │                           #   MotionClock (the one Timer), Turn (flip, wild), SandLevel (eased level), SandStream (grains),
 │   │                           #   Glass (the glass canvas), Halos/Halo, Shadow, GotSlot (Loader)/GotLayer/GotBack/GotFront/GotPalette (Glass of Time)
+│   ├── settings/               # Sections.js (settings table, helpers), Search.js (search)   (tested)
 │   ├── ProgressRing.qml        # the ring used in the pill and lists
 │   ├── HelpNote.qml            # the short note at the top of the panel
 │   ├── GitHubMark.qml          # GitHub logo that opens the guide section
