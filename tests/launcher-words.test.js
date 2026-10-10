@@ -63,5 +63,9 @@ Object.keys(TP.WORD_VALUES).forEach(k => eq(W.checkWord(k).reason, "reads-as-num
     .forEach(k => eq(W.checkWord(k).reason, "reads-as-unit", "parser unit " + k));
 eq(W.checkAll([{ id: "a", words: ["constructor"] }]).words.a, ["constructor"], "object property names are plain words");
 eq(W.checkAll([{ id: "a", words: ["toString"] }, { id: "b", words: ["tostring"] }]).errors[0].reason, "shared", "shared still caught");
+["dix-sept", "vingt-cinq", "twenty-five", "quatre-vingt", "vingt-et-un"].forEach(k => eq(W.checkWord(k).reason, "reads-as-number", "compound number " + k));
+eq(W.checkWord("bye-bye").ok, true, "bye-bye stays a word");
+eq(W.checkWord("-").reason, "bad-chars", "lone dash is bad chars");
+eq(W.checkWord(" ".repeat(100) + "off").word, "off", "leading spaces do not hide a word");
 eq(W.checkWord("x".repeat(100000)).reason, "too-long", "huge input");
 done();

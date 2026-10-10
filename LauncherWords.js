@@ -30,6 +30,8 @@ var RE_WORD = /^\p{L}[\p{L}\p{N}_-]*$/u;
 var RE_NUMBER = /^\d+(?:[a-z]+\d*)?$/;
 // Number and unit words come from the parser itself, so a word the parser
 // reads as a number or a unit can never be accepted here (one rule, one place).
+// Compound words ("vingt-cinq") are caught through TP.wordToNumber; only the
+// half words stay a short list because the parser keeps HALF as a pattern.
 var NUMBER_WORDS = Object.keys(TP.WORD_VALUES).concat(["demi", "demie", "half", "quart", "quarter"]);
 var UNIT_WORDS = unitWords([TP.U_HOUR, TP.U_MIN, TP.U_SEC]);
 
@@ -49,7 +51,7 @@ function unitWords(patterns) {
 // Lower-cased, trimmed, composed form of a typed word
 function normalize(word) {
     // Cap first: the rest would copy a huge input for nothing
-    return String(word === undefined || word === null ? "" : word).slice(0, MAX_WORD_LENGTH + 64).trim().normalize("NFC").toLowerCase();
+    return String(word === undefined || word === null ? "" : word).slice(0, 4096).trim().slice(0, MAX_WORD_LENGTH + 64).normalize("NFC").toLowerCase();
 }
 
 // { ok, word } with the normalized word, or { ok: false, reason }
@@ -59,7 +61,7 @@ function checkWord(raw) {
         return { ok: false, reason: EMPTY };
     if (w.length > MAX_WORD_LENGTH)
         return { ok: false, reason: TOO_LONG };
-    if (RE_NUMBER.test(w) || NUMBER_WORDS.indexOf(w) >= 0)
+    if (RE_NUMBER.test(w) || NUMBER_WORDS.indexOf(w) >= 0 || (RE_WORD.test(w) && !isNaN(TP.wordToNumber(w))))
         return { ok: false, reason: READS_AS_NUMBER };
     if (UNIT_WORDS.indexOf(w) >= 0)
         return { ok: false, reason: READS_AS_UNIT };

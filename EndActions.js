@@ -120,6 +120,6 @@ function resolve(actions, id, orbitAvailable) {
 
 // The launcher word → resolved action; refuses any word that names none
 function fromWord(built, word, orbitAvailable) {
-    var id = LW.actionFor(built.words, word);
+    var id = built ? LW.actionFor(built.words, word) : "";
     return id === "" ? { ok: false, reason: UNKNOWN_ACTION } : resolve(built.actions, id, orbitAvailable);
 }
