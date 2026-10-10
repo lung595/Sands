@@ -15,8 +15,9 @@ for (const k of existing)
 eq(new Set(keys).size, keys.length, "no key is listed twice");
 // Defaults are read from the QML page (defaultValue next to each settingKey) so a drift fails here
 const qmlDefault = k => {
-    const m = qml.match(new RegExp('settingKey:\\s*"' + k + '"[^}]*?defaultValue:\\s*([^\\n]+)'));
-    return m ? JSON.parse(m[1].trim().replace(/,$/, "")) : undefined;
+    const block = qml.split(/settingKey:/).find(x => x.trim().startsWith('"' + k + '"'));
+    const m = block && block.match(/defaultValue:\s*([^\n]+)/);
+    return m ? JSON.parse(m[1].trim()) : undefined;
 };
 const defaults = Object.fromEntries(existing.map(k => [k, qmlDefault(k)]));
 for (const k of existing)
