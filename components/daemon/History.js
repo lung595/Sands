@@ -4,13 +4,20 @@
 // timers are kept, how their time is split per day and per week, which names
 // are started most. No QML, no side effects; the file on disk is another
 // module's job. A history is { records: [{ name, start, end }] } with epoch
-// milliseconds, oldest first. Every function returns a new value.
+// milliseconds, oldest first. Every function returns a new value. A history
+// always comes from `empty`, `parse` or `add`; `now` is an epoch in ms.
 
 // Caps, so a hostile or corrupted file can never grow the shell's memory
-const MAX_NAME = 60;
+const MAX_NAME = 60; // same as MAX_LABEL in TimeParser.js, which this module must not import
 const MAX_RECORDS = 5000;
 const MAX_TEXT = 1048576;
-const MAX_SPAN = 366 * 86400000;
+// Sands' longest timer is 100 h (TimeParser.js MAX_MS); the margin covers
+// pauses when a record spans wall-clock time. Keeps the day split to ~9 slices.
+const MAX_SPAN = 8 * 86400000;
+const MAX_DATE = 8.64e15;
+// A finished timer cannot end in the future; allows for a small clock skew
+const FUTURE_SLACK = 5 * 60000;
+const FAVOURITES_MAX = 20;
 const KEEP_MONTHS = 12;
 const FAVOURITES = 3;
 
@@ -19,26 +26,37 @@ function empty() {
 }
 
 function cleanName(name) {
-    return typeof name === "string" ? name.trim().slice(0, MAX_NAME) : "";
+    if (typeof name !== "string")
+        return "";
+    // Control characters (C0, DEL, C1) never belong in a name; cut on code points
+    const plain = name.replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim();
+    return Array.from(plain).slice(0, MAX_NAME).join("");
 }
 
-// A valid record, or null: a name, finite times, a positive span of at most a year
-function cleanRecord(r) {
+// A valid record, or null: a name, times inside the Date range, not in the
+// future (when `now` is known), a positive span of at most MAX_SPAN
+function cleanRecord(r, now) {
     if (!r || typeof r !== "object")
         return null;
     const name = cleanName(r.name);
     if (name === "" || !Number.isFinite(r.start) || !Number.isFinite(r.end))
         return null;
-    if (r.end <= r.start || r.end - r.start > MAX_SPAN)
+    if (r.start < 0 || r.end > MAX_DATE || r.end <= r.start || r.end - r.start > MAX_SPAN)
+        return null;
+    if (Number.isFinite(now) && r.end > now + FUTURE_SLACK)
         return null;
     return { name: name, start: Math.floor(r.start), end: Math.floor(r.end) };
 }
 
-// Drops what ended more than 12 months before `now`, then keeps the newest records
+// Drops what ended more than 12 months before `now` (not when `now` is
+// unknown: losing the history is worse than keeping it), then keeps the newest
 function prune(records, now) {
-    const limit = new Date(now);
-    limit.setMonth(limit.getMonth() - KEEP_MONTHS);
-    const kept = records.filter(r => r.end >= limit.getTime());
+    let kept = records;
+    if (Number.isFinite(now)) {
+        const limit = new Date(now);
+        limit.setMonth(limit.getMonth() - KEEP_MONTHS);
+        kept = records.filter(r => r.end >= limit.getTime());
+    }
     return kept.length > MAX_RECORDS ? kept.slice(kept.length - MAX_RECORDS) : kept;
 }
 
@@ -56,11 +74,14 @@ function parse(text, now) {
     if (!data || !Array.isArray(data.records))
         return empty();
     const records = [];
-    for (const r of data.records.slice(0, MAX_RECORDS * 2)) {
-        const c = cleanRecord(r);
+    // The newest entries of an over-long file, never the oldest
+    for (const r of data.records.slice(-MAX_RECORDS * 2)) {
+        const c = cleanRecord(r, now);
         if (c)
             records.push(c);
     }
+    // Enforce "oldest first" (stable sort) so the cap and tie order hold
+    records.sort((a, b) => a.start - b.start);
     return { records: prune(records, now) };
 }
 
@@ -70,8 +91,9 @@ function serialize(history) {
 
 // `history` plus a finished timer (ignored if invalid), pruned at `now`
 function add(history, name, start, end, now) {
-    const c = cleanRecord({ name: name, start: start, end: end });
-    const records = c ? history.records.concat([c]) : history.records;
+    const c = cleanRecord({ name: name, start: start, end: end }, now);
+    const records = history.records.concat(c ? [c] : []);
+    records.sort((a, b) => a.start - b.start);
     return { records: prune(records, now) };
 }
 
@@ -138,5 +160,8 @@ function favourites(history, count) {
     const counts = new Map();
     for (const r of history.records)
         counts.set(r.name, (counts.get(r.name) || 0) + 1);
-    return [...counts.entries()].map(e => ({ name: e[0], count: e[1] })).sort((a, b) => b.count - a.count).slice(0, count === undefined ? FAVOURITES : count);
+    const wanted = count === undefined ? FAVOURITES : Math.min(Math.max(Math.floor(count) || 0, 0), FAVOURITES_MAX);
+    const entries = [...counts.entries()].map(e => ({ name: e[0], count: e[1] }));
+    entries.sort((a, b) => b.count - a.count);
+    return entries.slice(0, wanted);
 }

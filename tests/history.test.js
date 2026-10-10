@@ -65,4 +65,24 @@ for (const n of ["b", "a", "c", "a", "d", "b", "e", "a"])
 eq(f.records.length, 8, "all added");
 eq(H.favourites(f), [{ name: "a", count: 3 }, { name: "b", count: 2 }, { name: "c", count: 1 }], "top 3, ties by first start");
 eq(H.favourites(f, 1).length, 1, "count argument");
+
+// Review round 1: unknown clock, range, control characters, count, order
+const base = H.add(H.empty(), "a", t(2026, 10, 9, 8), t(2026, 10, 9, 9), NOW);
+eq(H.add(base, "b", t(2026, 10, 9, 10), t(2026, 10, 9, 11)).records.length, 2, "add without now keeps history");
+eq(H.parse(H.serialize(base)).records.length, 1, "parse without now keeps history");
+eq(H.parse(H.serialize(base), NaN).records.length, 1, "parse with NaN now keeps history");
+eq(H.parse(JSON.stringify({ records: [{ name: "x", start: 9e15, end: 9e15 + 1000 }] }), NOW).records, [], "out of Date range");
+eq(H.add(H.empty(), "x", t(2036, 1, 1), t(2036, 1, 1, 1), NOW).records, [], "future record rejected");
+eq(H.add(H.empty(), "x", 0, 400 * 86400000, NOW).records, [], "span over the cap rejected");
+eq(H.add(H.empty(), "a\nb\u0000\u001bc", t(2026, 10, 9), t(2026, 10, 9, 1), NOW).records[0].name, "abc", "control characters stripped");
+eq(Array.from(H.add(H.empty(), "x".repeat(59) + "😀😀", t(2026, 10, 9), t(2026, 10, 9, 1), NOW).records[0].name).length, 60, "cut on code points");
+let fav = H.empty();
+for (const n of ["a", "b", "b"]) fav = H.add(fav, n, t(2026, 10, 9, 1 + fav.records.length), t(2026, 10, 9, 2 + fav.records.length), NOW);
+eq(H.favourites(fav, -1), [], "negative count");
+eq(H.favourites(fav, NaN), [], "NaN count");
+eq(H.favourites(fav, 1e9).length, 2, "huge count clamped");
+const unsorted = JSON.stringify({ records: [
+    { name: "late", start: t(2026, 10, 9, 5), end: t(2026, 10, 9, 6) },
+    { name: "early", start: t(2026, 10, 9, 1), end: t(2026, 10, 9, 2) }] });
+eq(H.parse(unsorted, NOW).records.map(r => r.name), ["early", "late"], "parse sorts oldest first");
 done();
