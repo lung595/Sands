@@ -35,7 +35,7 @@ eq(P.parse("rice 1,5 then beans 2")?.phases[0].ms, 90000, "decimal comma is not 
 // Not a plan: today's parser keeps these
 for (const text of ["", "   ", "timer 10", "pasta 10", "10 min pasta", "5", "4x 25", "25/5", "hello", "buy milk then call mom",
     "pasta 10 then sauce", "5pm then 6pm", "call at 5pm then stretch 10 min", "at 17h then 10", "10kg rice then 5",
-    "1.5.2 then 3", "x then 1e3", "1 h, 30 min", "eggs 2 min, 30 s", "10 min; 5 min", "5 pm then 6", "@ 10 then 5", "pasta 10 then", "then 10 then 5", "a 5 6 then b 2", "0x 25/5", "4x 25/0", "1,5/", "dans 5 min", "4x 25/5/10"])
+    "1.5.2 then 3", "x then 1e3", "1 h, 30 min", "eggs 2 min, 30 s", "10 min; 5 min", "5 pm then 6", "@ 10 then 5", "pasta 10 then", "then 10 then 5", "a 5 6 then b 2", "0x 25/5", "4x 25/0", "1,5/", "dans 5 min", "4x 25/5/10", "10:30 then 5", "1:30 then 2", "meet 9:15, call 10", "tea 10:30 then toast 5"])
     eq(P.parse(text), null, "null: " + JSON.stringify(text));
 
 // Other accepted spellings

@@ -13,7 +13,7 @@
 // without a name has the label "" (the caller picks a default).
 // Cycle forms: « 4x 25/5 », « 25/5 x4 », « pomodoro 4 cycles 25/5 »,
 // « 4 fois 25m/5m », « 25/5 4 times ». Chain forms: « pasta 10 then sauce 5 »,
-// « 10 min pates puis 5 min sauce », « a 10 > b 5 ». A bare number is minutes.
+// « 10 min pates puis 5 min sauce », « tea 3 > toast 2 ». A bare number is minutes.
 
 // Bounds and unit spellings come from the single-timer parser: one source
 var MAX_MS = TimeParser.MAX_MS;
@@ -29,7 +29,7 @@ var MAX_REPEATS = 20;
 var MAX_CHAIN = 10;
 
 // A duration may not start inside a word, a version or a decimal number
-var DUR_START = "(?<![a-z0-9.,])";
+var DUR_START = "(?<![a-z0-9.,:])";
 // Capture groups of one duration: 1 number, 2 hour unit, 3 minutes after the
 // hour (« 1h30 »), 4 minute unit, 5 second unit
 var DUR_GROUPS = 5;
@@ -147,7 +147,7 @@ function parseChain(original, work) {
             return null;
         phases.push(step);
     }
-    // Unnamed steps are only allowed between words (« 10 then 5 »)
+    // Unnamed steps are only allowed between words or arrows (« 10 then 5 »)
     if (RE_LIST_MARK.test(work) && phases.some(function (p) { return p.label === ""; }))
         return null;
     return plan("chain", phases, 1);
