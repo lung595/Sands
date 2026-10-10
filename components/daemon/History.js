@@ -1,0 +1,174 @@
+.pragma library
+
+// Pure history rules for the time journal and the favourites: which finished
+// timers are kept, how their time is split per day and per week, which names
+// are started most. No QML, no side effects; the file on disk is another
+// module's job. A history is { records: [{ name, start, end }] } with epoch
+// milliseconds, oldest first. Every function returns a new value. A history
+// always comes from `empty`, `parse` or `add`; `now` is an epoch in ms.
+
+// Caps, so a hostile or corrupted file can never grow the shell's memory
+const MAX_NAME = 60; // same as MAX_LABEL in TimeParser.js, which this module must not import
+const MAX_RECORDS = 5000;
+const MAX_TEXT = 1048576;
+// Sands' longest timer is 100 h (TimeParser.js MAX_MS); the margin covers
+// pauses when a record spans wall-clock time. Keeps the day split to ~9 slices.
+const MAX_SPAN = 8 * 86400000;
+const MAX_DATE = 8.64e15;
+// A finished timer cannot end in the future; allows for a small clock skew
+const FUTURE_SLACK = 5 * 60000;
+const FAVOURITES_MAX = 20;
+const KEEP_MONTHS = 12;
+const FAVOURITES = 3;
+
+function empty() {
+    return { records: [] };
+}
+
+function cleanName(name) {
+    if (typeof name !== "string")
+        return "";
+    // Control characters (C0, DEL, C1) never belong in a name; cut on code points
+    const plain = name.replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim();
+    return Array.from(plain).slice(0, MAX_NAME).join("");
+}
+
+// A valid record, or null: a name, times inside the Date range, a positive
+// span of at most MAX_SPAN. The "not in the future" rule is not here: records
+// read from disk must survive a clock that is wrong or went backwards.
+function cleanRecord(r) {
+    if (!r || typeof r !== "object")
+        return null;
+    const name = cleanName(r.name);
+    if (name === "" || !Number.isFinite(r.start) || !Number.isFinite(r.end))
+        return null;
+    if (r.start < 0 || r.end > MAX_DATE || r.end <= r.start || r.end - r.start > MAX_SPAN)
+        return null;
+    return { name: name, start: Math.floor(r.start), end: Math.floor(r.end) };
+}
+
+// A `now` outside the Date range counts as unknown
+function knownClock(now) {
+    return Number.isFinite(now) && now >= 0 && now <= MAX_DATE;
+}
+
+// Drops what ended more than 12 months before `now` (not when `now` is
+// unknown: losing the history is worse than keeping it), then keeps the newest
+function prune(records, now) {
+    let kept = records;
+    if (knownClock(now)) {
+        const limit = new Date(now);
+        limit.setMonth(limit.getMonth() - KEEP_MONTHS);
+        kept = records.filter(r => r.end >= limit.getTime());
+    }
+    return kept.length > MAX_RECORDS ? kept.slice(kept.length - MAX_RECORDS) : kept;
+}
+
+// The history saved in `text`. Empty, corrupted or foreign text gives an
+// empty history, never an exception; bad records are skipped one by one.
+function parse(text, now) {
+    if (typeof text !== "string" || text === "" || text.length > MAX_TEXT)
+        return empty();
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        return empty();
+    }
+    if (!data || !Array.isArray(data.records))
+        return empty();
+    const records = [];
+    // The newest entries of an over-long file, never the oldest
+    for (const r of data.records.slice(-MAX_RECORDS * 2)) {
+        const c = cleanRecord(r);
+        if (c)
+            records.push(c);
+    }
+    // Enforce "oldest first" (stable sort) so the cap and tie order hold
+    records.sort((a, b) => a.start - b.start);
+    return { records: prune(records, now) };
+}
+
+function serialize(history) {
+    return JSON.stringify({ records: history.records });
+}
+
+// `history` plus a finished timer (ignored if invalid), pruned at `now`
+function add(history, name, start, end, now) {
+    let c = cleanRecord({ name: name, start: start, end: end });
+    // A timer just finished cannot end in the future (when the clock is known)
+    if (c && knownClock(now) && c.end > now + FUTURE_SLACK)
+        c = null;
+    const records = history.records.concat(c ? [c] : []);
+    records.sort((a, b) => a.start - b.start);
+    return { records: prune(records, now) };
+}
+
+function pad(n) {
+    return n < 10 ? "0" + n : String(n);
+}
+
+// "YYYY-MM-DD" of a local date
+function dayKey(d) {
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+
+// The Monday of the local week holding `d`, as a day key
+function weekKey(d) {
+    const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() - (d.getDay() + 6) % 7);
+    return dayKey(monday);
+}
+
+// [{ name, day, week, ms }] one entry per record and local day it touches:
+// a timer crossing midnight is split between its days, at local midnight
+function slices(history) {
+    const out = [];
+    for (const r of history.records) {
+        let from = r.start;
+        while (from < r.end) {
+            const d = new Date(from);
+            const midnight = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+            const to = Math.min(r.end, midnight);
+            out.push({ name: r.name, day: dayKey(d), week: weekKey(d), ms: to - from });
+            from = to;
+        }
+    }
+    return out;
+}
+
+// Adds up slices by name and by the key `by` ("day" or "week"), in order of
+// first appearance: [{ name, <by>, ms }]
+function total(history, by) {
+    const sums = new Map();
+    for (const s of slices(history)) {
+        const k = s.name + "\n" + s[by];
+        if (!sums.has(k)) {
+            const e = { name: s.name };
+            e[by] = s[by];
+            e.ms = 0;
+            sums.set(k, e);
+        }
+        sums.get(k).ms += s.ms;
+    }
+    return [...sums.values()];
+}
+
+function perDay(history) {
+    return total(history, "day");
+}
+
+function perWeek(history) {
+    return total(history, "week");
+}
+
+// The `count` (3 by default) most started names, as [{ name, count }]. On a
+// tie the name that was started first comes first, so the order is stable.
+function favourites(history, count) {
+    const counts = new Map();
+    for (const r of history.records)
+        counts.set(r.name, (counts.get(r.name) || 0) + 1);
+    const wanted = count === undefined ? FAVOURITES : Math.min(Math.max(Math.floor(count) || 0, 0), FAVOURITES_MAX);
+    const entries = [...counts.entries()].map(e => ({ name: e[0], count: e[1] }));
+    entries.sort((a, b) => b.count - a.count);
+    return entries.slice(0, wanted);
+}
