@@ -16,6 +16,7 @@ Column {
     required property var options
     property string defaultValue: ""
     property string value: defaultValue
+    // Set once the saved value is read, so the read itself is never written back
     property bool ready: false
 
     readonly property string currentLabel: {
@@ -26,42 +27,13 @@ Column {
     width: parent.width
     spacing: Theme.spacingS
 
-    function loadValue() {
-        const host = SettingHost.find(root);
-        if (!host)
-            return;
-        value = host.loadValue(settingKey, defaultValue);
-        ready = true;
-    }
+    Component.onCompleted: Qt.callLater(() => SettingHost.load(root))
+    onValueChanged: SettingHost.save(root)
 
-    Component.onCompleted: Qt.callLater(loadValue)
-
-    onValueChanged: {
-        if (!ready)
-            return;
-        const host = SettingHost.find(root);
-        if (host)
-            host.saveValue(settingKey, value);
-    }
-
-    StyledText {
+    SettingLabel {
         width: parent.width
-        text: root.label
-        font.pixelSize: Theme.fontSizeLarge
-        font.weight: Font.Medium
-        color: Theme.surfaceText
-        wrapMode: Text.WordWrap
-        elide: Text.ElideNone
-    }
-
-    StyledText {
-        width: parent.width
-        text: root.description
-        font.pixelSize: Theme.fontSizeSmall
-        color: Theme.surfaceVariantText
-        wrapMode: Text.WordWrap
-        elide: Text.ElideNone
-        visible: root.description !== ""
+        title: root.label
+        description: root.description
     }
 
     // No text of its own: that is what makes DMS draw it as the bare list

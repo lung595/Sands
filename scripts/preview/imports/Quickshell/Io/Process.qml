@@ -16,6 +16,7 @@ QtObject {
     signal started
     signal exited(int exitCode, int exitStatus)
 
+    // String() is not callable on a list entry here, so concatenate
     readonly property bool _stays: command.length > 0 && ("" + command[0]).indexOf("notify") >= 0
     property Timer _end: Timer {
         interval: process.playMs

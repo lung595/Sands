@@ -3,3 +3,5 @@ PluginComponent 1.0 PluginComponent.qml
 PluginSettings 1.0 PluginSettings.qml
 StringSetting 1.0 StringSetting.qml
 SliderSetting 1.0 SliderSetting.qml
+ToggleSetting 1.0 ToggleSetting.qml
+SelectionSetting 1.0 SelectionSetting.qml

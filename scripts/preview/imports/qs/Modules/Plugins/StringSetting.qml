@@ -1,7 +1,8 @@
 import QtQuick
+import qs.Common
 import qs.Widgets
 
-// DMS layout: label, wrapped description, full-width field.
+// DMS layout (the title has no width, as in Modules/Plugins/StringSetting.qml): label, wrapped description, full-width field.
 Column {
     id: root
     required property string settingKey
@@ -13,8 +14,8 @@ Column {
     spacing: 8
     StyledText {
         text: root.label
-        width: parent.width
-        wrapMode: Text.WordWrap
+        font.pixelSize: Theme.fontSizeLarge
+        font.weight: Font.Medium
     }
     StyledText {
         text: root.description

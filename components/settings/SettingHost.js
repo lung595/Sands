@@ -9,3 +9,20 @@ function find(item) {
     }
     return null;
 }
+
+// Reads the saved value into the row, then marks it ready. The read itself is never
+// written back: the row saves only once `ready` is set.
+function load(row) {
+    const host = find(row);
+    if (!host)
+        return;
+    row.value = host.loadValue(row.settingKey, row.defaultValue);
+    row.ready = true;
+}
+
+// Writes the row's value under its own key, and only after the saved value was read.
+function save(row) {
+    const host = row.ready ? find(row) : null;
+    if (host)
+        host.saveValue(row.settingKey, row.value);
+}

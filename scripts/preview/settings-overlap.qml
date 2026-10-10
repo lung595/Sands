@@ -8,11 +8,14 @@ import "mock"
 Item {
     id: root
 
-    // Widths in px. DMS PluginsTab lays a plugin out in min(550, window - 32) minus the
-    // card margins (2 x 16): 436 at the 500 px minimum window of SettingsModal. The
-    // section rail of the approved mockups (NAK-502) is 176 px: 436 - 176 = 260, the
-    // narrowest real case. 360 is the mockups' own narrow form; 436 is the plain page.
-    readonly property var widths: [260, 360, 436]
+    // Widths in px, from the DMS settings panel at its 500 px minimum window:
+    //   PluginsTab.qml:84     content = min(550, window - 2 x spacingL)   -> 468
+    //   PluginsTab.qml:494    plugin card margins, 2 x spacingL           -> 436
+    //   PluginListItem.qml:402 settings Loader margins, 2 x spacingL       -> 404
+    // The side navigation of SettingsModal also takes room from the window, so 404 is an
+    // upper bound of the real page. The section rail of the approved mockups (NAK-502)
+    // is 176 px: 404 - 176 = 228, the narrowest case. 360 is the mockups' own narrow form.
+    readonly property var widths: [228, 360, 404]
 
     // Stores that show every optional row: a custom sound file, and no launcher prefix
     readonly property var presets: [
@@ -108,6 +111,8 @@ Item {
         }
     }
 
+    // The rows load their saved value through Qt.callLater, so wait until the pages
+    // have laid out again before measuring.
     Timer {
         interval: 300
         running: true
