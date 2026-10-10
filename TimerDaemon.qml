@@ -4,6 +4,7 @@ import qs.Services
 import "TimeParser.js" as TP
 import "Timers.js" as Timers
 import "Guide.js" as Guide
+import "AlexBridge.js" as AlexBridge
 import "components/daemon"
 import "components/daemon/Lifecycle.js" as Lifecycle
 import "components/daemon/Notifications.js" as Notifications
@@ -55,6 +56,7 @@ Item {
     signal panelRequested(string screenName)
 
     property int _nextId: 1
+    property int _ringSeq: 0
 
     function setting(key, fallback) {
         return pluginService ? pluginService.loadPluginData(pluginId, key, fallback) : fallback;
@@ -325,7 +327,16 @@ Item {
             _commit(r.list);
             alarm.startRinging();
             newly.forEach(t => _notify(t));
+            newly.forEach(t => _tellAlex(t));
         }
+    }
+
+    // One event per ended timer, and no call at all when Alex is not loaded.
+    // The label is never logged.
+    function _tellAlex(t) {
+        if (!pluginService || !pluginService.isPluginLoaded(AlexBridge.ALEX_ID))
+            return;
+        pluginService.setGlobalVar(pluginId, AlexBridge.EVENT_KEY, AlexBridge.buildEvent(t, ++_ringSeq));
     }
 
     function _notify(t) {

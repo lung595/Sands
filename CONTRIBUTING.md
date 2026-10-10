@@ -135,6 +135,9 @@ gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restor
 gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command
 gjs tests/daemon-text.test.js   # 22 tests: IPC sentences, notification commands
 gjs tests/daemon-surface.test.js # 11 tests: every daemon member a view reads is still declared
+gjs tests/alex-bridge.test.js   # 8 tests: event shape, id per ring, label cap and cleaning
+# scripts/preview/alex.qml: offscreen check of the Alex bridge (present / absent), see the header;
+# needs QT_FORCE_STDERR_LOGGING=1 to print OK / FAIL, exit code 1 on failure
 gjs tests/hourglass.test.js     # 35 checks: hourglass geometry, volumes, outline, frost shapes
 ```
 

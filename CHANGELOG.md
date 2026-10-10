@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- One « timer finished » event for Alex at the ring (`AlexBridge.js`, NAK-494): published once per ended timer through `PluginService.setGlobalVar` (key `timerFinished`, fields `kind: "timerFinished"`, id, label capped at 60 characters, end time) and only when Alex is loaded; without Alex nothing is called and nothing changes. Sands keeps showing its own alarm, sound and bar pill. Several timers ending in the same tick write the key once each (a late reader sees the last). Covered by `tests/alex-bridge.test.js`.
 - Pure parser for focus-cycle and chained-timer phrases (`Plans.js`, NAK-398). Not wired to any view yet; covered by `tests/plans.test.js`.
 - Pure logic for the end-of-timer actions and the free launcher words (`EndActions.js`, `LauncherWords.js`, NAK-399). Not wired to any view yet; covered by `tests/end-actions.test.js` and `tests/launcher-words.test.js`.
 - Pure logic for the time journal and the favourites (`History.js`, NAK-400). Not wired to any view yet; covered by `tests/history.test.js`.
