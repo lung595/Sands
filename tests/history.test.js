@@ -85,4 +85,8 @@ const unsorted = JSON.stringify({ records: [
     { name: "late", start: t(2026, 10, 9, 5), end: t(2026, 10, 9, 6) },
     { name: "early", start: t(2026, 10, 9, 1), end: t(2026, 10, 9, 2) }] });
 eq(H.parse(unsorted, NOW).records.map(r => r.name), ["early", "late"], "parse sorts oldest first");
+// Review round 2: a wrong clock must never wipe a valid file
+eq(H.parse(H.serialize(base), t(2020, 1, 1)).records.length, 1, "clock gone backwards keeps records");
+eq(H.parse(H.serialize(base), 1e16).records.length, 1, "now outside Date range keeps records");
+eq(H.parse(H.serialize(base), NOW / 1000).records.length, 1, "now in seconds keeps records");
 done();

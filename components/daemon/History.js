@@ -33,9 +33,10 @@ function cleanName(name) {
     return Array.from(plain).slice(0, MAX_NAME).join("");
 }
 
-// A valid record, or null: a name, times inside the Date range, not in the
-// future (when `now` is known), a positive span of at most MAX_SPAN
-function cleanRecord(r, now) {
+// A valid record, or null: a name, times inside the Date range, a positive
+// span of at most MAX_SPAN. The "not in the future" rule is not here: records
+// read from disk must survive a clock that is wrong or went backwards.
+function cleanRecord(r) {
     if (!r || typeof r !== "object")
         return null;
     const name = cleanName(r.name);
@@ -43,16 +44,19 @@ function cleanRecord(r, now) {
         return null;
     if (r.start < 0 || r.end > MAX_DATE || r.end <= r.start || r.end - r.start > MAX_SPAN)
         return null;
-    if (Number.isFinite(now) && r.end > now + FUTURE_SLACK)
-        return null;
     return { name: name, start: Math.floor(r.start), end: Math.floor(r.end) };
+}
+
+// A `now` outside the Date range counts as unknown
+function knownClock(now) {
+    return Number.isFinite(now) && now >= 0 && now <= MAX_DATE;
 }
 
 // Drops what ended more than 12 months before `now` (not when `now` is
 // unknown: losing the history is worse than keeping it), then keeps the newest
 function prune(records, now) {
     let kept = records;
-    if (Number.isFinite(now)) {
+    if (knownClock(now)) {
         const limit = new Date(now);
         limit.setMonth(limit.getMonth() - KEEP_MONTHS);
         kept = records.filter(r => r.end >= limit.getTime());
@@ -76,7 +80,7 @@ function parse(text, now) {
     const records = [];
     // The newest entries of an over-long file, never the oldest
     for (const r of data.records.slice(-MAX_RECORDS * 2)) {
-        const c = cleanRecord(r, now);
+        const c = cleanRecord(r);
         if (c)
             records.push(c);
     }
@@ -91,7 +95,10 @@ function serialize(history) {
 
 // `history` plus a finished timer (ignored if invalid), pruned at `now`
 function add(history, name, start, end, now) {
-    const c = cleanRecord({ name: name, start: start, end: end }, now);
+    let c = cleanRecord({ name: name, start: start, end: end });
+    // A timer just finished cannot end in the future (when the clock is known)
+    if (c && knownClock(now) && c.end > now + FUTURE_SLACK)
+        c = null;
     const records = history.records.concat(c ? [c] : []);
     records.sort((a, b) => a.start - b.start);
     return { records: prune(records, now) };
