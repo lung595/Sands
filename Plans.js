@@ -48,7 +48,8 @@ var RE_SPLIT = /\s*(?:->|=>|>|;|,(?!\d)|\b(?:and then|et puis|et ensuite|then|pu
 // composite duration that the single-timer parser reads
 var RE_LIST_MARK = /;|,(?!\d)/;
 // A step that names a time of day is an alarm, not a plan step
-var RE_CLOCK = /@|(?:^|\s)(?:at|a|vers|until|jusqu'a)\s*\d|\b(?:am|pm)\b/;
+// (the period phrases « du soir », « in the morning »… come from TimeParser)
+var RE_CLOCK = new RegExp("@|(?:^|\\s)(?:at|a|vers|until|jusqu'a)\\s*\\d|\\b(?:" + TimeParser.PERIOD + ")(?![a-z])");
 // Day words (« demain », « ce soir ») come from the single-timer parser; noon
 // and midnight are alarms too
 var RE_DAY_WORD = new RegExp("(?:^|[^a-z])(?:midi|noon|minuit|midnight|" +
