@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Pure parser for focus-cycle and chained-timer phrases (`Plans.js`, NAK-398). Not wired to any view yet; covered by `tests/plans.test.js`.
 - Pure logic for the end-of-timer actions and the free launcher words (`EndActions.js`, `LauncherWords.js`, NAK-399). Not wired to any view yet; covered by `tests/end-actions.test.js` and `tests/launcher-words.test.js`.
 - Pure logic for the time journal and the favourites (`History.js`, NAK-400). Not wired to any view yet; covered by `tests/history.test.js`.
+- History file store (`components/daemon/HistoryStore.qml`, NAK-432): one private file (0600 in a 0700 folder), written only when a timer ends, erasable, removable at uninstall. Not wired yet; covered by the offscreen test `tests/qml/run.sh`.
 - Pure logic for known durations: the built-in table and the user's own durations (`KnownDurations.js`, NAK-429). Not wired to any view yet; covered by `tests/known-durations.test.js`.
 - Pure logic for the notice before the end and the snooze choices (`components/daemon/Notice.js`, `components/daemon/Snooze.js`, NAK-430). Not wired to any view yet; covered by `tests/notice.test.js` and `tests/snooze.test.js`.
 - `dms ipc call smartTimer status` prints the timers as JSON for scripts (remaining seconds, phase), built on call only (`components/daemon/Status.js`, NAK-431). Covered by `tests/status.test.js` and `tests/daemon-surface.test.js`.
