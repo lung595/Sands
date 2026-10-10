@@ -3,8 +3,8 @@ import QtQuick.Window
 import "../.."
 
 // Offscreen check of the Alex bridge in the real TimerDaemon, with a mock
-// PluginService that counts calls. Exits 0 when every assertion holds.
-// Usage: QT_QPA_PLATFORM=offscreen qml -I imports alex.qml -- <present|absent> /dev/null
+// PluginService that counts calls. Exits 0 when every assertion holds, 1 otherwise.
+// Usage: QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports alex.qml -- <present|absent> /dev/null
 Window {
     id: win
 
@@ -12,6 +12,7 @@ Window {
     property int globalCalls: 0
     property int alexReads: 0
     property var events: []
+    property int failures: 0
 
     width: 16
     height: 16
@@ -50,7 +51,7 @@ Window {
     function check(ok, what) {
         if (!ok) {
             console.warn("FAIL " + what);
-            Qt.exit(1);
+            failures++;
         }
     }
 
@@ -81,8 +82,9 @@ Window {
             } else {
                 check(win.globalCalls === 0, "Alex absent: no call, got " + win.globalCalls);
             }
-            console.warn("OK " + (win.present ? "present" : "absent"));
-            Qt.exit(0);
+            if (win.failures === 0)
+                console.warn("OK " + (win.present ? "present" : "absent"));
+            Qt.exit(win.failures === 0 ? 0 : 1);
         }
     }
 }
