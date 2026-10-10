@@ -13,8 +13,4 @@ eq(A.buildEvent({ id: 1, label: "a".repeat(500), endAt: 1 }, 1).label.length, 60
 eq(A.buildEvent({ id: 1, label: "a\nb\u0000c", endAt: 1 }, 1).label, "a b c", "control characters removed");
 eq(A.buildEvent({ id: 1, endAt: 1 }, 1).label, "", "missing label");
 eq(A.buildEvent({ id: 1, label: 5, endAt: 1 }, 1).label, "", "non-text label");
-eq(A.alexShowsAlarm("island"), true, "island choice");
-eq(A.alexShowsAlarm("sands"), false, "sands choice");
-eq(A.alexShowsAlarm(undefined), false, "failed read keeps Sands alarm");
-eq(A.alexShowsAlarm(null), false, "null keeps Sands alarm");
 done();

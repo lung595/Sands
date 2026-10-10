@@ -56,6 +56,7 @@ Item {
     signal panelRequested(string screenName)
 
     property int _nextId: 1
+    property int _ringSeq: 0
 
     function setting(key, fallback) {
         return pluginService ? pluginService.loadPluginData(pluginId, key, fallback) : fallback;
@@ -330,26 +331,12 @@ Item {
         }
     }
 
-    // True while Alex shows the alarm in its island instead of Sands' large
-    // one (sound and bar pill stay). Set at the ring, read by nobody else.
-    property bool alarmInAlex: false
-    property int _ringSeq: 0
-
     // One event per ended timer, and no call at all when Alex is not loaded.
     // The label is never logged.
     function _tellAlex(t) {
-        if (!PluginService.isPluginLoaded(AlexBridge.ALEX_ID)) {
-            alarmInAlex = false;
+        if (!pluginService || !pluginService.isPluginLoaded(AlexBridge.ALEX_ID))
             return;
-        }
-        PluginService.setGlobalVar(pluginId, AlexBridge.EVENT_KEY, AlexBridge.buildEvent(t, ++_ringSeq));
-        let choice;
-        try {
-            choice = PluginService.loadPluginData(AlexBridge.ALEX_ID, AlexBridge.CHOICE_KEY, "sands");
-        } catch (e) {
-            choice = undefined;
-        }
-        alarmInAlex = AlexBridge.alexShowsAlarm(choice);
+        pluginService.setGlobalVar(pluginId, AlexBridge.EVENT_KEY, AlexBridge.buildEvent(t, ++_ringSeq));
     }
 
     function _notify(t) {

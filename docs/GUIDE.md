@@ -180,7 +180,7 @@ When the alarm cannot play its sound, Sands says so instead of staying quiet: **
 
 ## Alex
 
-If the Alex plugin is loaded, Sands publishes one event when a timer ends: an id, the timer label (60 characters at most) and the end time. Nothing is written to disk, no process starts, and without Alex Sands makes no call at all. Sands always plays its sound and keeps its bar pill. Only if you chose « alarm in the Alex island » in Alex does Sands leave the large alarm to Alex; if that choice cannot be read, Sands shows its own alarm.
+If the Alex plugin is loaded, Sands publishes one event when a timer ends: an id, the timer label (60 characters at most) and the end time. Nothing is written to disk, no process starts, and without Alex Sands makes no call at all. Sands always shows its own alarm, plays its sound and keeps its bar pill. If several timers end in the same tick, one event is published for each, in order; Alex that loads late sees only the last one.
 
 ## Privacy
 
