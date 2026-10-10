@@ -28,6 +28,9 @@ QtObject {
     // Keeps a finished timer: { name, start, end } in epoch ms. Appends that
     // queue up back to back are folded into one read and one write.
     function append(entry) {
+        // A non-object would throw while folding and stall the queue
+        if (entry === null || typeof entry !== "object")
+            return;
         _enqueue({
             kind: "append",
             entry: entry
@@ -95,18 +98,22 @@ QtObject {
 
     // The step ended; a read step has `text`: fold its batch in, then write
     function _finish(step, text) {
-        if (step.kind === "read") {
-            const now = Date.now();
-            let h = History.parse(text, now);
-            for (const e of step.batch)
-                h = History.add(h, e.name, e.start, e.end, now);
-            _steps.unshift({
-                kind: "write",
-                text: History.serialize(h)
-            });
+        // The queue must move on whatever the fold does
+        try {
+            if (step.kind === "read") {
+                const now = Date.now();
+                let h = History.parse(text, now);
+                for (const e of step.batch)
+                    h = History.add(h, e.name, e.start, e.end, now);
+                _steps.unshift({
+                    kind: "write",
+                    text: History.serialize(h)
+                });
+            }
+        } finally {
+            _busy = false;
+            _kick();
         }
-        _busy = false;
-        _kick();
     }
 
     property Process _io: Process {

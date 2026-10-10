@@ -51,10 +51,17 @@ ShellRoot {
         step++;
         const now = Date.now();
         if (step === 1) {
-            store.append({
-                name: "Tea",
-                start: now - 600000,
-                end: now - 300000
+            // Loading the component alone leaves the disk untouched
+            look(l => {
+                check(l[0] === "-" && l[1] === "-", "nothing on disk while idle");
+                // Invalid entries are refused and must not stall the queue
+                store.append(null);
+                store.append(undefined);
+                store.append({
+                    name: "Tea",
+                    start: now - 600000,
+                    end: now - 300000
+                });
             });
         } else if (step === 2) {
             look(l => {
