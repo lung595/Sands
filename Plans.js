@@ -49,7 +49,13 @@ var RE_SPLIT = /\s*(?:->|=>|>|;|,(?!\d)|\b(?:and then|et puis|et ensuite|then|pu
 var RE_LIST_MARK = /;|,(?!\d)/;
 // A step that names a time of day is an alarm, not a plan step
 var RE_CLOCK = /@|(?:^|\s)(?:at|a|vers|until|jusqu'a)\s*\d|\b(?:am|pm)\b/;
-var RE_LEAD = /^(?:(?:for|pour|de|d['’]|during|pendant|in|dans|timer|minuteur)\s*)+/i;
+// Day words (« demain », « ce soir ») come from the single-timer parser; noon
+// and midnight are alarms too
+var RE_DAY_WORD = new RegExp("(?:^|[^a-z])(?:midi|noon|minuit|midnight|" +
+    Object.keys(TimeParser.DAY_WORDS).join("|") + ")(?![a-z])");
+// A filler word only counts as one when it is a whole word, so « dessert »
+// keeps its name; « d' » may stay glued to the next word
+var RE_LEAD = /^(?:(?:for|pour|de|during|pendant|in|dans|timer|minuteur)(?=\s|$)\s*|d['’]\s*)+/i;
 var RE_TRAIL = /(?:\s+(?:for|pour|de|d['’]|during|pendant|in|dans))+$/i;
 
 // Lowercase, no accents; one character in, one character out, so positions
@@ -134,7 +140,7 @@ function parseStep(original, work) {
 
 function parseChain(original, work) {
     var parts = work.split(RE_SPLIT);
-    if (parts.length < 2 || parts.length > MAX_CHAIN || RE_CLOCK.test(work))
+    if (parts.length < 2 || parts.length > MAX_CHAIN || RE_CLOCK.test(work) || RE_DAY_WORD.test(work))
         return null;
     var phases = [];
     var pos = 0;

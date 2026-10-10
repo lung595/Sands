@@ -51,6 +51,20 @@ eq(P.parse("Pâtes 10 PUIS Sauce 5"), chain(["Pâtes", 10 * MIN], ["Sauce", 5 * 
 eq(P.parse("pasta 10, sauce 5"), chain(["pasta", 10 * MIN], ["sauce", 5 * MIN]), "bare minutes with comma");
 eq(P.parse("tea 3 min, toast 2 min").phases.length, 2, "named comma steps");
 
+// Filler words only count as whole words
+var named = [["dessert 10 then coffee 5", "dessert", "coffee"], ["forno 10 then insalata 5", "forno", "insalata"],
+    ["dessert 10 puis infusion 5", "dessert", "infusion"], ["pourboire 3, depart 2", "pourboire", "depart"],
+    ["10 min de pates puis 5 min de sauce", "pates", "sauce"]];
+named.forEach(function (c) {
+    var r = P.parse(c[0]);
+    eq(r && [r.phases[0].label, r.phases[1].label].join("|"), c[1] + "|" + c[2], "labels: " + c[0]);
+});
+
+// Day and clock words are alarms
+["demain 8h puis 10", "ce soir 8h puis 10", "midi 30 puis 5", "minuit 5 puis 10"].forEach(function (text) {
+    eq(P.parse(text), null, "alarm: " + text);
+});
+
 // Caps
 eq(P.parse("21x 25/5"), null, "too many repeats");
 eq(P.parse("4x 101h/5"), null, "phase over 100 h");
