@@ -17,8 +17,8 @@ var PLUGIN = "Sands";
 var FIELDS = {
     "action": ["start", "pause", "resume", "stop", "add", "clear", "snooze", "dismiss"],
     "reason": ["bad_input", "not_found", "limit", "no_sound", "refused", "bad_data", "killed", "unknown"],
-    "tool": ["pw_play", "notify_send", "dms"],
-    "state": ["running", "paused", "ringing", "idle", "hidden", "visible"],
+    "tool": ["pw_play", "paplay", "notify_send", "gdbus", "wl_copy", "dms"],
+    "state": ["running", "paused", "ringing", "idle"],
     "surface": ["widget", "daemon", "launcher", "settings", "panel"],
     "via": ["button", "ipc", "script"],
     "code": "int",

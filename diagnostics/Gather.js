@@ -8,7 +8,7 @@
 // in a tool's output cannot get through.
 
 // Argument lists, never a shell string (value 11). The journal is read for
-// the DMS unit only; the report keeps what Orbit tagged in it.
+// the DMS unit only; the report keeps what the plugin tagged in it.
 var PROBES = [
     { "key": "dms", "command": ["dms", "version"] },
     { "key": "quickshell", "command": ["quickshell", "--version"] },

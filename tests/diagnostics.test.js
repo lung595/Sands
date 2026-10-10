@@ -36,6 +36,7 @@ const Log = load("diagnostics/Log.js");
 const Cpu = load("diagnostics/Cpu.js");
 const Report = load("diagnostics/Report.js");
 const Gather = load("diagnostics/Gather.js");
+const Sound = load("components/daemon/Sound.js");
 
 // --- Allow.js ------------------------------------------------------------------------
 eq("a yes/no is written yes or no", [Allow.value("bool", true), Allow.value("bool", false)], ["yes", "no"]);
@@ -116,6 +117,9 @@ const OMITTED = ["customSound", "trigger"];
 const pageKeys = [...read("TimerSettings.qml").matchAll(/settingKey: "(\w+)"/g)].map(m => m[1]);
 eq("every setting of the page is reported or left out on purpose", pageKeys.filter(k => !(k in Codes.SETTINGS) && OMITTED.indexOf(k) < 0), []);
 eq("Codes.SETTINGS holds no key the page no longer has", Object.keys(Codes.SETTINGS).filter(k => pageKeys.indexOf(k) < 0), []);
+
+eq("every copy tool Gather can name is an allowed tool word", Gather.COPY_TOOLS.filter(t => Codes.FIELDS.tool.indexOf(t.tool) < 0), []);
+eq("every shipped ring is an allowed sound word", [...Sound.RINGS.map(r => r.value), "custom"].filter(v => Codes.SETTINGS.sound.indexOf(v) < 0), []);
 
 // --- Log.js ----------------------------------------------------------------------------
 const journal = [];

@@ -39,7 +39,7 @@ A code is `SND-` followed by a level letter (`E` error, `W` warning, `I` info, `
 |---|---|---|---|
 | `SND-E001` | error | A timer action (start, pause, resume, stop, add, clear, snooze, dismiss) failed | `action`, `reason` |
 | `SND-E002` | error | The saved timers could not be read | `reason` |
-| `SND-E003` | error | A helper program (`pw-play`, `notify-send`, `dms`) stopped unexpectedly | `tool`, `code` (its exit status) |
+| `SND-E003` | error | A helper program (`pw-play`, `paplay`, `notify-send`, `gdbus`, `wl-copy`, `dms`) stopped unexpectedly | `tool`, `code` (its exit status) |
 | `SND-E004` | error | The ring sound could not be played | `reason` |
 | `SND-W010` | warning | A helper program is missing | `tool` |
 | `SND-W011` | warning | A timer text was not understood | `reason` |
