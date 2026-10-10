@@ -11,6 +11,7 @@
 // key is distinct from every other key published through setGlobalVar.
 var ALEX_ID = "alex";
 var EVENT_KEY = "timerFinished";
+var KIND = "timerFinished"; // the discriminator the Alex bridge (NAK-493) accepts
 var LABEL_MAX = 60;
 
 // No control characters (they would break a one-line island) and capped.
@@ -24,5 +25,5 @@ function cleanLabel(label) {
 // is added to the counter so it also differs across a shell restart.
 function buildEvent(timer, ringSeq) {
     var at = Number(timer.finishedAt || timer.endAt) || 0;
-    return { id: at + "-" + timer.id + "-" + ringSeq, label: cleanLabel(timer.label), endAt: at };
+    return { kind: KIND, id: at + "-" + timer.id + "-" + ringSeq, label: cleanLabel(timer.label), endAt: at };
 }

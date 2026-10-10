@@ -77,7 +77,7 @@ Window {
                 check(win.globalCalls === 2, "one setGlobalVar per ended timer, got " + win.globalCalls);
                 const e = win.events[0];
                 check(e.key === "timerFinished", "event key");
-                check(Object.keys(e.value).join() === "id,label,endAt", "whitelisted shape");
+                check(Object.keys(e.value).join() === "kind,id,label,endAt", "whitelisted shape");
                 check(win.events[0].value.id !== win.events[1].value.id, "ids differ");
             } else {
                 check(win.globalCalls === 0, "Alex absent: no call, got " + win.globalCalls);
