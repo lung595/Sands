@@ -16,7 +16,7 @@ QtObject {
     signal started
     signal exited(int exitCode, int exitStatus)
 
-    readonly property bool _stays: command.length > 0 && String(command[0]).indexOf("notify") >= 0
+    readonly property bool _stays: command.length > 0 && ("" + command[0]).indexOf("notify") >= 0
     property Timer _end: Timer {
         interval: process.playMs
         onTriggered: {

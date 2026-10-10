@@ -3,3 +3,6 @@ StyledText 1.0 StyledText.qml
 DankIcon 1.0 DankIcon.qml
 DankActionButton 1.0 DankActionButton.qml
 DankTooltipV2 1.0 DankTooltipV2.qml
+DankToggle 1.0 DankToggle.qml
+DankDropdown 1.0 DankDropdown.qml
+DankButton 1.0 DankButton.qml

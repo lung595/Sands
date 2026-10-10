@@ -1,0 +1,126 @@
+import QtQuick
+import "mock"
+
+// Offscreen overlap check of the whole settings page at the narrowest real widths.
+// Fails (exit code 1) when two texts or controls intersect, a text is elided or
+// wider than its box, or anything leaves the page. Usage:
+//   TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml
+Item {
+    id: root
+
+    // Widths in px. DMS PluginsTab lays a plugin out in min(550, window - 32) minus the
+    // card margins (2 x 16): 436 at the 500 px minimum window of SettingsModal. The
+    // section rail of the approved mockups (NAK-502) is 176 px: 436 - 176 = 260, the
+    // narrowest real case. 360 is the mockups' own narrow form; 436 is the plain page.
+    readonly property var widths: [260, 360, 436]
+
+    // Stores that show every optional row: a custom sound file, and no launcher prefix
+    readonly property var presets: [
+        {},
+        {
+            "sound": "custom"
+        },
+        {
+            "noTrigger": false
+        }
+    ]
+
+    property var failures: []
+
+    function fail(msg) {
+        failures.push(msg);
+        console.warn("FAIL " + msg);
+    }
+
+    // Every visible leaf: a text with something to show, or a control
+    function collect(item, out) {
+        for (const child of item.children) {
+            if (!child.visible)
+                continue;
+            if (child.objectName === "control" || (child.text !== undefined && child.contentWidth !== undefined && child.text !== ""))
+                out.push(child);
+            else
+                collect(child, out);
+        }
+        return out;
+    }
+
+    function check(tag, page) {
+        const leaves = collect(page, []);
+        const boxes = leaves.map(l => {
+            const p = l.mapToItem(page, 0, 0);
+            return {
+                name: l.objectName === "control" ? "control" : '"' + l.text.slice(0, 24) + '"',
+                x: p.x,
+                y: p.y,
+                w: l.width,
+                h: l.height,
+                item: l
+            };
+        });
+        for (const b of boxes) {
+            if (b.item.truncated)
+                fail(tag + ": " + b.name + " is elided or truncated");
+            if (b.item.contentWidth !== undefined && b.item.contentWidth > b.w + 0.5)
+                fail(tag + ": " + b.name + " is wider than its box");
+            if (b.x < -0.5 || b.x + b.w > page.width + 0.5)
+                fail(tag + ": " + b.name + " leaves the page (" + Math.round(b.x) + " + " + Math.round(b.w) + " > " + page.width + ")");
+        }
+        for (let i = 0; i < boxes.length; i++)
+            for (let j = i + 1; j < boxes.length; j++) {
+                const a = boxes[i], b = boxes[j];
+                if (a.x < b.x + b.w - 0.5 && b.x < a.x + a.w - 0.5 && a.y < b.y + b.h - 0.5 && b.y < a.y + a.h - 0.5)
+                    fail(tag + ": " + a.name + " overlaps " + b.name);
+            }
+        return boxes.length;
+    }
+
+    // A row writes its changed value under its own key, and only then
+    function checkSaving(page) {
+        const row = (function find(item) {
+                for (const c of item.children) {
+                    if (c.settingKey === "tick")
+                        return c;
+                    const hit = find(c);
+                    if (hit)
+                        return hit;
+                }
+                return null;
+            })(page);
+        if (!row || page.store.tick !== undefined)
+            fail("the tick row is missing, or wrote its value while loading");
+        else {
+            row.value = true;
+            if (page.store.tick !== true)
+                fail("the tick row did not save its new value");
+        }
+    }
+
+    Column {
+        id: cases
+        Repeater {
+            model: root.widths.length * root.presets.length
+            SettingsCase {
+                readonly property int w: root.widths[Math.floor(index / root.presets.length)]
+                pageWidth: w
+                preset: root.presets[index % root.presets.length]
+            }
+        }
+    }
+
+    Timer {
+        interval: 300
+        running: true
+        onTriggered: {
+            let leaves = 0;
+            for (let i = 0; i < cases.children.length - 1; i++) {
+                const c = cases.children[i];
+                if (c.page)
+                    leaves += root.check(c.page.width + " px, case " + (i % root.presets.length), c.page);
+            }
+            root.checkSaving(cases.children[0].page);
+            console.warn(root.failures.length === 0 ? "OK: no overlap in " + leaves + " texts and controls" : root.failures.length + " problems");
+            Qt.exit(root.failures.length === 0 ? 0 : 1);
+        }
+    }
+}
