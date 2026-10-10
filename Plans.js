@@ -1,4 +1,5 @@
 .pragma library
+.import "TimeParser.js" as TimeParser
 
 // Plan parser (French / English): focus cycles and chained timers.
 //
@@ -14,29 +15,40 @@
 // « 4 fois 25m/5m », « 25/5 4 times ». Chain forms: « pasta 10 then sauce 5 »,
 // « 10 min pates puis 5 min sauce », « a 10 > b 5 ». A bare number is minutes.
 
-// Same bounds as the single-timer parser: one phase is at most 100 h
-var MAX_MS = 100 * 3600 * 1000;
+// Bounds and unit spellings come from the single-timer parser: one source
+var MAX_MS = TimeParser.MAX_MS;
+var MAX_INPUT = TimeParser.MAX_INPUT;
+var MAX_LABEL = TimeParser.MAX_LABEL;
+var U_HOUR = TimeParser.U_HOUR;
+var U_MIN = TimeParser.U_MIN;
+var U_SEC = TimeParser.U_SEC;
 // A plan never plays more than this many phases in total
 var MAX_PHASES = 40;
 var MAX_REPEATS = 20;
 // Chained timers in one phrase
 var MAX_CHAIN = 10;
-// Same cap as the single-timer parser: bounds the regex work on IPC input
-var MAX_INPUT = 200;
-var MAX_LABEL = 60;
 
-var U_HOUR = "h|hr|hrs|heures?|hours?";
-var U_MIN = "min|mins|minutes?|mn|m";
-var U_SEC = "s|sec|secs|secondes?|seconds?";
-// Groups: 1 number, 2 hour unit, 3 minutes after the hour (« 1h30 »),
-// 4 minute unit, 5 second unit. No unit means minutes.
-var DUR = "(?<![a-z0-9.,])(\\d+(?:[.,]\\d+)?)\\s*(?:(" + U_HOUR + ")(?![a-z])(?:\\s*(\\d+)(?![\\d.,]\\d?)(?:\\s*(?:" + U_MIN + ")(?![a-z]))?)?|(" + U_MIN + ")(?![a-z])|(" + U_SEC + ")(?![a-z]))?";
+// A duration may not start inside a word, a version or a decimal number
+var DUR_START = "(?<![a-z0-9.,])";
+// Capture groups of one duration: 1 number, 2 hour unit, 3 minutes after the
+// hour (« 1h30 »), 4 minute unit, 5 second unit
+var DUR_GROUPS = 5;
+var NUMBER = "(\\d+(?:[.,]\\d+)?)";
+var HOUR_PART = "(" + U_HOUR + ")(?![a-z])(?:\\s*(\\d+)(?![\\d.,]\\d?)(?:\\s*(?:" + U_MIN + ")(?![a-z]))?)?";
+// No unit means minutes, but only when nothing is glued to the number:
+// « 5pm », « 10kg », « 1.5.2 » and « 1e3 » are not durations
+var DUR_CORE = NUMBER + "(?:\\s*(?:" + HOUR_PART + "|(" + U_MIN + ")(?![a-z])|(" + U_SEC + ")(?![a-z]))|(?![a-z0-9:]|[.,]\\d))";
+var PAIR = DUR_START + DUR_CORE + "\\s*/\\s*" + DUR_CORE;
 var COUNT_WORD = "x|\\*|×|cycles?(?:\\s+(?:of|de|d'))?|fois|times|rounds?|sets?";
-var RE_DUR = new RegExp(DUR, "g");
-var RE_PAIR = DUR + "\\s*/\\s*" + DUR.replace("(?<![a-z0-9.,])", "");
-var RE_COUNT_FIRST = new RegExp("^(?:pomodoro\\s+|focus\\s+)?(\\d+)\\s*(?:" + COUNT_WORD + ")\\s*(?:of\\s+|de\\s+)?" + RE_PAIR + "$");
-var RE_COUNT_AFTER = new RegExp("^(?:pomodoro\\s+|focus\\s+)?" + RE_PAIR + "\\s*(?:(?:x|\\*|×)\\s*(\\d+)|(\\d+)\\s*(?:times|fois|cycles?|rounds?))$");
+var RE_DUR = new RegExp(DUR_START + DUR_CORE, "g");
+var RE_COUNT_FIRST = new RegExp("^(?:pomodoro\\s+|focus\\s+)?(\\d+)\\s*(?:" + COUNT_WORD + ")\\s*(?:of\\s+|de\\s+)?" + PAIR + "$");
+var RE_COUNT_AFTER = new RegExp("^(?:pomodoro\\s+|focus\\s+)?" + PAIR + "\\s*(?:(?:x|\\*|×)\\s*(\\d+)|(\\d+)\\s*(?:times|fois|cycles?|rounds?))$");
 var RE_SPLIT = /\s*(?:->|=>|>|;|,(?!\d)|\b(?:and then|et puis|et ensuite|then|puis|ensuite)\b)\s*/;
+// A comma or semicolon only separates named steps: « 1 h, 30 min » is one
+// composite duration that the single-timer parser reads
+var RE_LIST_MARK = /;|,(?!\d)/;
+// A step that names a time of day is an alarm, not a plan step
+var RE_CLOCK = /@|(?:^|\s)(?:at|a|vers|until|jusqu'a)\s*\d|\b(?:am|pm)\b/;
 var RE_LEAD = /^(?:(?:for|pour|de|d['’]|during|pendant|in|dans|timer|minuteur)\s*)+/i;
 var RE_TRAIL = /(?:\s+(?:for|pour|de|d['’]|during|pendant|in|dans))+$/i;
 
@@ -72,7 +84,11 @@ function durationMs(m, at) {
 function cleanLabel(text) {
     var s = text.replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim();
     s = s.replace(RE_LEAD, "").replace(RE_TRAIL, "").trim();
-    return s.length > MAX_LABEL ? s.slice(0, MAX_LABEL).trim() : s;
+    if (s.length <= MAX_LABEL)
+        return s;
+    // Do not cut an emoji (surrogate pair) in two
+    var cut = /[\ud800-\udbff]/.test(s.charAt(MAX_LABEL - 1)) ? MAX_LABEL - 1 : MAX_LABEL;
+    return s.slice(0, cut).trim();
 }
 
 function plan(kind, phases, repeats) {
@@ -91,10 +107,10 @@ function parseCycle(work) {
         m = RE_COUNT_AFTER.exec(work);
         if (!m)
             return null;
-        repeats = parseInt(m[11] !== undefined ? m[11] : m[12], 10);
+        repeats = parseInt(m[2 * DUR_GROUPS + 1] !== undefined ? m[2 * DUR_GROUPS + 1] : m[2 * DUR_GROUPS + 2], 10);
         at = 1;
     }
-    var focus = durationMs(m, at), pause = durationMs(m, at + 5);
+    var focus = durationMs(m, at), pause = durationMs(m, at + DUR_GROUPS);
     if (isNaN(focus) || isNaN(pause))
         return null;
     return plan("cycle", [{ label: "Focus", ms: focus }, { label: "Break", ms: pause }], repeats);
@@ -118,7 +134,7 @@ function parseStep(original, work) {
 
 function parseChain(original, work) {
     var parts = work.split(RE_SPLIT);
-    if (parts.length < 2 || parts.length > MAX_CHAIN)
+    if (parts.length < 2 || parts.length > MAX_CHAIN || RE_CLOCK.test(work))
         return null;
     var phases = [];
     var pos = 0;
@@ -131,6 +147,9 @@ function parseChain(original, work) {
             return null;
         phases.push(step);
     }
+    // Unnamed steps are only allowed between words (« 10 then 5 »)
+    if (RE_LIST_MARK.test(work) && phases.some(function (p) { return p.label === ""; }))
+        return null;
     return plan("chain", phases, 1);
 }
 
