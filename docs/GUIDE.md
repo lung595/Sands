@@ -196,7 +196,8 @@ If the Alex plugin is loaded, Sands publishes one event when a timer ends: a fix
 
 - **No network access, no telemetry.** The guide links in messages open in your browser only when you click them.
 - **Short-lived local tools only**: `pw-play` (or `paplay`) to ring, `notify-send` / `gdbus` for the notification, and a one-off `find` over the system sound folders while the settings page is open.
-- **Written to disk**, through DMS's plugin state: your running timers (end times and labels) and your recent timers. Nothing else.
+- **Written to disk**, through DMS's plugin state: your running timers (end times and labels) and your recent timers.
+- **Private history**: when a timer rings, its name and times are kept in `~/.local/state/sands/history.json`, readable by you only (mode 0600 in a 0700 folder), 12 months at most. It is written at the ring only, never while a timer runs or at rest, and uninstalling Sands removes the file and its folder. Nothing else is written.
 - **Settings** are stored by DMS with your other plugin settings.
 
 ## Performance

@@ -11,6 +11,8 @@ ShellRoot {
     readonly property string tmp: Quickshell.env("QML_TMP")
     property int step: 0
     property bool failed: false
+    property int before: 0
+    property string snap: ""
 
     function check(ok, what) {
         if (!ok) {
@@ -116,11 +118,31 @@ ShellRoot {
         } else if (step === 7) {
             look(l => {
                 check(l[1] === "600" && l[2].indexOf('"Y"') > 0 && l[2].indexOf('"Z"') < 0, "unreadable file recovered");
-                store.removeAll();
+                // A bare load never writes: the next step compares the content
+                root.snap = l[2];
+                store.load(h => check(h.records.length === 1, "load reads the one record"));
             });
         } else if (step === 8) {
             look(l => {
-                check(l[0] === "-" && l[1] === "-", "folder and file removed");
+                check(l[2] === root.snap, "a load leaves the file untouched");
+                // The read side: one load after one append sees exactly one more record
+                store.load(h => {
+                    root.before = h.records.length;
+                    store.append({
+                        name: "Last",
+                        start: Date.now() - 5000,
+                        end: Date.now() - 1000
+                    });
+                    store.load(h2 => {
+                        check(h2.records.length === root.before + 1, "a timer that ends adds exactly one record");
+                        check(h2.records[h2.records.length - 1].name === "Last", "the new record is the last");
+                        store.erase();
+                    });
+                });
+            });
+        } else if (step === 9) {
+            look(l => {
+                check(l[0] === "700" && l[1] === "-", "erase empties the file and keeps the folder");
                 console.warn(failed ? "FAIL" : "PASS");
                 Qt.exit(failed ? 1 : 0);
             });

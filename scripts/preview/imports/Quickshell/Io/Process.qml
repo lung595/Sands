@@ -9,6 +9,9 @@ QtObject {
 
     property var command: []
     property bool running: false
+    property bool stdinEnabled: false
+    function write(data) {
+    }
     property var environment: ({})
     property QtObject stdout: null
     property QtObject stderr: null
@@ -35,6 +38,8 @@ QtObject {
         } else if (_wasRunning) {
             _wasRunning = false;
             _end.stop();
+            if (stdout && stdout.finish)
+                stdout.finish();
             exited(0, 0);
         }
     }
