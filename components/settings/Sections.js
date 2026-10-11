@@ -75,7 +75,12 @@ var SETTINGS = [
       "words": ["notification", "popup", "alert", "notifier", "plein écran", "fullscreen"] },
     { "key": "respectDnd", "section": "alerts", "label": "Respect Do Not Disturb", "default": true,
       "help": "In Do Not Disturb, no sound: the pill still pulses",
-      "words": ["dnd", "silent", "quiet", "mute", "ne pas déranger", "silence", "muet"] }
+      "words": ["dnd", "silent", "quiet", "mute", "ne pas déranger", "silence", "muet"] },
+
+    // Help: a read-only entry, so the section exists and search finds the examples
+    { "key": "examples", "section": "help", "label": "Examples and commands",
+      "help": "What the launcher understands and the dms ipc calls",
+      "words": ["example", "ipc", "command", "cli", "syntax", "exemple", "commande", "aide", "help"] }
 ];
 
 // The battery levels a setting may declare, for the view and the tests

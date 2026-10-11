@@ -197,7 +197,8 @@ Item {
                     sourceComponent: ({
                             "timers": timers,
                             "appearance": appearance,
-                            "alerts": alerts
+                            "alerts": alerts,
+                            "help": help
                         })[root.section]
                 }
 
@@ -234,6 +235,10 @@ Item {
     Component {
         id: appearance
         AppearanceSection {}
+    }
+    Component {
+        id: help
+        HelpSection {}
     }
     Component {
         id: alerts
