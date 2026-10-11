@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## Unreleased
 
+### Added
+
+- Pure logic for the four look choices (`components/settings/Variants.js`, NAK-646): the journal, favourites, notice and end-of-timer modes, with their keys, allowed values, defaults, English labels and `clean(key, value)`. Not wired to any view yet; covered by `tests/variants.test.js`.
+
 ## 1.6.0 - 2026-10-11
 
 ### Added
