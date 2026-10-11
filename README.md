@@ -118,7 +118,7 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 
 ## Settings
 
-**Settings → Plugins → Sands.**
+**Settings → Plugins → Sands.** A left rail lists the sections; the search bar on top finds any setting by name, help or synonym (**Ctrl+F** or **/** to focus, **Enter** to jump, **Esc** to clear).
 
 | Setting | Default |
 | --- | --- |

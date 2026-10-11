@@ -5,7 +5,8 @@
 // moving a section is a one-line change here. Pure, no state, no side effect.
 // Tested by tests/settings-sections.test.js.
 //
-// A setting is { key, section, label, help, words[], default?, level?, cost?, pending? }:
+// A setting is { key, section, label, help, words[], default?, anchor?, level?, cost?, pending? }:
+//   anchor   key of the row to highlight while this one is hidden by the current state
 //   words    search synonyms, English and French
 //   level    battery level when the setting has a real cost: "high" | "some" | "light"
 //   cost     one line saying what the cost is (set with `level`)
@@ -29,7 +30,7 @@ var SETTINGS = [
     { "key": "noTrigger", "section": "timers", "label": "Automatic detection", "default": true,
       "help": "Understands “timer 20 min”, “25m pasta” or “at 6pm” without a prefix",
       "words": ["launcher", "prefix", "detect", "lanceur", "détection", "automatique", "préfixe"] },
-    { "key": "trigger", "section": "timers", "label": "Prefix", "default": "timer",
+    { "key": "trigger", "section": "timers", "label": "Prefix", "default": "timer", "anchor": "noTrigger",
       "help": "The word to type first when automatic detection is off",
       "words": ["trigger", "keyword", "mot", "déclencheur", "préfixe"] },
     { "key": "snooze", "section": "timers", "label": "Snooze choices", "pending": true,
@@ -54,7 +55,7 @@ var SETTINGS = [
     { "key": "sound", "section": "alerts", "label": "Sound", "default": "default",
       "help": "Loops when a timer reaches zero",
       "words": ["alarm", "ring", "tone", "son", "sonnerie", "alarme"] },
-    { "key": "customSound", "section": "alerts", "label": "Sound file", "default": "",
+    { "key": "customSound", "section": "alerts", "label": "Sound file", "default": "", "anchor": "sound",
       "help": "Full path to an .oga, .ogg, .wav, .mp3 or .flac file",
       "words": ["custom", "file", "path", "fichier", "chemin", "personnalisé"] },
     { "key": "volume", "section": "alerts", "label": "Volume", "default": 80,
@@ -68,14 +69,19 @@ var SETTINGS = [
       "words": ["length", "stop", "durée", "arrêt", "sonnerie"] },
     { "key": "tick", "section": "alerts", "label": "Final countdown ticks", "default": false,
       "help": "A soft tick on each of the last 10 seconds",
-      "level": "some", "cost": "Plays a sound on each of the last 10 seconds",
+      "level": "light", "cost": "Plays a sound on each of the last 10 seconds",
       "words": ["countdown", "beep", "compte à rebours", "tic", "tac", "secondes"] },
     { "key": "notify", "section": "alerts", "label": "Notification when done", "default": true,
       "help": "With “Stop” and “+5 min” buttons: handy in fullscreen, when the bar is hidden",
       "words": ["notification", "popup", "alert", "notifier", "plein écran", "fullscreen"] },
     { "key": "respectDnd", "section": "alerts", "label": "Respect Do Not Disturb", "default": true,
       "help": "In Do Not Disturb, no sound: the pill still pulses",
-      "words": ["dnd", "silent", "quiet", "mute", "ne pas déranger", "silence", "muet"] }
+      "words": ["dnd", "silent", "quiet", "mute", "ne pas déranger", "silence", "muet"] },
+
+    // Help: a read-only entry, so the section exists and search finds the examples
+    { "key": "examples", "section": "help", "label": "Examples and commands",
+      "help": "What the launcher understands and the dms ipc calls",
+      "words": ["example", "ipc", "command", "cli", "syntax", "exemple", "commande", "aide", "help"] }
 ];
 
 // The battery levels a setting may declare, for the view and the tests

@@ -23,6 +23,7 @@ Column {
     }
     StyledText {
         text: root.description
+        color: Theme.surfaceVariantText
         width: parent.width
         font.pixelSize: Theme.fontSizeSmall
         visible: root.description !== ""

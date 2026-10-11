@@ -114,7 +114,7 @@ eq("the personal settings are not reported", ["customSound", "trigger"].filter(k
 
 // The settings page and Codes.SETTINGS cannot drift apart
 const OMITTED = ["customSound", "trigger"];
-const pageKeys = [...read("TimerSettings.qml").matchAll(/settingKey: "(\w+)"/g)].map(m => m[1]);
+const pageKeys = [...["Timers", "Appearance", "Alerts"].map(n => read("components/settings/" + n + "Section.qml")).join("\n").matchAll(/settingKey: "(\w+)"/g)].map(m => m[1]);
 eq("every setting of the page is reported or left out on purpose", pageKeys.filter(k => !(k in Codes.SETTINGS) && OMITTED.indexOf(k) < 0), []);
 eq("Codes.SETTINGS holds no key the page no longer has", Object.keys(Codes.SETTINGS).filter(k => pageKeys.indexOf(k) < 0), []);
 

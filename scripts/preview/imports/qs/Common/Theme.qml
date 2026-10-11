@@ -9,7 +9,8 @@ ThemeColors {
     readonly property bool light: Qt.application.arguments.indexOf("light") >= 0
     property color primary: root.light ? "#6750A4" : "#D0BCFF"
     property color error: root.light ? "#B3261E" : "#F2B8B5"
-    property color warning: "#FF9800"
+    property color warning: root.light ? "#8A5100" : "#FFB95C"
+    property color success: root.light ? "#1B6E2E" : "#8FD99A"
     property color outline: root.light ? "#79747E" : "#938F99"
     property color surface: root.light ? "#FEF7FF" : "#141218"
     property color surfaceContainer: root.light ? "#F3EDF7" : "#211F26"

@@ -9,6 +9,9 @@ Column {
 
     required property string title
     property string description: ""
+    // Battery level and cost note of a costly setting; empty level = no chip
+    property string level: ""
+    property string cost: ""
 
     spacing: Theme.spacingXS
 
@@ -30,5 +33,20 @@ Column {
         wrapMode: Text.WordWrap
         elide: Text.ElideNone
         visible: root.description !== ""
+    }
+
+    BatteryPill {
+        visible: root.level !== ""
+        level: root.level || "light"
+    }
+
+    StyledText {
+        width: parent.width
+        text: root.cost
+        font.pixelSize: Theme.fontSizeSmall
+        color: Theme.surfaceVariantText
+        wrapMode: Text.WordWrap
+        elide: Text.ElideNone
+        visible: root.level !== "" && root.cost !== ""
     }
 }

@@ -1,6 +1,8 @@
 import QtQuick
 import "mock"
 import "mock/Presets.js" as Presets
+import "../../components/settings/Sections.js" as Sections
+import qs.Common
 
 // Offscreen overlap check of the whole settings page at the narrowest real widths.
 // Fails (exit code 1) when two texts or controls intersect, a text is elided or
@@ -104,21 +106,124 @@ Item {
         }
     }
 
+    function findItem(item, name) {
+        for (const c of item.children) {
+            if (c.objectName === name)
+                return c;
+            const hit = findItem(c, name);
+            if (hit)
+                return hit;
+        }
+        return null;
+    }
+
+    // Search wiring: a query finds a setting, picking it opens its section and clears
+    // the query, a nonsense query finds nothing
+    function checkSearch(page) {
+        const sp = findItem(page, "settingsPage");
+        sp.query = "sound";
+        if (sp.results.length === 0)
+            fail("search finds nothing for \"sound\"");
+        else {
+            const hit = sp.results[0];
+            sp.open(hit.section, hit.key);
+            if (sp.section !== hit.section || sp.query !== "")
+                fail("picking a result did not open its section and clear the query");
+        }
+        sp.query = "zzqqxxjj";
+        if (sp.results.length !== 0)
+            fail("a nonsense query found a setting");
+        sp.query = "";
+    }
+
+    // Esc clears a query and is left alone otherwise (focus keys: tests/qml-page)
+    function checkKeys(page) {
+        const sp = findItem(page, "settingsPage");
+        sp.query = "sound";
+        if (!sp.clearQuery() || sp.query !== "")
+            fail("Esc does not clear a query");
+        if (sp.clearQuery())
+            fail("Esc is swallowed with nothing to clear");
+        sp.section = "timers";
+        sp.query = "sound";
+        sp.openFirst();
+        if (sp.query !== "" || sp.section !== "alerts")
+            fail("Enter does not open the first result");
+    }
+
+    // After a pick, the highlight sits on the row (or on its anchor when hidden)
+    property var flashKeys: []
+    function nextFlash() {
+        if (flashKeys.length === 0) {
+            console.warn(failures.length === 0 ? "OK: no overlap in " + leaves + " texts and controls" : failures.length + " problems");
+            Qt.exit(failures.length === 0 ? 0 : 1);
+            return;
+        }
+        const sp = findItem(cases.children[0].page, "settingsPage");
+        const key = flashKeys[0];
+        sp.open(Sections.sectionOf(key), key);
+        flashCheck.restart();
+    }
+
+    Timer {
+        id: flashCheck
+        interval: 150
+        onTriggered: {
+            const sp = root.findItem(cases.children[0].page, "settingsPage");
+            const key = root.flashKeys.shift();
+            const row = sp.flashTarget(key);
+            const flash = root.findItem(sp, "flash");
+            if (!row)
+                root.fail("no row to highlight for " + key);
+            else {
+                const p = row.mapToItem(flash.parent, 0, 0);
+                if (flash.height <= 0 || Math.abs(flash.x - p.x) > 0.5 || Math.abs(flash.y - p.y) > 0.5 || Math.abs(flash.width - row.width) > 0.5 || Math.abs(flash.height - row.height) > 0.5)
+                    root.fail("the highlight is not on the row of " + key);
+            }
+            if (sp.fadeDuration !== (Qt.application.arguments.indexOf("reduce") >= 0 ? 150 : 600))
+                root.fail("the fade duration ignores Reduce motion");
+            root.nextFlash();
+        }
+    }
+
+    // Every section is opened in turn on every page and measured
+    readonly property var sectionIds: ["timers", "appearance", "alerts"]
+    property int phase: -1
+    property int leaves: 0
+
+    function openPhase() {
+        phase++;
+        if (phase >= sectionIds.length) {
+            checkSearch(cases.children[0].page);
+            checkKeys(cases.children[0].page);
+            flashKeys = Sections.visibleSettings().map(s => s.key);
+            nextFlash();
+            return;
+        }
+        for (let i = 0; i < cases.children.length - 1; i++) {
+            const c = cases.children[i];
+            if (c.page)
+                findItem(c.page, "settingsPage").section = sectionIds[phase];
+        }
+        settle.restart();
+    }
+
     // The rows load their saved value through Qt.callLater, so wait until the pages
     // have laid out again before measuring.
     Timer {
+        id: settle
         interval: 300
-        running: true
         onTriggered: {
-            let leaves = 0;
             for (let i = 0; i < cases.children.length - 1; i++) {
                 const c = cases.children[i];
                 if (c.page)
-                    leaves += root.check(c.page.width + " px, case " + (i % root.presets.length), c.page);
+                    root.leaves += root.check(root.sectionIds[root.phase] + " " + c.page.width + " px, case " + (i % root.presets.length), c.page);
             }
-            root.checkSaving(cases.children[0].page);
-            console.warn(root.failures.length === 0 ? "OK: no overlap in " + leaves + " texts and controls" : root.failures.length + " problems");
-            Qt.exit(root.failures.length === 0 ? 0 : 1);
+            if (root.sectionIds[root.phase] === "alerts")
+                root.checkSaving(cases.children[0].page);
+            root.openPhase();
         }
     }
+
+    Component.onCompleted: openPhase()
 }
