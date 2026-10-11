@@ -22,6 +22,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 - Design mockup and spec of the "Copy report" row in the settings Help section, with a GitHub mark that opens a new issue (`docs/design/copy-report.md` and `docs/design/copy-report/`, NAK-535). Design only: no code change.
 
+### Fixed
+
+- No em dash in the timer-finished notification title and in the IPC replies: a plain hyphen with spaces instead (`components/daemon/Notifications.js`, `components/daemon/IpcReplies.js`, `components/daemon/PlainText.js`, NAK-556). The dash scan covers every `components/` file and the `list` reply. Covered by `tests/daemon-text.test.js`.
+
 ## 1.5.1 - 2026-10-09
 
 ### Changed
