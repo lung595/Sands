@@ -126,7 +126,7 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 | Hourglass: Classic or Glass of Time | Classic |
 | Visual alert: Rising dune, Edge halo or None | Rising dune |
 | Show on: all screens, the active screen, or one screen by name | All screens |
-| Rising dune style: Last grains (Wind dune and Flat wave are shown greyed, not available yet) | Last grains |
+| Rising dune style: Last grains, Wind dune or Flat wave | Last grains |
 | Show above full screen (Rising dune only) | Off |
 | Show the visual alert: every time, or when sound is off | Every time |
 | Test the alarm: plays the sound and shows the chosen alert once | Button |

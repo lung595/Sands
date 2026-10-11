@@ -4,7 +4,7 @@ import "../../scripts/preview/mock"
 import "../../components/settings"
 
 // The visual alert rows of "Alerts & sounds" with real clicks: the three kind
-// cards, the screen list ("Show on"), the dune style cards (a style without a scene cannot be picked), the
+// cards, the screen list ("Show on"), the dune style cards (each of the three styles can be picked), the
 // full-screen switch, the moment, and "Test the alarm", which asks the daemon.
 // Run: tests/qml-page/run.sh
 Item {
@@ -53,7 +53,7 @@ Item {
         }
     }
 
-    // A second page whose store holds a style without a scene, as a hand-edited file would
+    // A second page whose store already holds another style than the default
     Item {
         id: oldHost
         width: parent.width
@@ -220,27 +220,24 @@ Item {
             verify(row("duneStyle").visible);
         }
 
-        function test_styleWithoutASceneCannotBePicked() {
-            for (const v of ["wind", "wave"]) {
+        function test_everyStyleCanBePicked() {
+            for (const v of ["wind", "wave", "grains"]) {
                 const c = card("duneStyle", v);
-                verify(!c.usable, v + " is greyed");
-                verify(c.opacity < 1);
-                const reason = find(c, t => t.text === "Not available yet");
-                verify(reason !== null, v + " says why");
+                verify(c.usable, v + " can be picked");
+                compare(c.opacity, 1);
+                verify(find(c, t => t.text === "Not available yet") === null, v + " has no greyed note");
                 click(c);
-                compare(row("duneStyle").value, "grains");
+                compare(row("duneStyle").value, v);
+                compare(host.saved.duneStyle, v);
+                verify(c.selected);
             }
-            verify(card("duneStyle", "grains").usable);
-            // The keyboard skips the greyed cards too
-            row("duneStyle")._step(1);
-            compare(row("duneStyle").value, "grains");
         }
 
-        function test_savedStyleWithoutASceneShowsWhatIsDrawn() {
+        function test_savedStyleShowsItsOwnCard() {
             tryCompare(row("duneStyle", oldSection), "ready", true);
             compare(row("duneStyle", oldSection).value, "wind");
-            verify(card("duneStyle", "grains", oldSection).selected);
-            verify(!card("duneStyle", "wind", oldSection).selected);
+            verify(card("duneStyle", "wind", oldSection).selected);
+            verify(!card("duneStyle", "grains", oldSection).selected);
         }
 
         function test_fullScreenSwitchSaves() {

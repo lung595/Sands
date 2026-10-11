@@ -42,8 +42,8 @@ Item {
 
     signal stopRequested
 
-    // One scene file per style, listed in DuneStyles.js. A style without a
-    // scene yet shows the default (Last grains) until its story adds its entry.
+    // One scene file per style, listed in DuneStyles.js. A value without a
+    // scene there shows the default (Last grains).
     readonly property var scenes: Styles.SCENES
     readonly property string drawn: Styles.drawnOf(style)
 

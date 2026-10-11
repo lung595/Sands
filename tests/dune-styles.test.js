@@ -25,6 +25,7 @@ eq([S.isDrawn("nope"), S.isDrawn("toString"), S.isDrawn(undefined)], [false, fal
 for (const s of S.STYLES)
     eq(S.drawnOf(s.value), S.isDrawn(s.value) ? s.value : S.DEFAULT, "what is drawn for " + s.value);
 eq(S.drawnOf("nope"), "grains", "a bad value draws the default");
+eq(S.STYLES.map(s => S.isDrawn(s.value)), [true, true, true], "the three styles have their scene");
 const cards = S.choices();
 eq(cards.map(c => c.value), S.STYLES.map(s => s.value), "one card per style, same order");
 eq(cards.map(c => c.enabled), S.STYLES.map(s => S.isDrawn(s.value)), "only a style with a scene can be picked");
