@@ -11,6 +11,9 @@ var MAX_MINUTES = 120;
 var MAX_CHOICES = 6;
 // Raw entries read from the settings, so a huge list costs nothing to clean
 var MAX_RAW = 50;
+// Snooze used when the caller gives 0 and the settings hold no default yet;
+// also the "+5 min" notification button
+var DEFAULT_MINUTES = 5;
 
 // A snooze length in whole minutes, or 0 when it is not valid
 function minutes(value) {
@@ -51,4 +54,13 @@ function remember(raw, picked) {
 // The snooze in ms for a pick, or 0 when invalid
 function toMs(picked) {
     return minutes(picked) * 60000;
+}
+
+// The minutes for `smartTimer snooze <n>`: 0 or garbage gives the default,
+// anything else is clamped into 1..MAX_MINUTES
+function forIpc(value) {
+    const n = Math.trunc(Number(value));
+    if (!Number.isFinite(n) || n === 0)
+        return DEFAULT_MINUTES;
+    return Math.min(MAX_MINUTES, Math.max(1, n));
 }
