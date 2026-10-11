@@ -41,7 +41,8 @@ eq(A.isSilent("none", "bogus"), false, "bogus kind falls back to dune");
 
 // Legend
 eq(A.legendReason("dune", "muted", states["volume 0"][0]), "Sound is muted", "muted legend");
-eq(A.legendReason("halo", "always", audible), "", "always, audible: nothing extra");
+eq(A.legendReason("halo", "always", audible), "Click to stop", "always, audible: click to stop");
+eq(A.legendReason("halo", "muted", audible), "", "muted, audible: not shown, no text");
 eq(A.legendReason("halo", "always", states["output muted"][0]), "Sound is muted", "always, muted");
 eq(A.legendReason("dune", "muted", states["sound none"][0]), "No sound chosen", "no sound chosen");
 eq(A.legendReason("none", "muted", states["volume 0"][0]), "", "no alert, no legend");

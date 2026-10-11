@@ -10,17 +10,18 @@ const BEATS = 3;
 const EXIT_MS = 150;
 const HZ = 30;
 const FRAME_MS = 1000 / HZ;
-// Opacity of the posed rim, and of a beat's peak
-const REST = 0.35;
-const PEAK = 1;
+// Opacity of the posed rim (also the top of a beat) and of a beat's dip, as
+// on the approved page: each beat dips to half and comes back
+const REST = 1;
+const TROUGH = 0.5;
 
 function round(v) {
     return Math.round(v * 1000) / 1000;
 }
 
-// Opacity of a beat at phase 0..1: rest, up to the peak, back to rest
+// Opacity of a beat at phase 0..1: rest, down to the dip at mid-beat, back
 function beatAt(phase) {
-    return REST + (PEAK - REST) * (1 - Math.cos(2 * Math.PI * phase)) / 2;
+    return REST - (REST - TROUGH) * (1 - Math.cos(2 * Math.PI * phase)) / 2;
 }
 
 // The whole sequence as [{ t (ms), opacity }]. Reduce motion gives no step:
@@ -46,7 +47,8 @@ function posed() {
 }
 
 // Fade out from `from` to 0 in 150 ms
-function exitSteps(from) {
+function exitSteps(fromOpacity) {
+    const from = Math.min(1, Math.max(0, Number(fromOpacity) || 0));
     const list = [];
     const frames = Math.round(EXIT_MS / FRAME_MS);
     for (let i = 1; i < frames; i++) {

@@ -9,8 +9,11 @@ const WHEN = ["muted", "always"];
 const DEFAULT_KIND = "dune";
 const DEFAULT_WHEN = "muted";
 
-// The "sound" setting value that means no sound. Both choices are kept when
-// the alert is also "none"; the page only warns (isSilent).
+// The "sound" setting value that means no sound. Reserved: Sound.js does not
+// offer it yet (soundFile("none") would still ring the default), so the wiring
+// story (NAK-680) adds it there and imports this constant from one place
+// instead of keeping a copy (Q181). Both choices are kept when the alert is
+// also "none"; the page only warns (isSilent).
 const SILENT_SOUND = "none";
 
 // Saved values come from a file the user can edit: anything unknown falls
@@ -52,12 +55,16 @@ function isSilent(soundChoice, kind) {
     return soundChoice === SILENT_SOUND && kindOf(kind) === "none";
 }
 
-// Second part of the legend under the alert: why it is shown. Nothing extra
-// when it is shown "every time" over an audible sound.
+// Second part of the legend under the alert, as on the approved page: "No
+// sound chosen", else "Click to stop" when shown every time, else "Sound is
+// muted". Shown every time over a sound that cannot be heard (volume 0, muted
+// or no output) keeps "Sound is muted": the page has no text for that case.
 function legendReason(kind, when, soundState) {
     if (kindOf(kind) === "none")
         return "";
     if (soundState && soundState.choice === SILENT_SOUND)
         return "No sound chosen";
-    return isInaudible(soundState) ? "Sound is muted" : "";
+    if (isInaudible(soundState))
+        return "Sound is muted";
+    return whenOf(when) === "always" ? "Click to stop" : "";
 }
