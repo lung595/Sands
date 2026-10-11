@@ -189,7 +189,7 @@ Item {
     // Every section is opened in turn on every page and measured
     // "timers" comes twice: the second time with a refusal shown under every row and a
     // command being typed, the tallest the section gets
-    readonly property var sectionIds: ["timers", "timers", "appearance", "alerts", "advanced"]
+    readonly property var sectionIds: ["timers", "timers", "appearance", "alerts", "advanced", "help"]
     property int phase: -1
     property int leaves: 0
 

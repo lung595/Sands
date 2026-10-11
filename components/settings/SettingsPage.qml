@@ -284,6 +284,7 @@ Item {
                     HelpSection {
                         id: helpSection
                         visible: root.section === "help"
+                        daemon: root.daemon
                     }
                 }
 

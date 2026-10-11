@@ -18,6 +18,21 @@ QtObject {
     property string hourglassStyle: "classic"
     readonly property string guideUrl: "file:///dev/null"
 
+    // The report service and the clipboard, for the "Copy report" row. A press
+    // ends at once in `copyOutcome` ("copied" or "none"); `building` keeps it busy.
+    property string copyOutcome: "copied"
+    property bool building: false
+    readonly property QtObject report: QtObject {
+        readonly property bool busy: fake.building
+        function request(via) {
+            fake.reportClipboard.result = fake.copyOutcome;
+            return true;
+        }
+    }
+    readonly property QtObject reportClipboard: QtObject {
+        property string result: "idle"
+    }
+
     readonly property var sorted: {
         const rank = t => t.state === "ringing" ? 0 : (t.state === "running" ? 1 : 2);
         const key = t => t.state === "running" ? t.endAt : (t.state === "paused" ? t.remaining : t.finishedAt);

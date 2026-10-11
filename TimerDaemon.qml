@@ -156,6 +156,9 @@ Item {
     // Hard limits: a script or a typo can't fill the disk or the bar.
     readonly property int maxTimers: 50
     readonly property string guideUrl: Guide.URL
+    // The settings page presses and observes these two
+    readonly property alias report: reportService
+    readonly property alias reportClipboard: reportCopier
 
     // The note the open panel shows ({ title, hint, anchor }, see Guide.js),
     // null when there is none
@@ -424,8 +427,24 @@ Item {
         onSnoozeRequested: id => root.adjust(id, Snooze.toMs(Snooze.DEFAULT_MINUTES))
     }
 
+    // The anonymous report: built only when asked (button or `dms ipc call`)
+    ReportService {
+        id: reportService
+        engine: root
+        // The settings button copies it; the IPC command hands it over itself
+        onBuilt: (text, via) => {
+            if (via === "button")
+                reportCopier.copy(text);
+        }
+    }
+
+    ReportClipboard {
+        id: reportCopier
+    }
+
     TimerIpc {
         engine: root
+        report: reportService
     }
 
     // Silent for now: the views listen to `noticeDue` in their own stories

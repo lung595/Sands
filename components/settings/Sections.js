@@ -105,7 +105,10 @@ var SETTINGS = [
     // Help: a read-only entry, so the section exists and search finds the examples
     { "key": "examples", "section": "help", "label": "Examples and commands",
       "help": "What the launcher understands and the dms ipc calls",
-      "words": ["example", "ipc", "command", "cli", "syntax", "exemple", "commande", "aide", "help"] }
+      "words": ["example", "ipc", "command", "cli", "syntax", "exemple", "commande", "aide", "help"] },
+    { "key": "report", "section": "help", "label": "Anonymous report",
+      "help": "Copy a report of versions, states and error codes to paste in a GitHub issue",
+      "words": ["bug", "issue", "diagnostic", "debug", "log", "problem", "rapport", "problème", "signaler"] }
 ];
 
 // The battery levels a setting may declare, for the view and the tests

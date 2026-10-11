@@ -72,6 +72,8 @@ const all = sources("components");
 eq(all.length > 20, true, "the scan finds the sources");
 eq(all.filter(f => /[\u2013\u2014]/.test(read(f))), [], "no em or en dash in components/");
 eq(JSON.parse(R.snoozed(5)), { snoozed: true, minutes: 5 }, "reply: snoozed is JSON");
+eq(R.collecting("G"), "Collecting (about 2 s): run the same command again. G#report-a-problem", "reply: collecting");
+eq(R.stillCollecting("G"), "Still collecting, ask again in a moment. G#report-a-problem", "reply: still collecting");
 eq(JSON.parse(R.notRinging()), { snoozed: false, reason: "nothing is ringing" }, "reply: not ringing is JSON");
 
 done();

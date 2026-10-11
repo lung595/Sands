@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell.Io
 import qs.Services
 import "../../TimeParser.js" as TP
+import "../../diagnostics/Gather.js" as Gather
 import "IpcReplies.js" as Replies
 import "Snooze.js" as Snooze
 import "Status.js" as Status
@@ -13,6 +14,8 @@ IpcHandler {
     id: ipc
 
     required property var engine
+    // The ReportService
+    required property var report
 
     target: "smartTimer"
 
@@ -101,5 +104,17 @@ IpcHandler {
     // JSON for scripts: timers, remaining seconds, phase. Built on call only.
     function status(): string {
         return Status.build(engine.sorted, engine.now);
+    }
+
+    // dms ipc call smartTimer diagnostics: the first call starts the anonymous
+    // report, the next one (a couple of seconds later) hands it over, once.
+    // Nothing is measured unless this is called, and no argument is read.
+    function diagnostics(): string {
+        if (report.report)
+            return Gather.capped(report.takeReport());
+        if (report.busy)
+            return Replies.stillCollecting(engine.guideUrl);
+        report.request("ipc");
+        return Replies.collecting(engine.guideUrl);
     }
 }

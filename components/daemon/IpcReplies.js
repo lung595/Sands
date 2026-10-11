@@ -48,3 +48,12 @@ function snoozed(minutes) {
 function notRinging() {
     return JSON.stringify({ snoozed: false, reason: "nothing is ringing" });
 }
+
+// `diagnostics` answers: the first starts the report, the next hands it over
+function collecting(guideUrl) {
+    return "Collecting (about 2 s): run the same command again. " + guideUrl + "#report-a-problem";
+}
+
+function stillCollecting(guideUrl) {
+    return "Still collecting, ask again in a moment. " + guideUrl + "#report-a-problem";
+}

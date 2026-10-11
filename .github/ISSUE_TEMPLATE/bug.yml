@@ -1,0 +1,30 @@
+name: Bug report
+description: Something does not work as the guide says
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The report below holds versions, states and codes only: no timer label, no file path, no login. Sands never sends it anywhere, it is yours to read and paste.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: A sentence or two. Please do not write personal names or paths here.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Type \"timer 20 min\" in the launcher\n2. ..."
+  - type: textarea
+    id: report
+    attributes:
+      label: Anonymous report
+      description: |
+        In the plugin settings, Help section, press "Copy report" and paste it here. Or run `sh scripts/diagnose.sh`, or `dms ipc call smartTimer diagnostics` twice, two seconds apart. Read it before you send it.
+        See [Debugging Sands](https://github.com/lung595/Sands/blob/main/docs/DEBUGGING.md).
+      render: text
+    validations:
+      required: true
