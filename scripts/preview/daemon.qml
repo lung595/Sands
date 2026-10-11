@@ -8,6 +8,7 @@ import "../.."
 // Usage: QT_QPA_PLATFORM=offscreen qml -I imports daemon.qml -- <mode> /dev/null
 //   idle   engine loaded, no timer (nothing should run)
 //   run    one 1 h timer (the ticker only)
+//   burst  every 12 s: 10 timers of 2 s ending together (history appends)
 //   cycle  every 12 s: a 4 s timer with tick and notify on, its final
 //          ticks, the ringing loop (player 1 s, gap 450 ms), then stop
 Window {
@@ -37,6 +38,18 @@ Window {
             }
             function savePluginState(id, key, value) {
             }
+        }
+    }
+
+    Timer {
+        interval: 12000
+        running: win.mode === "burst"
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            daemon.clear();
+            for (let i = 0; i < 10; i++)
+                daemon.start(2000, "Bench " + i, "duration", 0, false);
         }
     }
 
