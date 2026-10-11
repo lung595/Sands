@@ -2,6 +2,7 @@ import QtQuick
 import qs.Common
 import qs.Widgets
 import "Journal.js" as Journal
+import "Paths.js" as Paths
 import "../settings/Variants.js" as Variants
 
 // The time journal screen: this week's total, then one of two looks (a glass
@@ -72,7 +73,7 @@ Column {
 
         Glyph {
             anchors.horizontalCenter: parent.horizontalCenter
-            path: "M4 2.5h8M4 13.5h8M5 2.5c0 3 2.6 3.6 3 5.5c.4-1.9 3-2.5 3-5.5M5 13.5c0-3 2.6-3.6 3-5.5c.4 1.9 3 2.5 3 5.5"
+            path: Paths.glass
             size: 48
             color: Theme.outline
         }

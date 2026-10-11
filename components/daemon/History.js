@@ -163,12 +163,16 @@ function perWeek(history) {
 
 // The `count` (3 by default) most started names, as [{ name, count }]. On a
 // tie the name that was started first comes first, so the order is stable.
+// `ms` is the duration of the latest start, so one click can start it again.
 function favourites(history, count) {
     const counts = new Map();
-    for (const r of history.records)
+    const lastMs = new Map();
+    for (const r of history.records) {
         counts.set(r.name, (counts.get(r.name) || 0) + 1);
+        lastMs.set(r.name, r.end - r.start);
+    }
     const wanted = count === undefined ? FAVOURITES : Math.min(Math.max(Math.floor(count) || 0, 0), FAVOURITES_MAX);
-    const entries = [...counts.entries()].map(e => ({ name: e[0], count: e[1] }));
+    const entries = [...counts.entries()].map(e => ({ name: e[0], count: e[1], ms: lastMs.get(e[0]) }));
     entries.sort((a, b) => b.count - a.count);
     return entries.slice(0, wanted);
 }

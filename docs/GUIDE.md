@@ -87,6 +87,18 @@ The panel has a second screen, **This week**, that adds up the time of the timer
 - **Clear the journal** erases the private history at once. Nothing is sent anywhere: the history stays in the file described under [Privacy](#privacy).
 - With Reduce motion on, the glass and the bars appear already full.
 
+## Pinned favourites
+
+Under the buttons of the panel, "Most started" lists the three timers you start most often, each from its second start on. One click (or Enter, or Space on the focused one) starts it again with the same name and duration, and the tile says "Started" once Sands has really started it (nothing changes if it was refused, for example at the timer limit). The list is read from the time journal each time the panel opens, never while it stays open. Until a timer has been started twice, the panel shows "The three timers you start most often will be pinned here." Timers without a name ("Timer", "Alarm") are never pinned. A long name is cut with an ellipsis and shows in full when you hover it. The list hides while the week screen is open.
+
+![Three glasses, one started](images/favourites-glasses.png)
+
+By default each favourite is a tile with a glass (the "Three glasses" look). The "Rows" look is one line per favourite with the number of starts. With Reduce motion the glass does not turn over; only the text changes.
+
+![Rows](images/favourites-rows.png)
+
+![Three glasses, light theme](images/favourites-glasses-light.png)
+
 ## The launcher
 
 ![launcher](images/launcher.png)

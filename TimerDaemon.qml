@@ -349,9 +349,10 @@ Item {
         history.load(h => done(History.thisWeek(h, new Date())));
     }
 
-    // `done` gets the 3 most started names: [{ name, count }]
+    // `done` gets the most started names, more than the 3 shown because the
+    // views drop the unnamed ones: [{ name, count, ms }]
     function historyFavourites(done) {
-        history.load(h => done(History.favourites(h)));
+        history.load(h => done(History.favourites(h, History.FAVOURITES_MAX)));
     }
 
     // Empties the history (the settings "erase" action)

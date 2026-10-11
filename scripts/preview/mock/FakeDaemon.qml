@@ -114,4 +114,9 @@ QtObject {
     }
     function dismissRinging() {
     }
+    // The favourites' read side: [{ name, count, ms }] set by the scene
+    property var favourites: []
+    function historyFavourites(done) {
+        done(favourites);
+    }
 }

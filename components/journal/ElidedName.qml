@@ -7,6 +7,7 @@ import qs.Widgets
 StyledText {
     id: root
 
+    textFormat: Text.PlainText
     wrapMode: Text.NoWrap
     elide: Text.ElideRight
     font.pixelSize: Theme.fontSizeMedium

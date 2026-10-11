@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import "journal"
+import "favourites"
 
 // Panel content: hourglass, time, controls, other timers.
 Column {
@@ -198,6 +199,13 @@ Column {
         timerState: pop.st
         accent: pop.accent
         accentText: pop.accentText
+    }
+
+    // The three most started timers, read once each time the panel opens.
+    Favourites {
+        daemon: pop.d
+        shown: pop.shown
+        covered: pop.journalOpen
     }
 
     // Built only while there are other timers.

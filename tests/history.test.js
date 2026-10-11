@@ -63,7 +63,7 @@ let f = H.empty();
 for (const n of ["b", "a", "c", "a", "d", "b", "e", "a"])
     f = H.add(f, n, NOW - 10 * MIN, NOW - 5 * MIN, NOW);
 eq(f.records.length, 8, "all added");
-eq(H.favourites(f), [{ name: "a", count: 3 }, { name: "b", count: 2 }, { name: "c", count: 1 }], "top 3, ties by first start");
+eq(H.favourites(f), [{ name: "a", count: 3, ms: 5 * MIN }, { name: "b", count: 2, ms: 5 * MIN }, { name: "c", count: 1, ms: 5 * MIN }], "top 3, ties by first start");
 eq(H.favourites(f, 1).length, 1, "count argument");
 
 // Review round 1: unknown clock, range, control characters, count, order
