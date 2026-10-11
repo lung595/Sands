@@ -222,6 +222,12 @@ The list starts with the two rings that come with Sands, then the sounds install
 
 Both rings start within 150 ms and begin and end on silence, so they work with *Gentle alarm* (which starts at 30 %) and loop without a click. An unset *Sound* plays Hourglass; a sound you chose yourself keeps playing as saved.
 
+### Visual alert
+
+*Alerts & sounds* has three cards: **Rising dune** (sand rises from the bottom edge, default), **Edge halo** (a rim of light around every screen) and **None**. With Rising dune, *Rising dune style* shows one card per style: **Last grains** is the one drawn today; **Wind dune** and **Flat wave** are greyed and marked "Not available yet" until their scenes are written. *Show above full screen* (off by default) lets the dune rise over a full-screen window; it applies to the dune only. *Show the visual alert* chooses between "Every time" (default) and "When sound is off". **Test the alarm** plays the sound and shows the chosen alert once, with the fake name "Pasta"; it stops by itself after a few seconds, or at once with a click on its legend. The choices apply to the next ring, without restarting the shell.
+
+- **Edge halo is greyed**: it is drawn through the Wayland layer shell, which this session does not offer (for example X11). Pick Rising dune, or log in to a Wayland session.
+
 ### If the alarm makes no sound
 
 When the alarm cannot play its sound, Sands says so instead of staying quiet: **The alarm made no sound** (in the panel if it is open, otherwise as a DMS notification). **Preview** in the settings does the same with **Could not play this sound**. The pill still pulses either way.

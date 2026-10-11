@@ -9,6 +9,8 @@
 var URL = "https://github.com/lung595/Sands/blob/main/docs/GUIDE.md";
 // The section behind the greyed « when a timer ends » row
 var ALEX_ANCHOR = "alex";
+// The section behind the greyed Edge halo card
+var VISUAL_ANCHOR = "visual-alert";
 
 function rangeNote() {
     return { title: "Not started", hint: "A timer lasts between 1 second and 100 hours", anchor: "syntax" };

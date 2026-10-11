@@ -99,6 +99,21 @@ QtObject {
     }
     // The journal's read side: [{ name, ms }] set by the scene, answered at once
     property var week: []
+
+    // The visual alert as the settings page sees it; every test asked is counted
+    property bool haloAvailable: true
+    property bool alertShowing: false
+    property int alertTests: 0
+    property var previews: []
+    function testAlert() {
+        alertTests++;
+    }
+    function soundPath(choice, custom) {
+        return choice === "custom" ? custom : choice;
+    }
+    function previewSound(path) {
+        previews = previews.concat([path]);
+    }
     // How many times the screen asked, so a test can see that a closed panel never does
     property int reads: 0
     function historyThisWeek(done) {

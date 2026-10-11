@@ -3,8 +3,12 @@ import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
 import "../../Guide.js" as Guide
+import "../alert/DuneStyles.js" as DuneStyles
+import "../"
 
-// The "Alerts & sounds" section: what rings, how loud, for how long.
+// The "Alerts & sounds" section: what is drawn and what rings when a timer
+// ends, how loud, for how long. The visual alert itself lives in the daemon
+// (RingAlert): this section only saves the choices and asks for a test.
 Column {
     id: root
 
@@ -14,6 +18,100 @@ Column {
 
     width: parent.width
     spacing: Theme.spacingM
+
+    // Without a daemon nothing says otherwise: the card stays usable
+    readonly property bool haloAvailable: !root.daemon || root.daemon.haloAvailable !== false
+
+    CardChoice {
+        id: kindSetting
+        settingKey: "alertKind"
+        label: "Visual alert"
+        description: "Drawn on screen when a timer ends"
+        defaultValue: "dune"
+        options: [
+            {
+                "label": "Rising dune",
+                "value": "dune",
+                "help": "Sand rises from the bottom edge"
+            },
+            {
+                "label": "Edge halo",
+                "value": "halo",
+                "help": "A rim of light around the screen",
+                "enabled": root.haloAvailable,
+                "reason": "Needs the Wayland layer shell"
+            },
+            {
+                "label": "None",
+                "value": "none",
+                "help": "Nothing is drawn"
+            }
+        ]
+    }
+
+    // Why the halo card is greyed, with the mark that opens the guide on click
+    Row {
+        width: parent.width
+        spacing: Theme.spacingS
+        visible: !root.haloAvailable
+
+        StyledText {
+            width: parent.width - mark.width - parent.spacing
+            text: "Edge halo needs the Wayland layer shell, which this session does not offer."
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.surfaceVariantText
+            wrapMode: Text.WordWrap
+        }
+
+        GitHubMark {
+            id: mark
+            color: Theme.surfaceVariantText
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: Qt.openUrlExternally(Guide.URL + "#" + Guide.VISUAL_ANCHOR)
+            }
+        }
+    }
+
+    // Three styles, one card each. A style whose scene is not written yet is
+    // greyed and cannot be picked; a saved one is shown as what is really drawn.
+    CardChoice {
+        id: styleSetting
+        settingKey: "duneStyle"
+        visible: kindSetting.value === "dune"
+        label: "Rising dune style"
+        description: "How the sand comes up"
+        defaultValue: "grains"
+        shown: DuneStyles.drawnOf(value)
+        options: DuneStyles.choices()
+    }
+
+    SwitchRow {
+        settingKey: "duneOverFullscreen"
+        visible: kindSetting.value === "dune"
+        label: "Show above full screen"
+        description: "The dune also rises over a full-screen window, such as a video or a game"
+        defaultValue: false
+    }
+
+    ChoiceRow {
+        settingKey: "alertWhen"
+        visible: kindSetting.value !== "none"
+        label: "Show the visual alert"
+        description: "With the sound, or only in its place"
+        options: [
+            {
+                "label": "Every time",
+                "value": "always"
+            },
+            {
+                "label": "When sound is off",
+                "value": "muted"
+            }
+        ]
+        defaultValue: "always"
+    }
 
     ChoiceRow {
         id: soundSetting
@@ -42,6 +140,16 @@ Column {
             if (!root.daemon)
                 return;
             root.daemon.previewSound(root.daemon.soundPath(soundSetting.value, customSetting.value));
+        }
+    }
+
+    TestAlarmRow {
+        ready: root.daemon !== null && root.daemon.alertShowing !== true
+        onTestRequested: {
+            if (!root.daemon)
+                return;
+            root.daemon.previewSound(root.daemon.soundPath(soundSetting.value, customSetting.value));
+            root.daemon.testAlert();
         }
     }
 

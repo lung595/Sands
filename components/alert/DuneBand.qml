@@ -39,12 +39,10 @@ Item {
 
     signal stopRequested
 
-    // One scene file per style. Only Last grains exists yet, so wind (the
-    // default, D492) and wave show it until their stories add their entry.
-    readonly property var scenes: ({
-            "grains": "GrainsScene.qml"
-        })
-    readonly property string drawn: scenes[Styles.resolve(style)] ? Styles.resolve(style) : "grains"
+    // One scene file per style, listed in DuneStyles.js. A style without a
+    // scene yet shows the default (Last grains) until its story adds its entry.
+    readonly property var scenes: Styles.SCENES
+    readonly property string drawn: Styles.drawnOf(style)
 
     property var _state: Motion.posed(drawn)
 

@@ -5,7 +5,7 @@ const GLib = imports.gi.GLib;
 
 const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/guide.test.js", GLib.get_current_dir())));
 const read = path => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + path)[1]);
-const G = new Function(read("Guide.js").replace(".pragma library", "") + "; return { ALEX_ANCHOR, rangeNote, fullNote, partialNote, silentNote, previewNote, toastText };")();
+const G = new Function(read("Guide.js").replace(".pragma library", "") + "; return { ALEX_ANCHOR, VISUAL_ANCHOR, rangeNote, fullNote, partialNote, silentNote, previewNote, toastText };")();
 
 let failures = 0, count = 0;
 
@@ -36,6 +36,7 @@ for (const [name, n] of Object.entries(notes)) {
 }
 
 eq(anchors.includes(G.ALEX_ANCHOR), true, "the Alex row points to a real guide section");
+eq(anchors.includes(G.VISUAL_ANCHOR), true, "the greyed Edge halo card points to a real guide section");
 eq(notes.partial.title, "Started 2 of 4", "a partial start says how many started");
 eq(notes.full.hint.includes("50"), true, "the limit is named");
 eq(G.toastText(notes.silent), "Sands: The alarm made no sound. Pick another sound in the settings", "toast joins title and hint");

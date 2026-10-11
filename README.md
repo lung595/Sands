@@ -124,6 +124,11 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 | Setting | Default |
 | --- | --- |
 | Hourglass: Classic or Glass of Time | Classic |
+| Visual alert: Rising dune, Edge halo or None | Rising dune |
+| Rising dune style: Last grains (Wind dune and Flat wave are shown greyed, not available yet) | Last grains |
+| Show above full screen (Rising dune only) | Off |
+| Show the visual alert: every time, or when sound is off | Every time |
+| Test the alarm: plays the sound and shows the chosen alert once | Button |
 | Sound: Hourglass, Silt Chime, a system sound or your own file | Hourglass |
 | Volume | 80 % |
 | Alarm duration | 60 s |

@@ -438,8 +438,18 @@ Item {
     }
 
     RingAlert {
+        id: ringAlert
         engine: root
         sound: alarm
+    }
+
+    // Read by the settings page (Edge halo card, "Test the alarm")
+    readonly property bool haloAvailable: ringAlert.haloAvailable
+    readonly property bool alertShowing: ringAlert.showing
+
+    // Shows the saved visual alert once; the sound is the caller's (previewSound)
+    function testAlert() {
+        ringAlert.test();
     }
 
     // ------------------------------------------------------------------

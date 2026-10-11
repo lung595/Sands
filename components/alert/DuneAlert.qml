@@ -35,6 +35,10 @@ Item {
 
     // True while test() plays
     property bool _testing: false
+    // Read by the wiring, which names the test "Pasta" in the dune legend too
+    readonly property bool testing: _testing
+    // How long a test stays before it dismisses itself
+    property int testMs: 2500
 
     readonly property string _kind: AlertPolicy.kindOf(kind)
 
@@ -98,7 +102,7 @@ Item {
     // One-shot, started only by test(): lets the scene play its beats
     Timer {
         id: testEnd
-        interval: 2500
+        interval: root.testMs
         onTriggered: root.dismiss()
     }
 

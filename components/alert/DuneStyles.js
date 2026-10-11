@@ -10,6 +10,34 @@ var STYLES = [
     { value: "wave", label: "Flat wave", help: "A smooth wave of sand that springs up and bounces." }
 ];
 
+// One scene file per style that can be drawn today. A style without an entry
+// is known (its saved value is kept) but shows the default until its scene
+// lands: the settings row greys it instead of promising it.
+var SCENES = {
+    "grains": "GrainsScene.qml"
+};
+
+function isDrawn(value) {
+    return Object.prototype.hasOwnProperty.call(SCENES, value);
+}
+
+// The style really drawn for a saved value
+function drawnOf(value) {
+    const key = resolve(value);
+    return isDrawn(key) ? key : DEFAULT;
+}
+
+// The cards of the settings row: every style, the ones without a scene greyed
+function choices() {
+    return STYLES.map(s => ({
+        "label": s.label,
+        "value": s.value,
+        "help": s.help,
+        "enabled": isDrawn(s.value),
+        "reason": "Not available yet"
+    }));
+}
+
 // A saved value that is missing, mistyped or from a later version falls back
 // to the default instead of drawing nothing (value 10: never blocked).
 function resolve(value) {
