@@ -85,7 +85,7 @@ Sands/
 │   ├── PillClicks.qml          # middle click and wheel on the pill
 │   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
 │   │   ├── TimerStore.qml, AlarmSound.qml, TimerNotifier.qml, TimerIpc.qml
-│   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js   (tested)
+│   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js, PlainText.js   (tested)
 │   ├── TimerPanelContent.qml   # panel: state, switching between timers, wiring of the parts below
 │   ├── PanelGlass.qml          # hourglass, gestures (GlassGestures), dots (TimerDots), frost (FrostMist, FrostDust)
 │   ├── PanelClock.qml          # name, big time, end time (FrostHalo behind it)

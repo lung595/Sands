@@ -36,6 +36,6 @@ function list(sortedTimers, now) {
         return "No timer";
     return sortedTimers.map(t => {
         const state = t.state === "paused" ? " (paused)" : (t.state === "ringing" ? " (done)" : "");
-        return Timers.displayLabel(t) + "\t" + TP.formatClock(Timers.remainingOf(t, now)) + state;
+        return Plain.plain(Timers.displayLabel(t)) + "\t" + TP.formatClock(Timers.remainingOf(t, now)) + state;
     }).join("\n");
 }

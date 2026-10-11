@@ -48,9 +48,28 @@ eq(N.parseLine("1 2"), null, "not an id");
 eq(R.started({ started: 1, count: 1, kind: "duration", label: "a\u2014b \u2013 c", ms: 60000 }, null, 50, G, true), "Started: a - b - c - 1 min", "dashes in a label, reply");
 eq(N.showCommand("a\u2014b", "x").slice(-2)[0], "a - b - done", "dashes in a label, title");
 
-// No user-facing string of components/ holds an em or en dash
+eq(R.list([{ state: "running", label: "a\u2014b", kind: "duration", endAt: 65000 }], 0), "a - b\t1:05", "dashes in a label, list");
+eq(R.started({ started: 1, count: 1, kind: "duration", label: "a \u2014 \u2014 b", ms: 60000 }, null, 50, G, true), "Started: a - b - 1 min", "two dashes in a row");
+
+// No user-facing string of components/ holds an em or en dash. Scanned in JS
+// from the plugin root: independent of the working directory and the locale.
+const { dir, read } = imports.harness;
 const GLib = imports.gi.GLib;
-const [, out] = GLib.spawn_command_line_sync("grep -rlP '[\u2013\u2014]' components --include=*.qml --include=*.js");
-eq(imports.byteArray.toString(out).trim().split("\n").filter(f => f !== ""), [], "no em or en dash in components/");
+const sources = sub => {
+    const d = GLib.Dir.open(dir + "/" + sub, 0);
+    const found = [];
+    let name;
+    while ((name = d.read_name()) !== null) {
+        const path = sub + "/" + name;
+        if (GLib.file_test(dir + "/" + path, GLib.FileTest.IS_DIR))
+            found.push(...sources(path));
+        else if (/\.(qml|js)$/.test(name))
+            found.push(path);
+    }
+    return found;
+};
+const all = sources("components");
+eq(all.length > 20, true, "the scan finds the sources");
+eq(all.filter(f => /[\u2013\u2014]/.test(read(f))), [], "no em or en dash in components/");
 
 done();
