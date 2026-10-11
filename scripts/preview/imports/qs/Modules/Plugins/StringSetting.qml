@@ -1,0 +1,32 @@
+import QtQuick
+import qs.Common
+import qs.Widgets
+
+// DMS layout (the title has no width, as in Modules/Plugins/StringSetting.qml): label, wrapped description, full-width field.
+Column {
+    id: root
+    required property string settingKey
+    required property string label
+    property string description: ""
+    property string placeholder: ""
+    property string defaultValue: ""
+    width: parent.width
+    spacing: Theme.spacingS
+    StyledText {
+        text: root.label
+        font.pixelSize: Theme.fontSizeLarge
+        font.weight: Font.Medium
+    }
+    StyledText {
+        text: root.description
+        width: parent.width
+        font.pixelSize: Theme.fontSizeSmall
+        visible: root.description !== ""
+    }
+    Rectangle {
+        objectName: "control"
+        width: parent.width
+        height: 40
+        color: "#2B2930"
+    }
+}

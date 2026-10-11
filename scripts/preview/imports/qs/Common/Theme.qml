@@ -4,18 +4,21 @@ import QtQuick
 // Preview stand-in for the DMS theme: only what Sands reads, with the
 // default dark palette. Not loaded by the plugin.
 ThemeColors {
-    property color primary: "#D0BCFF"
-    property color error: "#F2B8B5"
+    id: root
+    // `light` among the arguments switches the whole preview to a light palette
+    readonly property bool light: Qt.application.arguments.indexOf("light") >= 0
+    property color primary: root.light ? "#6750A4" : "#D0BCFF"
+    property color error: root.light ? "#B3261E" : "#F2B8B5"
     property color warning: "#FF9800"
-    property color outline: "#938F99"
-    property color surface: "#141218"
-    property color surfaceContainer: "#211F26"
-    property color surfaceContainerHigh: "#2B2930"
-    property color surfaceContainerHighest: "#36343B"
-    property color surfaceText: "#E6E0E9"
-    property color surfaceVariantText: "#CAC4D0"
+    property color outline: root.light ? "#79747E" : "#938F99"
+    property color surface: root.light ? "#FEF7FF" : "#141218"
+    property color surfaceContainer: root.light ? "#F3EDF7" : "#211F26"
+    property color surfaceContainerHigh: root.light ? "#ECE6F0" : "#2B2930"
+    property color surfaceContainerHighest: root.light ? "#E6E0E9" : "#36343B"
+    property color surfaceText: root.light ? "#1D1B20" : "#E6E0E9"
+    property color surfaceVariantText: root.light ? "#49454F" : "#CAC4D0"
     property color surfaceTextHover: Qt.rgba(0.9, 0.88, 0.91, 0.08)
-    property color widgetTextColor: "#E6E0E9"
+    property color widgetTextColor: root.light ? "#1D1B20" : "#E6E0E9"
     property real fontSizeSmall: 12
     property real fontSizeMedium: 14
     property real fontSizeLarge: 16

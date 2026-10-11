@@ -6,6 +6,7 @@ import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
 import "components/daemon/Sound.js" as Sound
+import "components/settings"
 
 PluginSettings {
     id: root
@@ -52,7 +53,7 @@ PluginSettings {
         }
     }
 
-    SelectionSetting {
+    ChoiceRow {
         settingKey: "hourglassStyle"
         label: "Hourglass"
         description: "Only the hourglass changes: sand, freeze and flip stay the same"
@@ -82,7 +83,7 @@ PluginSettings {
         color: Theme.surfaceText
     }
 
-    SelectionSetting {
+    ChoiceRow {
         id: soundSetting
         settingKey: "sound"
         label: "Sound"
@@ -133,28 +134,28 @@ PluginSettings {
         unit: "s"
     }
 
-    ToggleSetting {
+    SwitchRow {
         settingKey: "notify"
         label: "Notification when done"
         description: "With “Stop” and “+5 min” buttons: handy in fullscreen, when the bar is hidden"
         defaultValue: true
     }
 
-    ToggleSetting {
+    SwitchRow {
         settingKey: "rampUp"
         label: "Gentle alarm"
         description: "Starts softly, then rises to the chosen volume"
         defaultValue: true
     }
 
-    ToggleSetting {
+    SwitchRow {
         settingKey: "tick"
         label: "Final countdown ticks"
         description: "A soft tick on each of the last 10 seconds"
         defaultValue: false
     }
 
-    ToggleSetting {
+    SwitchRow {
         settingKey: "respectDnd"
         label: "Respect Do Not Disturb"
         description: "In Do Not Disturb, no sound: the pill still pulses"
@@ -178,7 +179,7 @@ PluginSettings {
         color: Theme.surfaceText
     }
 
-    ToggleSetting {
+    SwitchRow {
         id: noTriggerSetting
         settingKey: "noTrigger"
         label: "Automatic detection"
