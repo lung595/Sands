@@ -1,4 +1,4 @@
-// Contrast of the halo legend (surfaceText on surfaceContainer, as drawn by HaloRim.qml)
+// Contrast of the halo legend (surfaceText on surfaceContainerHigh, as drawn by HaloRim.qml)
 // on every stock DMS theme, light and dark. Skipped when DMS is not installed.
 // Run with: gjs tests/halo-contrast.test.js (from the plugin root)
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
@@ -26,7 +26,7 @@ if (!GLib.file_test(path, GLib.FileTest.EXISTS)) {
     let min = Infinity;
     for (const mode of ["DARK", "LIGHT"])
         for (const [id, t] of Object.entries(themes[mode])) {
-            const r = ratio(t.surfaceText, t.surfaceContainer);
+            const r = ratio(t.surfaceText, t.surfaceContainerHigh);
             min = Math.min(min, r);
             eq(r >= 4.5, true, "legend contrast " + mode + " " + id + " " + r.toFixed(1));
         }

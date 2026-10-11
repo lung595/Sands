@@ -24,4 +24,7 @@ eq(e.length, 5, "exit step count");
 eq(H.exitSteps(5)[0].opacity <= 1, true, "exit clamps its start");
 eq(e.every((x, i) => i === 0 || x.opacity < e[i - 1].opacity), true, "exit only fades");
 
+eq(s[1].opacity > s[1].t / 200, true, "rise eases out: ahead of a linear ramp");
+eq(H.exitSteps(1)[0].opacity < 1 - 33 / 150, true, "exit eases out: leaves fast");
+
 done();
