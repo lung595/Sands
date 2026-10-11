@@ -1,4 +1,5 @@
 import QtQuick
+import qs.Common
 import qs.Widgets
 
 // Preview stand-in for the DMS dropdown. Compact (no text, no description) it is
@@ -20,9 +21,9 @@ Item {
     Column {
         anchors.left: parent.left
         anchors.right: trigger.left
-        anchors.rightMargin: 16
+        anchors.rightMargin: Theme.spacingL
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 4
+        spacing: Theme.spacingXS
         visible: !root.compactMode
         StyledText {
             text: root.text
@@ -30,7 +31,7 @@ Item {
         }
         StyledText {
             text: root.description
-            font.pixelSize: 12
+            font.pixelSize: Theme.fontSizeSmall
             width: parent.width
             visible: root.description !== ""
         }
@@ -38,11 +39,34 @@ Item {
     Rectangle {
         id: trigger
         objectName: "control"
+        // Lets the overlap test see a value cut short, since it does not descend into controls
+        readonly property bool truncated: valueText.truncated
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         width: root.compactMode ? parent.width : root.dropdownWidth
         height: 40
         radius: 8
-        color: "#2B2930"
+        color: Theme.surfaceContainerHigh
+        // The current value elides on the right, as DMS DankDropdown.qml:297 does
+        StyledText {
+            id: valueText
+            anchors.left: parent.left
+            anchors.right: arrow.left
+            anchors.leftMargin: Theme.spacingM
+            anchors.rightMargin: Theme.spacingS
+            anchors.verticalCenter: parent.verticalCenter
+            text: root.currentValue
+            color: Theme.surfaceText
+            wrapMode: Text.NoWrap
+        }
+        DankIcon {
+            id: arrow
+            anchors.right: parent.right
+            anchors.rightMargin: Theme.spacingS
+            anchors.verticalCenter: parent.verticalCenter
+            name: "expand_more"
+            size: Theme.iconSize
+            color: Theme.surfaceText
+        }
     }
 }

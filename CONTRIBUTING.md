@@ -141,7 +141,7 @@ gjs tests/alex-bridge.test.js   # 8 tests: event shape, id per ring, label cap a
 gjs tests/hourglass.test.js     # 35 checks: hourglass geometry, volumes, outline, frost shapes
 ```
 
-Settings overlap (offscreen, needs `qml-qt6`): `cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml` loads the settings page at 228, 360 and 404 px and exits 1 on any overlap, elided text or text off the page.
+Settings overlap (offscreen, needs `qml-qt6`): `cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml` loads the settings page at 228, 360 and 404 px and exits 1 on any overlap, elided text or text off the page. `scripts/preview/before-after.sh <commit> <out.html>` builds the before/after page (dark and light, two widths, four made-up stores; stores live in `scripts/preview/mock/Presets.js`).
 
 Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
 

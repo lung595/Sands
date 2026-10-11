@@ -15,7 +15,7 @@ Column {
     property string leftIcon: ""
     property string rightIcon: ""
     width: parent.width
-    spacing: 8
+    spacing: Theme.spacingS
     StyledText {
         text: root.label
         font.pixelSize: Theme.fontSizeLarge
@@ -24,13 +24,13 @@ Column {
     StyledText {
         text: root.description
         width: parent.width
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontSizeSmall
         visible: root.description !== ""
     }
     Rectangle {
         objectName: "control"
         width: parent.width
         height: 40
-        color: "#2B2930"
+        color: Theme.surfaceContainerHigh
     }
 }

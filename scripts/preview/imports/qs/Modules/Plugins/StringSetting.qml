@@ -11,7 +11,7 @@ Column {
     property string placeholder: ""
     property string defaultValue: ""
     width: parent.width
-    spacing: 8
+    spacing: Theme.spacingS
     StyledText {
         text: root.label
         font.pixelSize: Theme.fontSizeLarge
@@ -20,7 +20,7 @@ Column {
     StyledText {
         text: root.description
         width: parent.width
-        font.pixelSize: 12
+        font.pixelSize: Theme.fontSizeSmall
         visible: root.description !== ""
     }
     Rectangle {

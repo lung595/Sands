@@ -1,5 +1,6 @@
 import QtQuick
 import "mock"
+import "mock/Presets.js" as Presets
 
 // Offscreen overlap check of the whole settings page at the narrowest real widths.
 // Fails (exit code 1) when two texts or controls intersect, a text is elided or
@@ -17,16 +18,8 @@ Item {
     // is 176 px: 404 - 176 = 228, the narrowest case. 360 is the mockups' own narrow form.
     readonly property var widths: [228, 360, 404]
 
-    // Stores that show every optional row: a custom sound file, and no launcher prefix
-    readonly property var presets: [
-        {},
-        {
-            "sound": "custom"
-        },
-        {
-            "noTrigger": false
-        }
-    ]
+    // Made-up stores: see mock/Presets.js
+    readonly property var presets: Presets.list
 
     property var failures: []
 

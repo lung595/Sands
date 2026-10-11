@@ -1,4 +1,6 @@
 import QtQuick
+import qs.Common
+import qs.Widgets
 
 // Preview stand-in sized like the DMS button: text, icon and padding, 40 px high.
 Item {
@@ -16,10 +18,31 @@ Item {
     implicitHeight: 40
     width: implicitWidth
     height: implicitHeight
+    // Lets the overlap test see a label cut short
+    readonly property bool truncated: label.truncated
     activeFocusOnTab: true
     Rectangle {
         anchors.fill: parent
         radius: 8
-        color: "#D0BCFF"
+        color: Theme.primary
+    }
+    DankIcon {
+        id: glyph
+        visible: root.iconName !== ""
+        anchors.left: parent.left
+        anchors.leftMargin: 16
+        anchors.verticalCenter: parent.verticalCenter
+        name: root.iconName
+        size: 24
+        color: Theme.surface
+    }
+    StyledText {
+        id: label
+        anchors.left: glyph.visible ? glyph.right : parent.left
+        anchors.leftMargin: glyph.visible ? 8 : 16
+        anchors.verticalCenter: parent.verticalCenter
+        text: root.text
+        color: Theme.surface
+        wrapMode: Text.NoWrap
     }
 }
