@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sands - Rising dune as real sand: Today, options A, B and C (NAK-555, NAK-637)</title>
+<style>
+/* Stand-ins for DMS Theme roles (dark and light violet, dark green, light amber are the NAK-395 values). In the plugin every value comes from Theme.*. */
+body{--bg:#141218;--surface:#211F26;--high:#36343B;--text:#E6E0E9;--variant:#CAC4D0;--outline:#938F99;--primary:#D0BCFF;--onprimary:#381E72}
+body[data-mode=light]{--bg:#E7E0EC;--surface:#FEF7FF;--high:#E6E0E9;--text:#1D1B20;--variant:#49454F;--outline:#79747E;--primary:#6750A4;--onprimary:#FFFFFF}
+body[data-colour=green]{--bg:#101510;--surface:#1A211A;--high:#2B322B;--text:#DFE4DB;--variant:#C1C9BE;--outline:#8B9389;--primary:#A1D39A;--onprimary:#0A390F}
+body[data-colour=green][data-mode=light]{--bg:#E3EADD;--surface:#F7FBF1;--high:#E0E6DA;--text:#191D17;--variant:#424940;--outline:#72796F;--primary:#3B6939;--onprimary:#FFFFFF}
+body[data-colour=amber]{--bg:#1A120C;--surface:#261E18;--high:#3D332C;--text:#F0DFD6;--variant:#D7C2B8;--outline:#9F8D83;--primary:#FFB68A;--onprimary:#522300}
+body[data-colour=amber][data-mode=light]{--bg:#F3E8DC;--surface:#FFF8F4;--high:#F0E0D0;--text:#221A14;--variant:#52443B;--outline:#85736A;--primary:#8B4F24;--onprimary:#FFFFFF}
+body{--ease:cubic-bezier(.2,0,0,1);--in:200ms;--out:150ms;margin:0;background:var(--bg);color:var(--text);font:14px/20px Inter,'Noto Sans',sans-serif}
+*{box-sizing:border-box}
+h1{font-size:20px;line-height:28px;font-weight:500;margin:0}
+h2{font-size:16px;line-height:24px;font-weight:500;margin:0}
+h3{font-size:14px;line-height:20px;font-weight:500;margin:0}
+p{margin:0}
+.note{color:var(--variant);font-size:12px;line-height:16px}
+header.board{padding:24px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-end}
+header.board>div:first-child{flex:1 1 320px}
+.sw{display:flex;flex-direction:column;gap:4px}
+.sw>span{font-size:12px;line-height:16px;color:var(--variant)}
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;background:var(--high);border-radius:22px}
+.seg label{position:relative;min-height:44px;display:flex;align-items:center;padding:0 16px;border-radius:22px;cursor:pointer;color:var(--text)}
+.seg label:has(input:checked){background:var(--primary);color:var(--onprimary);font-weight:500}
+/* The choice is a real radio, hidden but focusable: keyboard order is the reading order. */
+input[type=radio]{position:absolute;opacity:0;pointer-events:none}
+label:has(input:focus-visible),button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+main{display:flex;flex-direction:column;gap:24px;padding:0 24px 24px}
+.opt{background:var(--surface);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:24px}
+.opt>.head{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
+.opt>.head>div{flex:1 1 280px;display:flex;flex-direction:column;gap:4px}
+.opt>.head p{color:var(--variant)}
+/* A button with the line that says what it replays. */
+.opt>.head>.act{flex:0 0 auto;align-items:flex-start}
+.act>span{font-size:12px;line-height:16px;color:var(--variant)}
+.num{font-variant-numeric:tabular-nums}
+.ctx{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.ctx>figure{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ctx>figure.wide{flex:1 1 480px}
+figcaption{font-size:12px;line-height:16px;color:var(--variant)}
+.stat{font-size:12px;line-height:16px;color:var(--variant);font-variant-numeric:tabular-nums}
+.panel{background:var(--bg);border-radius:16px;padding:24px;width:640px;max-width:100%;display:flex;flex-direction:column;gap:16px}
+body[data-width=narrow] .panel{width:360px}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.row .t{flex:1 1 160px;color:var(--variant);font-size:12px;line-height:16px}
+.btn{position:relative;border:0;font:inherit;color:var(--text);background:var(--high);min-height:44px;min-width:44px;border-radius:22px;padding:0 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.main{background:var(--primary);color:var(--onprimary);font-weight:500}
+.btn::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--text);opacity:0;transition:opacity var(--out) var(--ease)}
+.btn.main::after{background:var(--onprimary)}
+.btn:hover::after{opacity:.08}
+.btn:active::after{opacity:.16}
+/* Battery pill, as approved in NAK-395; level is carried by the dots, not by colour. */
+.pill{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.pill>i{display:inline-flex;align-items:center;gap:6px;font-style:normal;font-size:12px;line-height:16px;font-weight:500;color:var(--text);background:var(--high);border-radius:12px;padding:4px 10px 4px 8px;white-space:nowrap}
+.pill>i u{display:inline-flex;gap:2px;text-decoration:none}
+.pill>i u s{width:6px;height:6px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--text)}
+.pill>i u s.on{background:var(--text)}
+.pill>span{flex:1 1 200px;color:var(--variant);font-size:12px;line-height:16px}
+/* Preview stage of the settings page (NAK-395) and a whole screen, both with the alert at the bottom edge. */
+.stage,.screen{position:relative;border-radius:12px;background:var(--surface);overflow:hidden;box-shadow:inset 0 0 0 1px var(--outline)}
+.stage{aspect-ratio:16/10}
+.screen{aspect-ratio:16/9;background:var(--bg)}
+.win{position:absolute;inset:12% 18% 30%;border-radius:8px;background:var(--high)}
+.screen .win{inset:8% 52% 16% 3%;background:var(--surface)}
+.screen .win+.win{inset:8% 3% 16% 50%}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.cap{position:absolute;left:0;right:0;bottom:8px;display:flex;flex-wrap:wrap;gap:0 12px;align-items:center;justify-content:center;font-size:12px;line-height:16px;color:var(--onprimary);padding:0 12px;text-align:center}
+.cap b{font-weight:500;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.screen .cap{font-size:14px;line-height:20px;bottom:12px}
+.row>h3{flex:1 1 120px}
+code{font:12px/16px ui-monospace,monospace;color:var(--text)}
+/* The sand caption waits until sand is behind it, then fades in. */
+canvas~.cap{opacity:0;transition:opacity var(--out) var(--ease)}
+canvas~.cap.show{opacity:1;transition-duration:var(--in)}
+/* Today: the flat wave of NAK-395, unchanged. */
+.dune{position:absolute;left:0;right:0;bottom:0;height:34%;transform:translateY(100%);opacity:0;transition:transform var(--out) var(--ease),opacity var(--out) var(--ease)}
+.screen .dune{height:22%}
+.dune svg{position:absolute;inset:0;width:100%;height:100%}
+.on>.dune{transform:none;opacity:1;transition-duration:var(--in)}
+.on>.dune svg{transform-origin:50% 100%;animation:beat 600ms var(--ease) 3}
+@keyframes beat{50%{transform:scaleY(1.12)}}
+body[data-rm=on] .dune{transform:none}
+body[data-rm=on] .dune svg{animation:none!important}
+body[data-rm=on] *{transition-duration:150ms!important}
+/* Full-screen case (D482): one app over the whole screen and the DMS notification card, drawn for context. */
+.screen.fs .win{inset:0;border-radius:0;background:var(--surface)}
+.screen.fs .win::before,.screen.fs .win::after{content:"";position:absolute;left:8%;top:14%;width:44%;height:8%;border-radius:4px;background:var(--high)}
+.screen.fs .win::after{top:28%;width:30%;height:4%}
+.toast{position:absolute;top:12px;right:12px;width:264px;max-width:calc(100% - 24px);display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:12px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--outline)}
+.toast>span{font-size:12px;line-height:16px;color:var(--variant)}
+.toast>b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast>div{display:flex;gap:8px;padding-top:4px}
+.toast u{text-decoration:none;font-size:12px;line-height:28px;font-weight:500;padding:0 12px;border-radius:14px;background:var(--high);color:var(--text)}
+.toast u:first-child{background:var(--primary);color:var(--onprimary)}
+.on>.toast{animation:toast var(--in) var(--ease) both}
+@keyframes toast{from{opacity:0;transform:translateY(-8px)}}
+body[data-rm=on] .toast{animation:none!important}
+/* The plugin's own switch row: no wrap, so the title breaks into lines before it can reach the switch. */
+.srow{display:flex;gap:16px;align-items:flex-start}
+.srow>div{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:4px}
+.srow p{color:var(--variant);font-size:12px;line-height:16px}
+.tog{flex:0 0 auto;position:relative;width:52px;height:44px;border:0;padding:0;background:none;border-radius:22px;cursor:pointer}
+.tog>i{position:absolute;left:0;top:6px;width:52px;height:32px;border-radius:16px;overflow:hidden;background:var(--high);box-shadow:inset 0 0 0 2px var(--outline)}
+.tog>i::before{content:"";position:absolute;left:8px;top:8px;width:16px;height:16px;border-radius:50%;background:var(--outline);transition:transform var(--out) var(--ease)}
+.tog>i::after{content:"";position:absolute;inset:0;background:var(--text);opacity:0;transition:opacity var(--out) var(--ease)}
+.tog:hover>i::after{opacity:.08}
+.tog:active>i::after{opacity:.16}
+.tog[aria-checked=true]>i{background:var(--primary);box-shadow:none}
+.tog[aria-checked=true]>i::before{background:var(--onprimary);transform:translateX(20px) scale(1.25);transition-duration:var(--in)}
+table{border-collapse:collapse;width:100%;font-size:12px;line-height:16px}
+td,th{text-align:left;padding:4px 16px 4px 0;vertical-align:top;font-weight:400}
+th{color:var(--variant);width:168px}
+@media (max-width:560px){th,td{display:block;width:auto;padding:0}td{padding-bottom:8px}}
+</style>
+</head>
+<body data-mode="dark" data-colour="violet" data-width="wide" data-rm="off" data-name="short">
+<header class="board">
+  <div><h1>Sands - Rising dune as real sand</h1>
+    <p class="note">NAK-555 · NAK-617 · NAK-637 · D457 · D480. A is the default, B and C are choices. Only the dune changes: the Edge halo, the cards and the rest of the settings page stay as approved in NAK-395. Fictitious data.</p></div>
+  <div class="sw"><span id="l-mode">Theme</span><div class="seg" role="radiogroup" aria-labelledby="l-mode"><label><input type="radio" name="mode" value="dark" checked>Dark</label><label><input type="radio" name="mode" value="light">Light</label></div></div>
+  <div class="sw"><span id="l-colour">Theme colour</span><div class="seg" role="radiogroup" aria-labelledby="l-colour"><label><input type="radio" name="colour" value="violet" checked>Violet</label><label><input type="radio" name="colour" value="green">Green</label><label><input type="radio" name="colour" value="amber">Amber</label></div></div>
+  <div class="sw"><span id="l-width">Settings panel</span><div class="seg" role="radiogroup" aria-labelledby="l-width"><label><input type="radio" name="width" value="wide" checked>640</label><label><input type="radio" name="width" value="narrow">360</label></div></div>
+  <div class="sw"><span id="l-name">Timer name</span><div class="seg" role="radiogroup" aria-labelledby="l-name"><label><input type="radio" name="name" value="short" checked>Short</label><label><input type="radio" name="name" value="long">Very long</label></div></div>
+  <div class="sw"><span id="l-rm">Reduce motion</span><div class="seg" role="radiogroup" aria-labelledby="l-rm"><label><input type="radio" name="rm" value="off" checked>Off</label><label><input type="radio" name="rm" value="on">On</label></div></div>
+  <div class="sw"><button class="btn main" id="all" type="button">Replay all four</button><span>Replays Today, A, B, C and the settings row</span></div>
+</header>
+<main>
+
+<section class="opt" data-kind="today">
+  <div class="head"><div><h2>Today - flat wave</h2><p>One flat shape in the primary colour slides up and beats 3 times. Shown for comparison only.</p></div>
+    <div class="act"><button class="btn replay" type="button">Replay Today</button><span>Replays both views below</span></div></div>
+  <div class="ctx">
+    <figure class="wide"><div class="screen"><div class="win"></div><div class="win"></div>
+      <div class="dune"><svg viewBox="0 0 400 85" preserveAspectRatio="none"><path d="M0 85V30q90-36 190-10t210-16v81z" fill="var(--primary)"/></svg><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div></div>
+      <figcaption>Full alert at the bottom edge of a screen</figcaption></figure>
+    <figure><div class="panel"><h3>Visual alert</h3>
+      <div class="pill"><i><u><s class="on"></s><s></s><s></s></u>Light on battery</i><span>Moves for 3 beats, then stays still until you stop it.</span></div>
+      <div class="stage" aria-hidden="true"><div class="win"></div>
+        <div class="dune"><svg viewBox="0 0 400 85" preserveAspectRatio="none"><path d="M0 85V30q90-36 190-10t210-16v81z" fill="var(--primary)"/></svg><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div></div>
+      <div class="row"><span class="t">Rings once with the choices above.</span><button class="btn main replay" type="button">Test the alarm</button></div></div>
+      <figcaption>Preview stage of the settings page · Test the alarm replays this stage only</figcaption></figure>
+  </div>
+</section>
+
+<section class="opt" data-kind="a">
+  <div class="head"><div><h2>Option A - Last grains</h2><p>The hourglass empties onto your screen: a thread of sand falls, heaps up, then slumps into a dune while a few grains roll down.</p>
+    <p class="note">Why it is not generic: the alert is the end of the hourglass itself, and the falling thread is the thread of the Fil look. No banner, no card.</p></div>
+    <div class="act"><button class="btn replay" type="button">Replay option A</button><span>Replays both views below</span></div></div>
+  <div class="ctx">
+    <figure class="wide"><div class="screen" data-frac=".22"><div class="win"></div><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div>
+      <figcaption>Full alert at the bottom edge of a screen</figcaption><p class="stat"></p></figure>
+    <figure><div class="panel"><h3>Visual alert</h3>
+      <div class="pill"><i><u><s class="on"></s><s></s><s></s></u>Light on battery</i><span>Sand falls and settles for about 3 seconds, then one still picture until you stop it. Written estimate, not measured yet.</span></div>
+      <div class="stage" data-frac=".42"><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div>
+      <div class="row"><span class="t">Rings once with the choices above.</span><button class="btn main replay" type="button">Test the alarm</button></div></div>
+      <figcaption>Preview stage of the settings page · Test the alarm replays this stage only</figcaption><p class="stat"></p></figure>
+  </div>
+  <table>
+    <tr><th>Movement</th><td>Thread falls from the top edge (about 1.5 s), a heap grows under it and slumps while the sand spreads from the centre: two fronts run toward the edges with grains rolling ahead of them, and the edges fill last. Ends by itself: hard stop 2.4 s after the first grain lands, about 3 s in all.</td></tr>
+    <tr><th>Technique for the QML build</th><td>One Canvas in a Loader, created when the alarm rings. The settled dune (grains of 2 to 4 px in 4 tints mixed from primary, on-primary and text, the lit face, the shaded face and foot) is painted once into a still picture. A Timer at 30 Hz, never a looping QML animation, repaints only the outline of the growing sand over that picture and the loose grains; it stops itself at the end.</td></tr>
+    <tr><th>Drawn once, then kept still</th><td>The whole dune texture. After the last step the Timer is stopped, nothing moves and nothing is redrawn until Stop. On Stop: 150 ms fade, then the Loader is emptied. Nothing exists at rest.</td></tr>
+    <tr><th>Grains and steps</th><td>Counted live under each stage above (grains painted once, most loose grains at one time, steps drawn).</td></tr>
+    <tr><th>Reduce motion</th><td>The settled dune fades in over 150 ms with its full grain texture. No thread, no loose grain, no Timer.</td></tr>
+    <tr><th>Caption</th><td>On-primary text on the sand. It appears only once sand is behind it. Shades are free everywhere except in the caption band (caption height + 8 px), where they are held to 5:1. The weakest pair is read back from the painted pixels: under each stage, and for the 6 themes in the table at the bottom.</td></tr>
+    <tr><th>Cost</th><td>Not measured yet. Written estimate: about 90 repaints of one canvas during the movement, more than Today while it moves, the same as Today afterwards (zero). The build story measures it (largest 1 s and core-seconds).</td></tr>
+    <tr><th>Cost to build</th><td>Medium: one pure .js for the surface and the grains (tested), one Canvas component.</td></tr>
+  </table>
+</section>
+
+<section class="opt" data-kind="b">
+  <div class="head"><div><h2>Option B - Wind dune</h2><p>Wind carries the sand in from the left edge: grains hop along the ground, a crest travels across and stops, sand blows off the crest and slides down the steep side.</p>
+    <p class="note">Why it is not generic: a real dune shape, a long windward slope and a short steep face, built the way wind builds one. The name Rising dune finally says what you see.</p></div>
+    <div class="act"><button class="btn replay" type="button">Replay option B</button><span>Replays both views below</span></div></div>
+  <div class="ctx">
+    <figure class="wide"><div class="screen" data-frac=".22"><div class="win"></div><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div>
+      <figcaption>Full alert at the bottom edge of a screen</figcaption><p class="stat"></p></figure>
+    <figure><div class="panel"><h3>Visual alert</h3>
+      <div class="pill"><i><u><s class="on"></s><s></s><s></s></u>Light on battery</i><span>Sand blows in and settles for about 2.5 seconds, then one still picture until you stop it. Written estimate, not measured yet.</span></div>
+      <div class="stage" data-frac=".42"><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div>
+      <div class="row"><span class="t">Rings once with the choices above.</span><button class="btn main replay" type="button">Test the alarm</button></div></div>
+      <figcaption>Preview stage of the settings page · Test the alarm replays this stage only</figcaption><p class="stat"></p></figure>
+  </div>
+  <table>
+    <tr><th>Movement</th><td>The sand front crosses the edge from left to right (about 1.5 s) with a travelling crest, grains hop ahead of it, a plume leaves the final crest and slides down the steep face. Ends by itself: hard stop at 2.6 s.</td></tr>
+    <tr><th>Technique for the QML build</th><td>Same as option A: one Canvas in a Loader, the settled dune painted once into a still picture, a Timer at 30 Hz that repaints the outline and the loose grains and stops itself. Never a looping QML animation.</td></tr>
+    <tr><th>Drawn once, then kept still</th><td>The whole dune texture. After the last step nothing moves and nothing is redrawn until Stop. On Stop: 150 ms fade, then the Loader is emptied. Nothing exists at rest.</td></tr>
+    <tr><th>Grains and steps</th><td>Counted live under each stage above.</td></tr>
+    <tr><th>Reduce motion</th><td>The settled dune fades in over 150 ms with its full grain texture. No wind, no loose grain, no Timer.</td></tr>
+    <tr><th>Caption</th><td>Same rule as option A: shown once sand is behind it, shades held to 5:1 in the caption band only, weakest pair read back from the painted pixels.</td></tr>
+    <tr><th>Cost</th><td>Not measured yet. Written estimate: about 75 repaints of one canvas during the movement, then zero. The build story measures it.</td></tr>
+    <tr><th>Cost to build</th><td>Medium, the same parts as option A. Fewer loose grains than A.</td></tr>
+  </table>
+</section>
+
+<section class="opt" data-kind="c">
+  <div class="head"><div><h2>Option C - Flat wave</h2><p>A cartoon dune that lands with weight: it gathers under the edge, springs up well past its height, then thuds down three times, each softer and faster. Every thud throws fine sand off the crest, grains trickle down the slip face, and round grains hop and roll back down the slope.</p>
+    <p class="note">Why it is not generic: one flat shape drawn like a cartoon cel, alive through squash and stretch, with the weight and the loose grains of sand rather than the swing of water. It is the wave of Today given a body and a pulse, not a sheet sliding up.</p></div>
+    <div class="act"><button class="btn replay" type="button">Replay option C</button><span>Replays both views below</span></div></div>
+  <div class="ctx">
+    <figure class="wide"><div class="screen" data-frac=".22"><div class="win"></div><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div>
+      <figcaption>Full alert at the bottom edge of a screen</figcaption><p class="stat"></p></figure>
+    <figure><div class="panel"><h3>Visual alert</h3>
+      <div class="pill"><i><u><s class="on"></s><s></s><s></s></u>Light on battery</i><span>The wave springs up and bounces for 2.4 seconds, then one still picture until you stop it. Written estimate, not measured yet.</span></div>
+      <div class="stage" data-frac=".42"><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div>
+      <div class="row"><span class="t">Rings once with the choices above.</span><button class="btn main replay" type="button">Test the alarm</button></div></div>
+      <figcaption>Preview stage of the settings page · Test the alarm replays this stage only</figcaption><p class="stat"></p></figure>
+  </div>
+  <table>
+    <tr><th>Movement</th><td class="num">0 to 200 ms, anticipation: a lip of sand shows at the edge, rises to 16 px, dips 6 px and widens by 12 %. 200 to 700 ms, rise: ease-out with one overshoot of about 18 % (back curve, k 2.4), the crest first, the sides 120 ms later, the body leaning toward the crest. 700 to 1680 ms, three beats that speed up, 420, 320 and 240 ms at 20 %, 11 % and 5 %: the height drops in the first 30 % of each beat, like a thud, and builds back over the rest, while the width goes up by the same share, then back; the crest lags 40 ms behind the body and the lean straightens. At the overshoot and at each thud fine sand is thrown off the crest (10, 12, 7 and 4 grains of 2 or 3 px on short arcs), and 7 grains trickle down the slip face between 0.75 and 2.25 s. 2000 ms, settle in 150 ms. Hard stop at 2.4 s. The overshoot and the deepest squash are measured in px under each stage.</td></tr>
+    <tr><th>Cartoon highlight</th><td>A rim 3 px thick along the crest, primary mixed toward a Theme role (the lighter of text and on-primary when it can reach 3:1 against primary, the other one otherwise), the share raised until 3:1 is measured; it thickens when the wave squashes. A 1 px base line, primary mixed toward the darker of the two roles, runs under the rim on the flank opposite the crest and gives the cel its volume. 8 round grains of 6 to 8 px, each with its highlight, hop off the crest at the overshoot, twice as high as before; 3 of them fall back and roll down the slope, the others rest on the crest. The shape is a dune ridge: a long slope left of the crest, a slip face half as long on the right.</td></tr>
+    <tr><th>Sand matter</th><td>Specks of 2 or 3 px in two tints (primary mixed toward the rim role at half the rim share, and the base line tint), dense under the crest line and thinning with depth, one for every 5 px of width, 160 at most. They ride the surface and are never drawn in the caption band.</td></tr>
+    <tr><th>Technique for the QML build</th><td>One Canvas in a Loader, created when the alarm rings. A Timer at 30 Hz, never a looping QML animation, repaints one filled path, one stroked rim, one base line, 8 circles and up to 200 small squares (specks, thrown sand, slides) at each step (72 steps), then stops itself. No still picture to keep.</td></tr>
+    <tr><th>Drawn once, then kept still</th><td>The last step. After it the Timer is stopped, nothing moves and nothing is redrawn until Stop. On Stop: 150 ms fade, then the Loader is emptied. Nothing exists at rest.</td></tr>
+    <tr><th>Grains and steps</th><td>Counted live under each stage above.</td></tr>
+    <tr><th>Reduce motion</th><td>The settled wave fades in over 150 ms with its rim, its specks and its round grains in place. No thrown sand, no step, no Timer.</td></tr>
+    <tr><th>Caption</th><td>On-primary text on the flat primary of the wave, shown once the wave is behind it (under 0.8 s). The wave is tall enough that the deepest squash never uncovers the caption band, and the rim stays above it. The pair is read back from the painted pixels: under each stage, and for the 6 themes in the table at the bottom.</td></tr>
+    <tr><th>Cost</th><td>Not measured yet. Written estimate: 72 repaints of one canvas during the movement, each lighter than A or B (one path and up to 200 small squares, no texture picture), then zero. The build story measures it (largest 1 s and core-seconds).</td></tr>
+    <tr><th>Cost to build</th><td>Low: one pure .js for the choreography (tested), the same Canvas component as A and B.</td></tr>
+  </table>
+</section>
+
+<section class="opt" id="full">
+  <div class="head"><div><h2>When an app is full screen</h2><p>By default nothing is drawn over a full-screen app: the sound and the DMS notification tell you, with Stop and +5 min on the card. One setting, off by default, draws the dune over the app anyway. Same rule for the three options.</p></div>
+    <div class="act"><button class="btn" id="fplay" type="button">Replay this case</button><span>Replays the notification and the dune below</span></div></div>
+  <div class="ctx">
+    <figure class="wide"><div class="screen fs"><div class="win"></div><div class="toast"><span>Sands</span><b class="tn">Pasta is done</b><div><u>Stop</u><u>+5 min</u></div></div></div>
+      <figcaption>Setting off, the default · no dune, the DMS notification card only</figcaption></figure>
+    <figure class="wide"><div class="screen fs" data-frac=".22"><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div><div class="toast"><span>Sands</span><b class="tn">Pasta is done</b><div><u>Stop</u><u>+5 min</u></div></div></div>
+      <figcaption>Setting on · option A drawn over the app, the notification card as before</figcaption><p class="stat"></p></figure>
+  </div>
+</section>
+
+<section class="opt" id="setrow">
+  <div class="head"><div><h2>Settings - the Rising dune row</h2><p>One row with the three choices, Last grains by default. Only the choice names and the preview stage change; the rest of the NAK-395 page stays as approved.</p>
+    <p class="note">Stored value: <code id="dval">grains</code> (one of <code>grains</code>, <code>wind</code>, <code>wave</code>).</p></div></div>
+  <div class="ctx">
+    <figure><div class="panel"><h3>Visual alert</h3>
+      <div class="row"><h3 id="l-dune">Rising dune</h3><div class="seg" role="radiogroup" aria-labelledby="l-dune"><label><input type="radio" name="dune" value="grains" checked>Last grains</label><label><input type="radio" name="dune" value="wind">Wind dune</label><label><input type="radio" name="dune" value="wave">Flat wave</label></div></div>
+      <div class="srow"><div><h3 id="l-fs">Show the alert over full-screen apps</h3><p id="d-fs">Off: only the sound and the notification. On: the dune is drawn over the app too.</p></div><button class="tog" id="fsw" type="button" role="switch" aria-checked="false" aria-labelledby="l-fs" aria-describedby="d-fs"><i></i></button></div>
+      <p class="note">No battery pill on this switch: off costs nothing, and on costs only the dune, which already carries its pill. Stored value: <code>showOverFullscreen</code> = <code id="fval">false</code>.</p>
+      <div class="stage" data-frac=".42"><div class="win"></div><canvas aria-hidden="true"></canvas><div class="cap"><b class="tn">Pasta is done</b><span>Sound is muted</span></div></div>
+      <div class="row"><span class="t">Rings once with the choices above.</span><button class="btn main" id="dtest" type="button">Test the alarm</button></div></div>
+      <figcaption>Choosing a style plays it once in the stage · the cost pill of each style is shown in its section above</figcaption><p class="stat"></p></figure>
+  </div>
+</section>
+
+<section class="opt">
+  <div class="head"><div><h2>Caption contrast, measured</h2><p>Weakest pair between the caption colour and any pixel of the caption band, read back from the painted sand in the 6 themes, at the panel width and timer name chosen above. AA asks 4.5:1.</p>
+    <p class="note" id="cmin"></p></div></div>
+  <table id="ctab" class="num"></table>
+</section>
+
+</main>
+<script>
+(function () {
+  var B = document.body;
+  function $$(s, r) { return [].slice.call((r || document).querySelectorAll(s)); }
+  function hex(c) { c = c.trim(); return [1, 3, 5].map(function (i) { return parseInt(c.substr(i, 2), 16); }); }
+  function mix(a, b, t) { return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+  function css(c) { return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")"; }
+  function lum(c) { var f = c.map(function (v) { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * f[0] + .7152 * f[1] + .0722 * f[2]; }
+  function ratio(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function smooth(v) { v = clamp(v); return v * v * (3 - 2 * v); }
+  function out3(v) { v = 1 - clamp(v); return 1 - v * v * v; }
+  // Seeded, so every replay and the Reduce motion picture show the same dune.
+  function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  // Settled outline, as a share of the dune height, for u from 0 (left) to 1 (right).
+  var SHAPE = {
+    a: function (u) { var d = (u - .5) / .21; return .64 + .28 * Math.exp(-d * d) + .03 * Math.sin(u * 9 + 1); },
+    b: function (u) { var c = .68; return u < c ? .60 + .36 * Math.pow(smooth(u / c), 1.3) + .012 * Math.sin(u * 46) * (1 - u / c) : .96 - .35 * smooth((u - c) / .13) + .012 * Math.sin(u * 30); }
+  };
+  // Shades are free (up to FREE of the far colour) everywhere except in the caption band: the caption box plus
+  // BAND px above and below, where the share of the caption colour is capped so the caption keeps FLOOR:1 (AA asks 4.5:1).
+  var FREE = .55, FLOOR = 5, BAND = 4, FEATHER = 10, STEP = 1 / 30;
+  // Four frank tints, as shares of the far colour: deep shade, shade, the primary itself, light.
+  var TINTS = [-1, -.45, 0, 1];
+  function capMix(P, O) { var m = FREE; while (m > 0 && ratio(O, mix(P, O, m)) < FLOOR) m -= .01; return Math.max(0, m); }
+
+  function Sand(box, kind) {
+    var cv = box.querySelector("canvas"), cap = box.querySelector(".cap"), stat = box.closest("figure").querySelector(".stat");
+    var ctx = cv.getContext("2d"), F = SHAPE[kind], frac = parseFloat(box.dataset.frac);
+    var W, H, Hd, Ht, sc, dpr, tex, pal, drawn, parts, t, T0, raf = 0, steps, peak, capAt, capBox, R;
+
+    function build() {
+      var r = box.getBoundingClientRect();
+      var l = 1e9, rr = 0, top = 1e9, bot = 0;
+      $$("b,span", cap).forEach(function (e) { var q = e.getBoundingClientRect(); l = Math.min(l, q.left - r.left); rr = Math.max(rr, q.right - r.left); top = Math.min(top, q.top - r.top); bot = Math.max(bot, q.bottom - r.top); });
+      capBox = { l: l, r: rr, top: top, bot: bot };
+      // The dune is never lower than its caption needs: on a small screen or with a wrapped name it grows so the band stays on sand (the outline never drops under .6 of the height).
+      W = Math.round(r.width); H = Math.round(r.height); Hd = Math.max(Math.round(H * frac), Math.ceil((H - top + BAND + 2) / .6)); Ht = Math.round(Hd * 1.3); sc = Hd / 66;
+      dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
+      var st = getComputedStyle(B), P = hex(st.getPropertyValue("--primary")), O = hex(st.getPropertyValue("--onprimary")), T = hex(st.getPropertyValue("--text"));
+      var textLit = lum(T) > lum(P), CAP = capMix(P, O);
+      pal = { P: P, O: O, lit: textLit ? T : O, litCap: textLit ? FREE : CAP, dark: textLit ? O : T, darkCap: textLit ? CAP : FREE };
+      pal.rim = css(mix(P, pal.lit, .5)); pal.crest = css(mix(P, pal.lit, FREE));
+      tex = document.createElement("canvas"); tex.width = W * dpr; tex.height = Ht * dpr;
+      var g = tex.getContext("2d"), r2 = rng(kind === "a" ? 7 : 11), n = Math.round(W * Ht / 5), y0 = H - Ht, bt = top - BAND - y0, bb = bot + BAND - y0, i, x, y, v, size;
+      // Colour for shade v (-1 deep shade to 1 full light) on rows y to y + h; the cap applies in the band and eases out over FEATHER px.
+      function tint(v, y, h) {
+        var k = 1 - clamp(Math.max(bt - y - h, y - bb, 0) / FEATHER);
+        return css(v > 0 ? mix(P, pal.lit, v * (FREE + (pal.litCap - FREE) * k)) : mix(P, pal.dark, -v * (FREE + (pal.darkCap - FREE) * k)));
+      }
+      // Macro shading. Light comes from the upper left: a face that climbs to the right is lit, one that falls is in shade.
+      // That light is a skin that follows the surface and fades under it; below, the sand darkens towards the foot of the dune.
+      function macro(x, y) {
+        var u = x / W, face = Math.max(-1, Math.min(1, .2 + (F(u + .01) - F(u - .01)) / .02 * .9));
+        return Math.max(-1, Math.min(1, face * Math.exp(-Math.max(0, y - (Ht - F(u) * Hd)) / (.3 * Hd)) - .6 * Math.pow(1 - clamp((Ht - y) / (.7 * Hd)), 1.5)));
+      }
+      g.scale(dpr, dpr);
+      for (y = 0; y < Ht; y += 3) for (x = 0; x < W; x += 3) { g.fillStyle = tint(macro(x + 1.5, y + 1.5) * .85, y, 3); g.fillRect(x, y, 3, 3); }
+      for (i = 0, drawn = 0; i < n; i++) {
+        // Grains of 2, 3 or 4 px, snapped to the pixel grid so each one keeps a sharp edge and a single tint.
+        size = 2 + Math.floor(r2() * r2() * 3); x = Math.round(r2() * W); y = Math.round(r2() * Ht);
+        // Strata: gentle wavy layers, as in a cut through a real dune.
+        v = macro(x, y) + (r2() - .5) * 1.1 + .25 * Math.sin(y * .5 / Math.sqrt(sc) + 2.2 * Math.sin(x * .013 + (kind === "a" ? 0 : 2)));
+        g.fillStyle = tint(TINTS[v < -.62 ? 0 : v < -.2 ? 1 : v < .45 ? 2 : 3], y, size);
+        g.fillRect(x, y, size, size);
+        if (y >= Ht - F(x / W) * Hd) drawn++;
+      }
+      // Measured, not derived: the weakest pair between the caption colour and every pixel painted in the caption band.
+      var bx = Math.max(0, Math.floor((l - BAND) * dpr)), by = Math.max(0, Math.floor(bt * dpr)), seenC = {}, d, c;
+      d = g.getImageData(bx, by, Math.min(tex.width - bx, Math.ceil((rr - l + 2 * BAND) * dpr)), Math.min(tex.height - by, Math.ceil((bb - bt) * dpr))).data;
+      for (i = 0, pal.worst = 99; i < d.length; i += 4) { c = d[i] << 16 | d[i + 1] << 8 | d[i + 2]; if (!seenC[c]) { seenC[c] = 1; pal.worst = Math.min(pal.worst, ratio(O, [d[i], d[i + 1], d[i + 2]])); } }
+    }
+
+    // Option A: how far the sand front has run from the centre, 0 (centre) to 1 (edge), then past it while the edge fills.
+    function front(ts) { return 1.55 * (1 - Math.pow(1 - clamp(ts / 1.7), 1.5)); }
+    // Height of the sand in px at x, ts seconds after the first grain touched the ground.
+    function surf(x, ts) {
+      var u = x / W, f = F(u) * Hd, v, d, p;
+      if (ts >= 9) return f;
+      if (ts <= 0) return 0;
+      if (kind === "a") {
+        // The sand spreads: nothing at x until the front arrives, then it banks up behind the front. The edge fills last.
+        d = Math.abs(u - .5) * 2; p = 1 - clamp((front(ts) - d) / .55);
+        return f * (1 - p * p) + Math.max(0, 1 - d / .16) * .42 * Hd * Math.min(1, ts / .25) * (1 - smooth((ts - .6) / 1.1));
+      }
+      v = 1 - Math.pow(1 - clamp(ts / 1.5), 2); p = clamp(v * 2.2 - u * 1.2);
+      return f * out3(p) + .12 * Hd * Math.sin(Math.PI * p);
+    }
+    function covered(ts) { for (var x = capBox.l; x <= capBox.r; x += 4) if (H - surf(x, ts) > capBox.top - BAND) return false; return true; }
+
+    function paint(ts, rim) {
+      var x;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(0, H);
+      for (x = 0; x <= W + 2; x += 2) ctx.lineTo(x, H - surf(x, ts));
+      ctx.lineTo(W + 2, H); ctx.closePath(); ctx.clip(); ctx.drawImage(tex, 0, H - Ht, W, Ht); ctx.restore();
+      if (rim > 0) {
+        // While the sand moves its fresh surface catches the light; the line fades as it settles.
+        ctx.globalAlpha = rim * .8; ctx.strokeStyle = pal.rim; ctx.lineWidth = 1.5; ctx.beginPath();
+        for (x = 0; x <= W; x += 2) ctx.lineTo(x, H - surf(x, ts) + .75);
+        ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      // Option B keeps a one-pixel lit edge along the windward crest once the dune has its final shape; it stays out of the caption band.
+      var ca = kind !== "b" ? 0 : ts >= 9 ? 1 : smooth((ts - 1.5) / .4), y, pen = false;
+      if (ca > 0) {
+        ctx.globalAlpha = ca; ctx.strokeStyle = pal.crest; ctx.lineWidth = 1; ctx.beginPath();
+        for (x = 0; x <= .682 * W; x += 2) { y = H - surf(x, ts) + .5; if (y > capBox.top - BAND - 1) { pen = false; continue; } if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y); pen = true; }
+        ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      parts.forEach(function (q) { ctx.fillStyle = q.c; ctx.fillRect(q.x, q.y, q.s, q.s); });
+    }
+    function grain(o) { o.s = R() < .6 ? 2 : 3; o.c = css(R() < .5 ? mix(pal.P, pal.lit, FREE) : R() < .5 ? pal.P : mix(pal.P, pal.dark, FREE * .45)); parts.push(o); }
+
+    function step() {
+      t += STEP; var ts = t - T0, i, q, sy, k, uf, G = (kind === "a" ? 1800 : 900) * sc;
+      if (kind === "a") {
+        if (t < 1.5) for (k = Math.round(4 * sc); k--;) grain({ m: 0, x: W / 2 + (R() - .5) * 3 * sc, y: -R() * 30, vx: 0, vy: 260 * sc });
+        if (ts > .2 && ts < 1.6) for (k = Math.round(2 * sc); k--;) { i = R() < .5 ? -1 : 1; grain({ m: 2, x: W / 2 + i * Math.max(0, Math.min(1, front(ts)) - R() * .2) * W / 2, y: 0, dir: i, sp: (80 + R() * 160) * sc, life: .5 + R() * .6 }); }
+      } else {
+        uf = Math.min(1, (1 - Math.pow(1 - clamp(ts / 1.5), 2)) * 2.2 / 1.2);
+        if (ts < 1.5) for (k = Math.round(3 * sc); k--;) { q = Math.max(0, uf - R() * .22) * W; grain({ m: 1, x: q, y: H - surf(q, ts) - 1, vx: (140 + R() * 220) * sc, vy: -(50 + R() * 120) * sc }); }
+        if (uf > .68 && ts < 1.9) for (k = Math.round(2 * sc); k--;) grain({ m: 1, x: .68 * W, y: H - surf(.68 * W, ts) - 1, vx: (50 + R() * 120) * sc, vy: -(20 + R() * 50) * sc });
+      }
+      for (i = parts.length; i--;) {
+        q = parts[i];
+        if (q.m === 2) { q.x += q.dir * q.sp * STEP; q.sp *= .9; q.life -= STEP; q.y = H - surf(q.x, ts) - q.s; if (q.life <= 0 || q.x < 0 || q.x > W) parts.splice(i, 1); continue; }
+        q.vy += G * STEP; q.x += q.vx * STEP; q.y += q.vy * STEP; sy = H - surf(q.x, ts);
+        if (q.y < sy && q.x <= W) continue;
+        if (q.m === 0 && R() < .35) { q.m = 1; q.y = sy - 2; q.vx = (R() - .5) * 280 * sc; q.vy = -(60 + R() * 150) * sc; }
+        else if (q.m === 1 && kind === "b" && R() < .4 && q.x < W) { q.y = sy - 2; q.vx *= .7; q.vy = -(30 + R() * 60) * sc; }
+        else if (R() < .6 && q.x < W) { q.m = 2; q.dir = q.vx < 0 ? -1 : q.vx > 0 ? 1 : (R() < .5 ? -1 : 1); q.sp = Math.max(40 * sc, Math.abs(q.vx) * .6); q.life = .3 + R() * .4; }
+        else parts.splice(i, 1);
+      }
+      peak = Math.max(peak, parts.length); steps++;
+      if (capAt < 0 && covered(ts)) { capAt = t; cap.classList.add("show"); }
+      if ((ts > 1.9 && !parts.length) || ts > (kind === "a" ? 2.4 : 2.6)) return settle(true);
+      paint(ts, 1 - smooth((ts - 1.4) / .5));
+      return false;
+    }
+    function settle(moved) {
+      clearInterval(raf); raf = 0; parts = []; paint(9, 0); cap.classList.add("show");
+      stat.textContent = "Painted once: " + drawn + " grains · " + (moved ? "most loose grains at one time: " + peak + " · caption shown at " + (capAt < 0 ? t : capAt).toFixed(2) + " s · movement over at " + t.toFixed(2) + " s · " + steps + " steps drawn, then 0" : "no movement, 0 steps") +
+        " · caption fully on sand: " + (covered(9) ? "yes" : "NO") + " · weakest contrast measured in the caption band " + pal.worst.toFixed(2) + ":1";
+      box.dataset.done = "1";
+      return true;
+    }
+    this.play = function () {
+      clearInterval(raf); build(); cap.classList.remove("show"); delete box.dataset.done;
+      parts = []; t = 0; steps = 0; peak = 0; capAt = -1; R = rng(kind === "a" ? 3 : 5);
+      // Option A waits for the first grain to fall the height of the screen before any sand rises.
+      T0 = kind === "a" ? (-260 * sc + Math.sqrt(Math.pow(260 * sc, 2) + 2 * 1800 * sc * (H - 15))) / (1800 * sc) : 0;
+      if (B.dataset.rm === "on") { settle(false); return; }
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+      // Stepped by a 30 Hz timer, like the Timer of the build, whatever the refresh rate of the display.
+      raf = setInterval(step, 1000 * STEP);
+    };
+    this.probe = function () { build(); return pal.worst; };
+    this.still = function () { clearInterval(raf); build(); parts = []; t = 0; steps = 0; settle(false); };
+    this.stop = function () { clearInterval(raf); raf = 0; };
+  }
+
+  // Option C: one flat cartoon shape. Rest outline as a share of the wave height; it never goes under .70 and its crest is .95 at u = .6.
+  // A dune ridge, not a ripple: a long slope on the left of the crest, a slip face half as long on the right.
+  function FC(u) { var d = (u - .6) / (u < .6 ? .34 : .17); return .70 + .25 * Math.exp(-d * d); }
+  var BEATS = [.20, .11, .05], BEAT_S = [.42, .32, .24], NG = 8, BACK = 2.425;
+  // Ease-out with one overshoot of 4k^3 / 27(k+1)^2, 18 % at k = 2.425.
+  function back(v) { v = clamp(v) - 1; return 1 + (BACK + 1) * v * v * v + BACK * v * v; }
+  // Share of height lost at time tt during the three beats: each shorter and softer than the one before.
+  // Sand has weight: it drops in the first 30 % of the beat (a thud) and builds back up over the rest, where water would swing evenly.
+  function beat(tt) { for (var i = 0, s = .7, v; i < 3; s += BEAT_S[i++]) { v = (tt - s) / BEAT_S[i]; if (v > 0 && v < 1) return BEATS[i] * (v < .3 ? out3(v / .3) : 1 - smooth((v - .3) / .7)); } return 0; }
+  // Fine sand thrown up at the overshoot and at each thud: when, how many grains, how hard.
+  var PUFFS = [[.47, 10, 1], [.826, 12, 1], [1.216, 7, .74], [1.512, 4, .5]], GRAV = 520;
+  // Shear of the body toward the crest, in px per px of height: grows in the rise, straightens through the beats, 0 at the settle.
+  function lean(tt) { return tt < .2 ? 0 : .16 * smooth((tt - .2) / .25) * (1 - smooth((tt - .7) / 1.3)); }
+  function Wave(box) {
+    var cv = box.querySelector("canvas"), cap = box.querySelector(".cap"), stat = box.closest("figure").querySelector(".stat");
+    var ctx = cv.getContext("2d"), frac = parseFloat(box.dataset.frac);
+    var W, H, Hd, sc, dpr, pal, grains, speck, dust, slide, t, raf = 0, steps, capAt, capBox, bare, pk;
+
+    function build() {
+      var r = box.getBoundingClientRect(), l = 1e9, rr = 0, top = 1e9, bot = 0, R = rng(13), i;
+      $$("b,span", cap).forEach(function (e) { var q = e.getBoundingClientRect(); l = Math.min(l, q.left - r.left); rr = Math.max(rr, q.right - r.left); top = Math.min(top, q.top - r.top); bot = Math.max(bot, q.bottom - r.top); });
+      capBox = { l: l, r: rr, top: top, bot: bot };
+      // Tall enough that the deepest squash (20 % off the lowest point, .70) still leaves the caption band, the rim and the base line on the wave.
+      W = Math.round(r.width); H = Math.round(r.height); Hd = Math.max(Math.round(H * frac), Math.ceil((H - top + BAND + 8) / .52)); sc = Hd / 66;
+      dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
+      var st = getComputedStyle(B), P = hex(st.getPropertyValue("--primary")), O = hex(st.getPropertyValue("--onprimary")), T = hex(st.getPropertyValue("--text"));
+      // Rim: the lighter role if it can reach 3:1 against primary, else the other one; the share goes up until 3:1 is measured.
+      var hi = lum(T) > lum(O) ? T : O, lo = hi === T ? O : T, far = ratio(hi, P) >= 3 ? hi : lo, m = .5;
+      while (m < 1 && ratio(mix(P, far, m), P) < 3) m += .01;
+      pal = { P: css(P), rim: css(mix(P, far, m)), rimRatio: ratio(mix(P, far, m), P), base: css(mix(P, lo, .3)), spk: css(mix(P, far, m * .5)) };
+      // Round grains of 6 to 8 px: where each leaves the crest, how far and how high it hops, and when (at the overshoot).
+      // Three of them do not stay: they land, then roll down the slope away from the crest.
+      for (grains = [], i = 0; i < NG; i++) {
+        grains.push({ x: (.36 + .5 * (i + R()) / NG) * W, r: 3 + R(), dx: (R() - .5) * 28 * sc, hop: (24 + R() * 32) * sc, at: .5 + R() * .08, d: .34 + R() * .12, roll: 0 });
+        if (i === 1 || i === 4 || i === 6) grains[i].roll = (grains[i].x + grains[i].dx < .6 * W ? -1 : 1) * (26 + R() * 18) * sc;
+      }
+      // Sand matter: specks of 2 or 3 px in two tints, dense under the crest line and thinning with depth. They ride the surface.
+      for (speck = [], i = Math.min(160, Math.round(W / 5)); i--;) speck.push({ x: R() * W, d: 6 + R() * R() * .36 * Hd, s: R() < .7 ? 2 : 3, c: R() < .55 ? pal.spk : pal.base });
+      // Fine sand thrown off the crest: each grain flies a short arc and is gone when it lands.
+      dust = []; PUFFS.forEach(function (p) { for (var k = p[1], vy; k--;) { vy = (60 + R() * 110) * sc * p[2]; dust.push({ t: p[0] + R() * .05, x: (.42 + .36 * R()) * W, vx: (R() - .5) * 90 * sc, vy: vy, life: 2 * vy / (GRAV * sc), s: R() < .6 ? 2 : 3 }); } });
+      // Small slides: grains that trickle down the slip face while the dune builds back, slowed by friction.
+      for (slide = [], i = 7; i--;) slide.push({ t: .75 + R() * .8, x: (.62 + R() * .1) * W, dist: (.10 + R() * .14) * W, d: .4 + R() * .3 });
+      // The two extremes of the movement, measured on the same 30 Hz steps the Timer draws: highest crest, lowest crest in the beats.
+      pk = { rest: crest(9), up: 0, upT: 0, dn: 1e9, dnT: 0 };
+      for (i = 1; i < 72; i++) { m = crest(i * STEP); if (m > pk.up) { pk.up = m; pk.upT = i * STEP; } if (i * STEP > .7 && m < pk.dn) { pk.dn = m; pk.dnT = i * STEP; } }
+      // Measured, not derived: the settled wave is painted off screen and the caption band read back.
+      var off = document.createElement("canvas"), g, d, c, seenC = {}; off.width = cv.width; off.height = cv.height; g = off.getContext("2d"); paint(g, 9);
+      var bx = Math.max(0, Math.floor((l - BAND) * dpr)), by = Math.max(0, Math.floor((top - BAND) * dpr));
+      d = g.getImageData(bx, by, Math.min(off.width - bx, Math.ceil((rr - l + 2 * BAND) * dpr)), Math.min(off.height - by, Math.ceil((bot - top + 2 * BAND) * dpr))).data;
+      for (i = 0, pal.worst = 99; i < d.length; i += 4) { c = d[i] << 16 | d[i + 1] << 8 | d[i + 2]; if (!seenC[c]) { seenC[c] = 1; pal.worst = d[i + 3] < 255 ? 0 : Math.min(pal.worst, ratio(O, [d[i], d[i + 1], d[i + 2]])); } }
+    }
+    // Width factor: wider during the anticipation and each squash (volume kept), back to 1 at rest.
+    function wide(tt) { return tt < .2 ? 1 + .12 * smooth(tt / .2) : tt < .7 ? 1 + .12 * (1 - smooth((tt - .2) / .3)) : 1 / (1 - beat(tt)); }
+    // The lip of the anticipation, in px: up to 16, down 6, then swallowed by the rise.
+    function lip(tt) { return tt < .1 ? 16 * out3(tt / .1) : tt < .2 ? 16 - 6 * smooth((tt - .1) / .1) : 10 * (1 - clamp((tt - .2) / .1)); }
+    // Height of the wave in px at x, tt seconds after the alarm. The lean shifts each point by its own height (one shear step).
+    function surf(x, tt) { return tt >= 9 ? FC(x / W) * Hd : raw(x - lean(tt) * raw(x, tt), tt); }
+    function crest(tt) { for (var x = 0, m = 0; x <= W; x += 2) m = Math.max(m, surf(x, tt)); return m; }
+    function raw(x, tt) {
+      var u = x / W, c, tr, s, w, k;
+      // The crest leads the rise and the sides follow 120 ms later; in the beats the crest lags 40 ms behind the body (a heap, not a jelly).
+      c = clamp((FC(u) - .70) / .25); tr = tt - .12 * (1 - c);
+      s = (tr < .2 ? 0 : tr < .7 ? back((tr - .2) / .5) : 1) - beat(tt - .04 * c); w = wide(tt);
+      if (tt > 2) { k = smooth((tt - 2) / .15); s += (1 - s) * k; w += (1 - w) * k; }
+      return FC(.6 + (u - .6) / w) * (Hd * s + lip(tt) / .95 * sc);
+    }
+    function covered(tt) { for (var x = capBox.l; x <= capBox.r; x += 4) if (H - surf(x, tt) > capBox.top - BAND - 6) return false; return true; }
+    function outline(g, tt, dy) { for (var x = -2; x <= W + 2; x += 2) g.lineTo(x, H - surf(x, tt) + dy); }
+    function paint(g, tt) {
+      var w = tt >= 9 ? 1 : wide(tt);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+      g.beginPath(); g.moveTo(-2, H); outline(g, tt, 0); g.lineTo(W + 2, H); g.closePath(); g.fillStyle = pal.P; g.fill();
+      // The rim is the inner half of a stroke clipped to the wave: 3 px at rest, thicker while the wave is squashed.
+      // The base line is 1 px under it, on the flank opposite the crest only (the crest sits at 60 % of the width).
+      g.save(); g.clip(); g.beginPath(); outline(g, tt, 0); g.strokeStyle = pal.rim; g.lineWidth = 6 * w; g.stroke();
+      g.beginPath(); for (var bx = -2; bx <= .4 * W; bx += 2) g.lineTo(bx, H - surf(bx, tt) + 3 * w + .5); g.strokeStyle = pal.base; g.lineWidth = 1; g.stroke(); g.restore();
+      // Specks stay out of the caption band, so the caption keeps the flat primary behind it at every step.
+      speck.forEach(function (q) {
+        var y = Math.round(H - surf(q.x, tt) + q.d * w), x = Math.round(q.x);
+        if (y + q.s > H || (y + q.s > capBox.top - BAND - 2 && x + q.s > capBox.l - BAND - 2 && x < capBox.r + BAND + 2)) return;
+        g.fillStyle = q.c; g.fillRect(x, y, q.s, q.s);
+      });
+      if (tt < 9) {
+        g.fillStyle = pal.P;
+        dust.forEach(function (q) { var a = tt - q.t, x; if (a < 0 || a > q.life) return; x = q.x + q.vx * a; g.fillRect(Math.round(x), Math.round(H - surf(x, tt) - q.s - q.vy * a + .5 * GRAV * sc * a * a), q.s, q.s); });
+        slide.forEach(function (q) { var v = (tt - q.t) / q.d, x; if (v < 0 || v > 1) return; x = q.x + q.dist * v * (2 - v); g.fillRect(Math.round(x), Math.round(H - surf(x, tt) - 2), 3, 3); });
+      }
+      grains.forEach(function (q) {
+        if (tt < q.at) return;
+        var v = tt >= 9 ? 1 : clamp((tt - q.at) / q.d), v2 = !q.roll ? 0 : tt >= 9 ? 1 : clamp((tt - q.at - q.d) / .7), x = q.x + q.dx * v + q.roll * v2 * v2,
+          y = H - surf(x, tt) - q.r + 1 - q.hop * 4 * v * (1 - v) - 5 * sc * Math.abs(Math.sin(2 * Math.PI * v2)) * (1 - v2);
+        g.beginPath(); g.arc(x, y, q.r, 0, 7); g.fillStyle = pal.P; g.fill();
+        g.beginPath(); g.arc(x - q.r * .3, y - q.r * .3, q.r * .45, 0, 7); g.fillStyle = pal.rim; g.fill();
+      });
+    }
+    function step() {
+      t += STEP; steps++;
+      if (capAt < 0 && t > .7 && covered(t)) { capAt = t; cap.classList.add("show"); }
+      else if (capAt >= 0 && !covered(t)) bare = true;
+      if (t >= 2.4 - STEP / 2) return settle(true);
+      paint(ctx, t);
+    }
+    function settle(moved) {
+      clearInterval(raf); raf = 0; paint(ctx, 9); cap.classList.add("show");
+      stat.textContent = "1 flat shape, 1 rim, " + NG + " round grains, " + speck.length + " specks, " + dust.length + " grains of thrown sand · " + (moved ? "caption shown at " + (capAt < 0 ? t : capAt).toFixed(2) + " s · movement over at " + t.toFixed(2) + " s · " + steps + " steps drawn, then 0 · caption stayed on the wave at every step: " + (bare ? "NO" : "yes") : "no movement, 0 steps") +
+        " · caption fully on the wave: " + (covered(9) ? "yes" : "NO") + " · weakest contrast measured in the caption band " + pal.worst.toFixed(2) + ":1" +
+        " · rim 3 px at " + pal.rimRatio.toFixed(2) + ":1 against primary · crest at rest " + pk.rest.toFixed(0) + " px, overshoot +" + (pk.up - pk.rest).toFixed(0) + " px at " + pk.upT.toFixed(2) + " s, deepest squash -" + (pk.rest - pk.dn).toFixed(0) + " px at " + pk.dnT.toFixed(2) + " s";
+      box.dataset.done = "1";
+    }
+    this.play = function () {
+      clearInterval(raf); build(); cap.classList.remove("show"); delete box.dataset.done; t = 0; steps = 0; capAt = -1; bare = false;
+      if (B.dataset.rm === "on") { settle(false); return; }
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+      raf = setInterval(step, 1000 * STEP);
+    };
+    this.probe = function () { build(); return pal.worst; };
+    this.still = function () { clearInterval(raf); build(); t = 0; steps = 0; settle(false); };
+    this.stop = function () { clearInterval(raf); raf = 0; };
+    // Evidence only: one still step at the overshoot ("up") or at the deepest squash ("dn").
+    this.at = function (which) { clearInterval(raf); raf = 0; build(); paint(ctx, which === "up" ? pk.upT : pk.dnT); cap.classList.add("show"); };
+  }
+
+  // Full-screen case: option A over one app, plus the DMS notification card on both screens.
+  var full = document.getElementById("full"), fsand = new Sand(full.querySelector("canvas").parentNode, "a");
+  function fullPlay() { today(full); fsand.play(); }
+  var sands = [], seen = typeof IntersectionObserver === "function" ? new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (e.isIntersecting) { seen.unobserve(e.target); play(e.target); } });
+  }, { threshold: .4 }) : null;
+  function today(sec) { $$(".screen,.stage", sec).forEach(function (b) { b.classList.remove("on"); void b.offsetWidth; b.classList.add("on"); }); }
+  function play(sec, only) {
+    if (sec.dataset.kind === "today") return today(sec);
+    if (sec === full) return fullPlay();
+    sands.forEach(function (s) { if (s.sec === sec && (!only || s.box === only)) s.sand.play(); });
+  }
+  $$(".opt[data-kind]").forEach(function (sec) {
+    $$("canvas", sec).forEach(function (c) { sands.push({ sec: sec, box: c.parentNode, sand: sec.dataset.kind === "c" ? new Wave(c.parentNode) : new Sand(c.parentNode, sec.dataset.kind) }); });
+    $$(".replay", sec).forEach(function (b) { b.addEventListener("click", function () { var p = b.closest(".panel"); play(sec, p ? p.querySelector(".stage") : null); }); });
+    if (seen) seen.observe(sec); else play(sec);
+  });
+  if (seen) seen.observe(full); else fullPlay();
+  document.getElementById("fplay").addEventListener("click", fullPlay);
+  document.getElementById("fsw").addEventListener("click", function () { var on = this.getAttribute("aria-checked") !== "true"; this.setAttribute("aria-checked", on); document.getElementById("fval").textContent = on; });
+  window.sandsWaveAt = function (which) { sands.forEach(function (s) { if (s.sec.dataset.kind === "c") s.sand.at(which); }); };
+  // The settings row: three styles share one stage, only the chosen one is ever running.
+  var dbox = document.querySelector("#setrow .stage"), demo = { grains: new Sand(dbox, "a"), wind: new Sand(dbox, "b"), wave: new Wave(dbox) };
+  function chosen() { return document.querySelector("input[name=dune]:checked").value; }
+  function demoRun(how) { for (var k in demo) demo[k].stop(); demo[chosen()][how](); document.getElementById("dval").textContent = chosen(); }
+  $$("input[name=dune]").forEach(function (i) { i.addEventListener("change", function () { demoRun("play"); }); });
+  document.getElementById("dtest").addEventListener("click", function () { demoRun("play"); });
+  window.sandsPlay = function () { $$(".opt[data-kind]").forEach(function (s) { play(s); }); fullPlay(); demoRun("play"); };
+  document.getElementById("all").addEventListener("click", window.sandsPlay);
+  function still() { sands.forEach(function (s) { s.sand.still(); }); fsand.still(); demoRun("still"); }
+  // Repaints every dune in each of the 6 themes and reads the caption band back; the theme on screen is put back afterwards.
+  function measureAll() {
+    var tab = document.getElementById("ctab"), mode = B.dataset.mode, colour = B.dataset.colour, min = 99;
+    var rows = "<tr><td></td><td>A, screen</td><td>A, settings</td><td>B, screen</td><td>B, settings</td><td>C, screen</td><td>C, settings</td></tr>";
+    ["dark", "light"].forEach(function (m) { ["violet", "green", "amber"].forEach(function (c) {
+      B.dataset.mode = m; B.dataset.colour = c;
+      rows += "<tr><th>" + m.charAt(0).toUpperCase() + m.slice(1) + " " + c + "</th>" + sands.map(function (s) { var w = s.sand.probe(); min = Math.min(min, w); return "<td>" + w.toFixed(2) + ":1</td>"; }).join("") + "</tr>";
+    }); });
+    B.dataset.mode = mode; B.dataset.colour = colour; sands.forEach(function (s) { s.sand.probe(); });
+    tab.innerHTML = rows; tab.dataset.min = min.toFixed(2);
+    document.getElementById("cmin").textContent = "Weakest of the " + 6 * sands.length + ": " + min.toFixed(2) + ":1 at devicePixelRatio " + (window.devicePixelRatio || 1) + ". " + (min >= 4.5 ? "AA holds everywhere." : "BELOW AA.");
+  }
+  $$("header input").forEach(function (i) {
+    i.addEventListener("change", function () {
+      B.dataset[i.name] = i.value;
+      if (i.name === "name") $$(".tn").forEach(function (e) { e.textContent = i.value === "long" ? "Sourdough second proof with the seeds and the rye starter is done" : "Pasta is done"; });
+      // A new theme, width or name repaints the settled dune once; it does not replay the movement.
+      still(); measureAll();
+    });
+  });
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion:reduce)").matches) { B.dataset.rm = "on"; document.querySelector("input[name=rm][value=on]").checked = true; }
+  var rs = 0; window.addEventListener("resize", function () { clearTimeout(rs); rs = setTimeout(function () { still(); measureAll(); }, 150); });
+  measureAll(); fsand.still(); demoRun("still");
+})();
+</script>
+</body>
+</html>

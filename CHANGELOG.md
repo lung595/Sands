@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Pure logic for the visual alert (`components/alert/AlertPolicy.js`, `HaloMotion.js`, NAK-679): which alert to draw (dune, Edge halo, none) and when (when the sound is off, or every time; hidden over full screen unless allowed), and the finite steps of the Edge halo (rise, 3 beats at 30 Hz, rest; Reduce motion shows the posed rim only). Not wired to any view yet; covered by `tests/alert-policy.test.js` and `tests/halo-motion.test.js`.
 - Pure logic for the four look choices (`components/settings/Variants.js`, NAK-646): the journal, favourites, notice and end-of-timer modes, with their keys, allowed values, defaults, English labels and `clean(key, value)`. Not wired to any view yet; covered by `tests/variants.test.js`.
 - The daemon keeps each timer that rings in the private history (`HistoryStore`, NAK-647): one record at the ring through `History.js`, nothing while a timer runs or at rest; stopped timers are not kept. Read side on demand only (`historyThisWeek`, `historyFavourites`), `eraseHistory`, and the file and its folder are removed when the plugin is uninstalled (`HistorySweep`, a detached removal once the manifest is gone). Covered by `tests/qml/run.sh` and `tests/history.test.js`.
+- "Rising dune" motion model (no view yet): three sand styles (`grains` default, `wind`, `wave`) with a fallback for unknown values, seeded 30 Hz steps that end by themselves, and the full-screen rule. Approved mockup in `docs/design/NAK-553/`.
 
 ## 1.6.0 - 2026-10-11
 
