@@ -10,7 +10,7 @@ function paint(ctx, kind, x, y, w, h, fg, bg) {
     ctx.clip();
     if (kind === 1) {
         // Light base with small holes
-        ctx.globalAlpha = 0.68;
+        ctx.globalAlpha = 0.72;
         ctx.fillStyle = fg;
         ctx.fillRect(x, y, w, h);
         ctx.globalAlpha = 1;

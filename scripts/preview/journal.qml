@@ -34,7 +34,7 @@ Window {
     width: args.indexOf("narrow") >= 0 ? 260 : 340
     height: 760
     visible: true
-    color: Theme.surface
+    color: Theme.surfaceContainer
 
     FakeDaemon {
         id: fake
@@ -46,6 +46,13 @@ Window {
 
     readonly property bool panel: args.indexOf("panel") >= 0
     readonly property bool erase: args.indexOf("erase") >= 0
+
+    // The popout surface, so that light and dark can be judged
+    Rectangle {
+        anchors.fill: parent
+        radius: 16
+        color: Theme.surfaceContainer
+    }
 
     // Alone, or inside the panel where the link opens it
     Loader {
@@ -108,7 +115,7 @@ Window {
                 bad++;
             }
             if (clear.enabled) {
-                clear.clicked(null);
+                clear.clicked();
                 if (fake.week.length !== 0 || !view.item.empty) {
                     console.warn("OVERLAP clear did not empty the journal");
                     bad++;

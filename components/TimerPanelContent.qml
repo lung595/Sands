@@ -230,6 +230,7 @@ Column {
         visible: active
         sourceComponent: JournalLink {
             open: pop.journalOpen
+            reducedMotion: pop.reducedMotion
             onToggled: pop.journalOpen = !pop.journalOpen
         }
     }

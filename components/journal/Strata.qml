@@ -34,7 +34,7 @@ Column {
         id: glass
 
         // Only listed so that a theme change triggers a repaint
-        readonly property var colours: [Theme.primary, Theme.surface, Theme.outline]
+        readonly property var colours: [Theme.primary, Theme.surfaceContainer, Theme.outline]
 
         anchors.horizontalCenter: parent.horizontalCenter
         width: 208
@@ -71,9 +71,9 @@ Column {
             for (let i = 0; i < root.heights.length; i++) {
                 y -= root.heights[i];
                 const p = Math.max(0, Math.min(1, (root.elapsed - root.stepMs * i) / root.riseMs));
-                // Quadratic ease out: the layer slows as it settles
-                const rise = 100 * (1 - p) * (1 - p);
-                Texture.paint(ctx, Journal.textureOf(i), 122, y + rise, 96, root.heights[i] - 1, Theme.primary.toString(), Theme.surface.toString());
+                // Cubic ease out (kit curve): the layer slows as it settles
+                const rise = 100 * Math.pow(1 - p, 3);
+                Texture.paint(ctx, Journal.textureOf(i), 122, y + rise, 96, root.heights[i] - 1, Theme.primary.toString(), Theme.surfaceContainer.toString());
             }
             ctx.restore();
             bulb();

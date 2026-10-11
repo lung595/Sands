@@ -23,6 +23,14 @@ Column {
     readonly property var shown: Journal.rows(entries, cleanLook === "threads" ? Journal.THREADS_MAX : Journal.STRATA_MAX)
 
     spacing: Theme.spacingM
+
+    // One-shot entrance; shorter in Reduce motion
+    NumberAnimation on opacity {
+        from: 0
+        to: 1
+        duration: root.reducedMotion ? 150 : 200
+        easing.type: Easing.OutCubic
+    }
     leftPadding: Theme.spacingL
     rightPadding: Theme.spacingL
 
@@ -62,9 +70,9 @@ Column {
         bottomPadding: Theme.spacingL
         spacing: Theme.spacingS
 
-        DankIcon {
+        Glyph {
             anchors.horizontalCenter: parent.horizontalCenter
-            name: "hourglass_empty"
+            path: "M4 2.5h8M4 13.5h8M5 2.5c0 3 2.6 3.6 3 5.5c.4-1.9 3-2.5 3-5.5M5 13.5c0-3 2.6-3.6 3-5.5c.4 1.9 3 2.5 3 5.5"
             size: 48
             color: Theme.outline
         }
@@ -108,51 +116,39 @@ Column {
         }
     }
 
-    Column {
+    // Privacy line and the erase link on one row
+    Row {
         width: root.inner
-        spacing: 0
+        height: Math.max(44, note.implicitHeight)
+        spacing: Theme.spacingS
 
-        Row {
-            width: parent.width
-            spacing: Theme.spacingS
-            DankIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                name: "computer"
-                size: Theme.iconSizeSmall
-                color: Theme.surfaceVariantText
-            }
-            StyledText {
-                width: parent.width - Theme.iconSizeSmall - parent.spacing
-                anchors.verticalCenter: parent.verticalCenter
-                text: "Kept on this machine only. Nothing is sent."
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.surfaceVariantText
-            }
+        Glyph {
+            anchors.verticalCenter: parent.verticalCenter
+            path: "M2.5 3h11v8h-11zM6 13.5h4M5 9c1.5-2.6 4.5-2.6 6 0"
+            color: Theme.surfaceVariantText
         }
-
-        Item {
-            width: parent.width
-            height: 44
+        StyledText {
+            id: note
+            width: parent.width - 16 - clear.width - parent.spacing * 2
+            anchors.verticalCenter: parent.verticalCenter
+            text: "Kept on this machine only. Nothing is sent."
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.surfaceVariantText
+            wrapMode: Text.WordWrap
+        }
+        LinkButton {
+            id: clear
+            objectName: "clear"
+            anchors.verticalCenter: parent.verticalCenter
+            caption: "Clear the journal"
+            underline: true
+            textColor: Theme.primary
+            enabled: !root.empty
             opacity: root.empty ? 0.38 : 1
-
-            StyledText {
-                anchors.verticalCenter: parent.verticalCenter
-                leftPadding: Theme.spacingS
-                text: "Clear the journal"
-                font.pixelSize: Theme.fontSizeMedium
-                font.underline: true
-                color: Theme.primary
-                wrapMode: Text.NoWrap
-            }
-            MouseArea {
-                objectName: "clear"
-                anchors.fill: parent
-                enabled: !root.empty
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    root.daemon.eraseHistory();
-                    root.entries = [];
-                }
+            reducedMotion: root.reducedMotion
+            onClicked: {
+                root.daemon.eraseHistory();
+                root.entries = [];
             }
         }
     }
