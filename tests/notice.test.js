@@ -52,9 +52,9 @@ eq(N.isDue(resumed, 103 * MIN, 2 * MIN, done1), false, "paused after the notice:
 eq(N.dueAt({ id: "r", state: "ringing", total: 10 * MIN, endAt: 0 }, 2 * MIN, []), -1, "ringing: none");
 
 // Next wake-up
-eq(N.nextDueAt([], 2 * MIN, []), -1, "no timers: no wake-up");
-eq(N.nextDueAt([t, run("c", 5 * MIN, 5 * MIN)], 2 * MIN, []), 3 * MIN, "soonest mark");
-eq(N.nextDueAt([t], 2 * MIN, ["a"]), -1, "all notified: no wake-up");
+eq(N.nextDueAt([], 2 * MIN, [], 0), -1, "no timers: no wake-up");
+eq(N.nextDueAt([t, run("c", 5 * MIN, 5 * MIN)], 2 * MIN, [], 0), 3 * MIN, "soonest mark");
+eq(N.nextDueAt([t], 2 * MIN, ["a"], 0), -1, "all notified: no wake-up");
 
 // Bounded list and pruning
 let ids = [];
@@ -63,4 +63,19 @@ for (let i = 0; i < 100; i++)
 eq(ids.length, 64, "capped");
 eq(ids[63], "t99", "keeps the newest");
 eq(N.prune(["a", "z"], [t]), ["a"], "prune drops gone timers");
+// Default and explicit off
+eq(N.noticeFromSetting(undefined), 2 * MIN, "absent: 2 min default");
+eq(N.noticeFromSetting(null), 2 * MIN, "null: 2 min default");
+eq(N.noticeFromSetting(0), 0, "explicit 0 stays silent");
+eq(N.noticeFromSetting(5), 5 * MIN, "explicit value");
+
+// An overdue timer is not armed (the daemon expires it)
+eq(N.nextDueAt([run("o", 10 * MIN, 5 * MIN)], 2 * MIN, [], 6 * MIN), -1, "overdue: no wake-up");
+eq(N.nextDueAt([run("o", 10 * MIN, 5 * MIN)], 2 * MIN, [], 4 * MIN), 3 * MIN, "past mark, not ended: armed in the past");
+
+// Forgetting: gone, paused, ringing and pushed-out timers may be noticed again
+const keep = ["a", "g", "p", "r", "s"];
+const list = [run("a", 30 * MIN, 20 * MIN), { id: "p", state: "paused", total: 10 * MIN, endAt: 0 }, { id: "r", state: "ringing", total: 10 * MIN, endAt: 0 }, run("s", 10 * MIN, MIN)];
+eq(N.forget(keep, list, 10 * MIN, 2 * MIN), ["s"], "only running timers inside the window stay notified");
+
 done();

@@ -55,6 +55,8 @@ Item {
     // Emitted when a timer starts or restarts: the pill then briefly
     // shows its name ("dynamic island" effect).
     signal timerStarted(int id)
+    // Emitted once per timer when "2 min left" arrives (see NoticeRunner)
+    signal noticeDue(int id)
     // Opens/closes the panel on the active screen (keyboard shortcut, IPC).
     signal panelRequested(string screenName)
 
@@ -422,6 +424,15 @@ Item {
 
     TimerIpc {
         engine: root
+    }
+
+    // Silent for now: the views listen to `noticeDue` in their own stories
+    NoticeRunner {
+        id: noticeRunner
+        timers: root.timers
+        // Read with every change of the list (the settings are not observable here)
+        minutes: root.timers ? root.setting("noticeMinutes", undefined) : undefined
+        onNoticeDue: id => root.noticeDue(id)
     }
 
     // ------------------------------------------------------------------

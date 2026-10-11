@@ -17,12 +17,21 @@ var MAX_NOTIFIED = 64;
 // Longest accepted notice (one hour); anything above is treated as silent
 var MAX_NOTICE_MS = 3600000;
 
+// Notice used when the setting is absent (Q173)
+var DEFAULT_MINUTES = 2;
+
 // The notice length in ms, or 0 (silent) when the setting is missing,
 // negative, not a number or out of range
 function noticeMs(minutes) {
     // Only numbers and strings: Number(true) or Number([3]) would switch it on
     const n = typeof minutes === "number" || typeof minutes === "string" ? Math.floor(Number(minutes)) : NaN;
     return n > 0 && n * 60000 <= MAX_NOTICE_MS ? n * 60000 : 0;
+}
+
+// Same, but an absent setting (undefined or null) means the default, while an
+// explicit 0 stays silent
+function noticeFromSetting(minutes) {
+    return noticeMs(minutes === undefined || minutes === null ? DEFAULT_MINUTES : minutes);
 }
 
 // Whether a timer may ever get a notice: it must be longer than the notice,
@@ -48,10 +57,13 @@ function isDue(t, now, notice, notified) {
 }
 
 // The soonest due time over the timers, or -1: the one wake-up the caller
-// needs (nothing to wake for means nothing runs)
-function nextDueAt(timers, notice, notified) {
+// needs (nothing to wake for means nothing runs). A timer whose end has
+// passed is skipped: the daemon expires it, and its due time is in the past.
+function nextDueAt(timers, notice, notified, now) {
     let best = -1;
     for (const t of timers) {
+        if (t.endAt <= now)
+            continue;
         const at = dueAt(t, notice, notified);
         if (at >= 0 && (best < 0 || at < best))
             best = at;
@@ -69,4 +81,14 @@ function markNotified(notified, id) {
 // The notified list without the ids of timers that no longer exist
 function prune(notified, timers) {
     return notified.filter(id => timers.some(t => t.id === id));
+}
+
+// The ids to keep as notified: gone timers are dropped, and so are timers that
+// are no longer running or whose end moved out of the notice window (restart,
+// snooze, added time), so they can be noticed again
+function forget(notified, timers, now, notice) {
+    return prune(notified, timers).filter(id => {
+        const t = timers.find(x => x.id === id);
+        return t.state === "running" && t.endAt - now <= notice;
+    });
 }
