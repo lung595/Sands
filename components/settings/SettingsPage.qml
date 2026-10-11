@@ -26,15 +26,25 @@ Item {
     width: parent ? parent.width : 400
     implicitHeight: body.implicitHeight
 
-    // Ctrl+F or / from any control of this page that does not take the key itself (a
-    // text field types "/"), so the rest of the DMS settings window keeps its keys.
-    // True when the key was used.
-    function handleKey(key, modifiers) {
-        if ((key === Qt.Key_F && (modifiers & Qt.ControlModifier)) || key === Qt.Key_Slash) {
-            field.forceActiveFocus();
-            return true;
-        }
-        return false;
+    // Ctrl+F focuses the search from anywhere on the page while it is shown; "/" does
+    // too unless a text field has the focus (it would type the character). Shortcuts,
+    // because no item of the page holds the focus until the field does.
+    readonly property bool typing: !!Window.activeFocusItem && Window.activeFocusItem.cursorPosition !== undefined
+
+    function focusSearch() {
+        field.forceActiveFocus();
+    }
+
+    Shortcut {
+        sequence: "Ctrl+F"
+        enabled: root.visible
+        onActivated: root.focusSearch()
+    }
+
+    Shortcut {
+        sequence: "/"
+        enabled: root.visible && !root.typing
+        onActivated: root.focusSearch()
     }
 
     // Esc only clears a query; with nothing to clear it reaches the window
@@ -49,8 +59,6 @@ Item {
         if (results.length > 0)
             open(results[0].section, results[0].key);
     }
-
-    Keys.onPressed: event => event.accepted = handleKey(event.key, event.modifiers)
 
     function open(id, key) {
         query = "";
@@ -147,8 +155,15 @@ Item {
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
                 maximumLength: Search.MAX_QUERY
-                text: root.query
                 onTextChanged: root.query = text
+                // Typing breaks a text binding, so the page pushes its own clears back
+                Connections {
+                    function onQueryChanged() {
+                        if (field.text !== root.query)
+                            field.text = root.query;
+                    }
+                    target: root
+                }
                 Keys.onEscapePressed: event => event.accepted = root.clearQuery()
                 Keys.onReturnPressed: root.openFirst()
             }

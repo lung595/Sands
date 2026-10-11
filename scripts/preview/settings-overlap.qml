@@ -136,18 +136,9 @@ Item {
         sp.query = "";
     }
 
-    // Ctrl+F and / focus the field, Esc clears a query and is left alone otherwise
+    // Esc clears a query and is left alone otherwise (focus keys: tests/qml-page)
     function checkKeys(page) {
         const sp = findItem(page, "settingsPage");
-        const field = findItem(sp, "searchField");
-        field.focus = false;
-        if (!sp.handleKey(Qt.Key_F, Qt.ControlModifier) || !field.activeFocus)
-            fail("Ctrl+F does not focus the search field");
-        field.focus = false;
-        if (!sp.handleKey(Qt.Key_Slash, 0) || !field.activeFocus)
-            fail("/ does not focus the search field");
-        if (sp.handleKey(Qt.Key_A, 0))
-            fail("an ordinary key was taken by the page");
         sp.query = "sound";
         if (!sp.clearQuery() || sp.query !== "")
             fail("Esc does not clear a query");
@@ -189,7 +180,7 @@ Item {
                 if (flash.height <= 0 || Math.abs(flash.x - p.x) > 0.5 || Math.abs(flash.y - p.y) > 0.5 || Math.abs(flash.width - row.width) > 0.5 || Math.abs(flash.height - row.height) > 0.5)
                     root.fail("the highlight is not on the row of " + key);
             }
-            if (sp.fadeDuration !== (SettingsData.reduceMotion ? 150 : 600))
+            if (sp.fadeDuration !== (Qt.application.arguments.indexOf("reduce") >= 0 ? 150 : 600))
                 root.fail("the fade duration ignores Reduce motion");
             root.nextFlash();
         }

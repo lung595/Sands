@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 shot() { # name, extra args before the 5 positional ones, width, theme, query
     name=$1 reduce=$2 w=$3 theme=$4 query=$5
     QT_QPA_PLATFORM=offscreen timeout 60 qml-qt6 -I imports settings-shot.qml -- $reduce \
-        "$w" 0 "$theme" "$out/$name.png" "$query" 2>/dev/null
+        "$w" 0 "$theme" "$out/$name.png" "$query"
 }
 
 for theme in dark light; do
@@ -19,4 +19,6 @@ for theme in dark light; do
     shot "noresult-$theme" "" 404 "$theme" "zzqqxx"
     shot "narrow-$theme" "" 228 "$theme" ""
 done
+# Reduce motion changes only the fade length (150 ms), which a still frame cannot show;
+# the overlap test asserts it. This scene proves the page still renders with the flag.
 shot "reduce-motion" reduce 404 dark ""
