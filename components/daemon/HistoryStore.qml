@@ -61,7 +61,7 @@ QtObject {
     }
 
     function _enqueue(step) {
-        // Without an absolute folder nothing may be written or removed
+        // Without an absolute folder nothing may be written or erased
         if (dir.charAt(0) !== "/")
             return;
         _steps.push(step);
