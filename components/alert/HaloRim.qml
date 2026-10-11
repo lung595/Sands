@@ -30,7 +30,8 @@ Item {
         height: label.implicitHeight + Theme.spacingM * 2
         radius: height / 2
         color: Theme.surfaceContainer
-        opacity: root.level
+        // Full at the trough of a beat (0.5) so the legend keeps its contrast
+        opacity: Math.min(1, root.level * 2)
 
         Text {
             id: label
