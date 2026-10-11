@@ -20,9 +20,10 @@ Item {
     required property var engine
 
     readonly property bool busy: _phase !== "idle"
-    // The finished report, kept until takeReport() hands it over
+    // The finished report of an IPC call, kept until takeReport() hands it over
+    // (a button press copies it at once and keeps nothing)
     property string report: ""
-    // `via` is "button", "ipc" or "script": who asked
+    // `via` is "button" or "ipc": who asked
     signal built(string text, string via)
 
     // "idle", "before", "waiting", "after", "probing"
@@ -30,6 +31,7 @@ Item {
     property string _via: "button"
     property real _ticks: -1
     property real _startedAt: 0
+    property real _builtAt: 0
     property var _cpu: null
     property var _answers: ({})
     property int _probe: 0
@@ -51,6 +53,14 @@ Item {
         _phase = "before";
         _read();
         return true;
+    }
+
+    // True while an IPC report waits to be taken; one older than a minute is
+    // dropped, so a later call never gets a stale answer
+    function hasReport() {
+        if (report && Date.now() - _builtAt > 60000)
+            report = "";
+        return report !== "";
     }
 
     // The finished report, once: it is not kept longer than needed
@@ -130,7 +140,10 @@ Item {
             "cpu": _cpu,
             "journal": a.journal
         });
-        report = text;
+        if (_via !== "button") {
+            report = text;
+            _builtAt = Date.now();
+        }
         _phase = "idle";
         built(text, _via);
     }

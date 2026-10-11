@@ -19,7 +19,27 @@ for t in "$here"/tst_*.qml; do
   fi
   # "stubs: qs" stages the preview stand-ins of the DMS modules (qs.Common...)
   grep -q '^// stubs: qs' "$t" && cp -r "$here/../../scripts/preview/imports/qs/." "$QML_TMP/"
-  out=$(cd "$QML_TMP" && QML_TMP=$QML_TMP QT_QPA_PLATFORM=offscreen timeout 60 quickshell -p "$test_file" 2>&1)
+  # "fakebin" puts stand-ins for wl-copy and dms first on PATH: they record
+  # their arguments and their standard input in $QML_TMP, and wl-copy is
+  # "not installed" (exit 127) while $QML_TMP/no-wl exists
+  fakepath=$PATH
+  if grep -q '^// fakebin' "$t"; then
+    mkdir "$QML_TMP/bin"
+    cat > "$QML_TMP/bin/wl-copy" <<'FAKE'
+#!/bin/sh
+[ -e "$QML_TMP/no-wl" ] && exit 127
+echo "$*" > "$QML_TMP/wl.argv"
+cat > "$QML_TMP/wl.stdin"
+FAKE
+    cat > "$QML_TMP/bin/dms" <<'FAKE'
+#!/bin/sh
+echo "$*" > "$QML_TMP/dms.argv"
+case "$1" in version) echo "dms v1.6.3" ;; *) cat > "$QML_TMP/dms.stdin" ;; esac
+FAKE
+    chmod +x "$QML_TMP/bin/wl-copy" "$QML_TMP/bin/dms"
+    fakepath="$QML_TMP/bin:$PATH"
+  fi
+  out=$(cd "$QML_TMP" && PATH=$fakepath QML_TMP=$QML_TMP QT_QPA_PLATFORM=offscreen timeout 60 quickshell -p "$test_file" 2>&1)
   rm -rf "$QML_TMP"
   echo "$out" | grep -q 'qml.*PASS' && echo "ok $(basename "$t")" || { echo "FAIL $(basename "$t")"; echo "$out" | tail -12; exit 1; }
 done

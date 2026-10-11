@@ -11,10 +11,26 @@ Rectangle {
     id: note
 
     property var daemon: null
-    // { title, hint, anchor } from Guide.js, null when there is none
-    readonly property var info: daemon ? daemon.note : null
+    // { title, hint, anchor } from Guide.js, null when there is none; a row
+    // that owns its message (settings) sets this instead of daemon.note
+    property var info: daemon ? daemon.note : null
     // Wider text wraps instead of leaving the panel
     property real maxWidth: 320
+    // Takes the whole maxWidth instead of fitting its text
+    property bool fill: false
+    // Stays until its owner clears it: the hint may hold a command to type
+    property bool sticky: false
+    // The only door to the browser; a test swaps it so nothing really opens
+    property var openUrl: url => Qt.openUrlExternally(url)
+    // The guide address was opened (click or key press)
+    signal guideOpened
+
+    function openGuide() {
+        openUrl(daemon.guideUrl + "#" + (info ? info.anchor : ""));
+        guideOpened();
+        if (!sticky)
+            daemon.note = null;
+    }
 
     visible: opacity > 0.01
     opacity: info ? 1 : 0
@@ -23,7 +39,7 @@ Rectangle {
             duration: SettingsData.reduceMotion ? 0 : 150
         }
     }
-    width: row.width + 24
+    width: fill ? maxWidth : row.width + 24
     height: row.implicitHeight + 16
     radius: Theme.cornerRadius
     color: Theme.surfaceContainerHighest
@@ -32,7 +48,7 @@ Rectangle {
 
     // Only runs while a note is shown, and waits while it is pointed at
     Timer {
-        running: !!note.info && !hover.hovered
+        running: !!note.info && !note.sticky && !hover.hovered
         interval: 4000
         onTriggered: note.daemon.note = null
     }
@@ -47,7 +63,7 @@ Rectangle {
         spacing: 12
         Column {
             // As wide as the longest line, up to what the panel leaves
-            width: Math.min(Math.max(title.implicitWidth, hint.implicitWidth), note.maxWidth - 24 - 12 - 28)
+            width: note.fill ? note.maxWidth - 24 - 12 - 28 : Math.min(Math.max(title.implicitWidth, hint.implicitWidth), note.maxWidth - 24 - 12 - 28)
             anchors.verticalCenter: parent.verticalCenter
             spacing: 1
             StyledText {
@@ -70,9 +86,29 @@ Rectangle {
         }
         // The way to the explanation
         Item {
+            id: guideLink
+            objectName: "control"
             width: 28
             height: 28
             anchors.verticalCenter: parent.verticalCenter
+            activeFocusOnTab: true
+            Accessible.role: Accessible.Link
+            Accessible.name: note.info && note.info.link ? note.info.link : "Open the guide"
+            Accessible.onPressAction: note.openGuide()
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                    note.openGuide();
+                    event.accepted = true;
+                }
+            }
+            Rectangle {
+                anchors.fill: parent
+                radius: Theme.cornerRadius
+                color: "transparent"
+                border.width: 2
+                border.color: Theme.primary
+                visible: guideLink.activeFocus
+            }
             GitHubMark {
                 anchors.centerIn: parent
                 size: 18
@@ -83,10 +119,7 @@ Rectangle {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Qt.openUrlExternally(note.daemon.guideUrl + "#" + (note.info ? note.info.anchor : ""));
-                    note.daemon.note = null;
-                }
+                onClicked: note.openGuide()
             }
         }
     }

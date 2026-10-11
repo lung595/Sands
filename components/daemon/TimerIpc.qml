@@ -115,7 +115,7 @@ IpcHandler {
     // report, the next one (a couple of seconds later) hands it over, once.
     // Nothing is measured unless this is called, and no argument is read.
     function diagnostics(): string {
-        if (report.report)
+        if (report.hasReport())
             return Gather.capped(report.takeReport());
         if (report.busy)
             return Replies.stillCollecting(engine.guideUrl);

@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Shapes
 import qs.Common
 import qs.Widgets
-import "ReportRow.js" as Row
+import "ReportRow.js" as Words
 import "../"
 
 // The "Copy report" row: builds the anonymous report when pressed (nothing runs
@@ -20,7 +20,9 @@ Column {
 
     readonly property var service: daemon ? daemon.report : null
     readonly property var copier: daemon ? daemon.reportClipboard : null
-    readonly property var view: Row.view(Row.phaseOf(service ? service.busy : false, copier ? copier.result : "idle"))
+    readonly property var view: Words.view(Words.phaseOf(service ? service.busy : false, copier ? copier.result : "idle"))
+    // The mark, for the tests that focus it
+    readonly property Item markControl: mark
     readonly property bool copied: view.state === "copied"
     // One-shot fades: 150 ms in, 100 ms out; Reduce motion keeps only opacity
     readonly property int fadeIn: 150
@@ -40,7 +42,7 @@ Column {
     }
 
     function openIssues() {
-        openUrl(Row.GITHUB_URL);
+        openUrl(Words.GITHUB_URL);
         issuesOpened();
     }
 
@@ -60,7 +62,7 @@ Column {
 
             StyledText {
                 width: parent.width
-                text: Row.TITLE
+                text: Words.TITLE
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.Medium
                 color: Theme.surfaceText
@@ -77,232 +79,227 @@ Column {
             }
         }
 
-        Flow {
-            id: controls
-            width: Math.min(root.width, 164)
-            spacing: Theme.spacingS
-            // The label of the mark sits under the controls, never over the text
-            property bool markLabel: mark.activeFocus || markArea.containsMouse
+        // The label of the mark hangs off this box without taking room in the row
+        Item {
+            id: controlsBox
+            width: controls.width
+            height: controls.height
+            z: 1
 
             Rectangle {
-                id: button
-                objectName: "control"
-                width: 112
-                height: 44
+                id: markLabel
+                y: controls.height + 4
+                // Stays inside the column even when the controls sit at its right
+                x: Math.min(0, root.width - controlsBox.x - width)
+                visible: opacity > 0.01
+                opacity: controls.markLabel ? 1 : 0
+                width: Math.min(labelText.implicitWidth + 16, root.width)
+                height: labelText.implicitHeight + 8
                 radius: Theme.cornerRadius
-                color: root.copied ? Theme.withAlpha(Theme.primary, 0.14) : (buttonArea.containsMouse ? Theme.surfaceContainerHigh : "transparent")
+                color: Theme.surfaceContainerHigh
                 border.width: 1
-                border.color: root.copied ? Theme.primary : Theme.outline
-                scale: buttonArea.pressed && !root.still ? 0.97 : 1
-                activeFocusOnTab: true
-                Accessible.role: Accessible.Button
-                Accessible.name: root.view.button
-                Accessible.onPressAction: root.press()
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                        root.press();
-                        event.accepted = true;
-                    }
-                }
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: root.copied ? root.fadeIn : root.fadeOut
-                    }
-                }
-                Behavior on scale {
+                border.color: Theme.withAlpha(Theme.outline, 0.24)
+                Behavior on opacity {
                     NumberAnimation {
-                        duration: 100
-                        easing.type: Easing.OutCubic
+                        duration: controls.markLabel ? root.fadeIn : root.fadeOut
                     }
                 }
-
-                FocusRing {
-                    border.color: Theme.primary
-                    visible: button.activeFocus
+                StyledText {
+                    id: labelText
+                    x: 8
+                    y: 4
+                    width: parent.width - 16
+                    text: "Open an issue on GitHub"
+                    wrapMode: Text.WordWrap
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.surfaceText
                 }
+            }
 
-                // The heap that settles at the foot once the report is copied
-                Shape {
-                    id: heap
-                    width: parent.width - 2
-                    height: 8
-                    x: 1
-                    y: parent.height - height - 1
-                    visible: opacity > 0.01
-                    opacity: root.copied ? 1 : 0
-                    transformOrigin: Item.Bottom
-                    scale: root.still || root.copied ? 1 : 0.3
-                    preferredRendererType: Shape.CurveRenderer
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: root.copied ? 200 : root.fadeOut
-                            easing.type: Easing.OutCubic
+            Flow {
+                id: controls
+                width: Math.min(root.width, 164)
+                spacing: Theme.spacingS
+                // The label of the mark sits under the controls, never over the text
+                property bool markLabel: mark.activeFocus || markArea.containsMouse
+
+                Rectangle {
+                    id: button
+                    objectName: "control"
+                    width: 112
+                    height: 44
+                    radius: Theme.cornerRadius
+                    color: root.copied ? Theme.withAlpha(Theme.primary, 0.14) : (buttonArea.containsMouse ? Theme.surfaceContainerHigh : "transparent")
+                    border.width: 1
+                    border.color: root.copied ? Theme.primary : Theme.outline
+                    scale: buttonArea.pressed && !root.still ? 0.97 : 1
+                    activeFocusOnTab: true
+                    Accessible.role: Accessible.Button
+                    Accessible.name: root.view.button
+                    Accessible.onPressAction: root.press()
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                            root.press();
+                            event.accepted = true;
+                        }
+                    }
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: root.fadeIn
                         }
                     }
                     Behavior on scale {
                         NumberAnimation {
-                            duration: root.copied ? 200 : root.fadeOut
+                            duration: 100
                             easing.type: Easing.OutCubic
                         }
                     }
-                    ShapePath {
-                        strokeWidth: -1
-                        fillColor: Theme.primary
-                        PathSvg {
-                            path: "M0 8V7C" + heap.width * 0.22 + " 7 " + heap.width * 0.3 + " 1 " + heap.width * 0.42 + " 1S" + heap.width * 0.66 + " 6 " + heap.width + " 7V8Z"
+
+                    FocusRing {
+                        border.color: Theme.primary
+                        visible: button.activeFocus
+                    }
+
+                    // The heap that settles at the foot once the report is copied
+                    Shape {
+                        id: heap
+                        width: parent.width - 2
+                        height: 8
+                        x: 1
+                        y: parent.height - height - 1
+                        visible: opacity > 0.01
+                        opacity: root.copied ? 1 : 0
+                        transform: Scale {
+                            origin.y: heap.height
+                            yScale: root.still || root.copied ? 1 : 0.3
+                            Behavior on yScale {
+                                NumberAnimation {
+                                    duration: root.copied ? 200 : root.fadeOut
+                                    easing.type: Easing.OutCubic
+                                }
+                            }
+                        }
+                        preferredRendererType: Shape.CurveRenderer
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: root.copied ? 200 : root.fadeOut
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                        ShapePath {
+                            strokeWidth: -1
+                            fillColor: Theme.primary
+                            PathSvg {
+                                path: "M0 8V7C" + heap.width * 0.22 + " 7 " + heap.width * 0.3 + " 1 " + heap.width * 0.42 + " 1S" + heap.width * 0.66 + " 6 " + heap.width + " 7V8Z"
+                            }
+                        }
+                    }
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: Theme.spacingXS
+
+                        // 16 px check, 1.5 px round stroke, only once copied
+                        Shape {
+                            width: 16
+                            height: 16
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: opacity > 0.01
+                            opacity: root.copied ? 1 : 0
+                            preferredRendererType: Shape.CurveRenderer
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: root.copied ? root.fadeIn : root.fadeOut
+                                }
+                            }
+                            ShapePath {
+                                strokeWidth: 1.5
+                                strokeColor: Theme.primary
+                                fillColor: "transparent"
+                                capStyle: ShapePath.RoundCap
+                                joinStyle: ShapePath.RoundJoin
+                                PathSvg {
+                                    path: "M3 8.5L6.5 12L13 4.5"
+                                }
+                            }
+                        }
+                        StyledText {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: root.view.button
+                            font.pixelSize: Theme.fontSizeMedium
+                            color: root.view.state === "collecting" ? Theme.surfaceVariantText : Theme.surfaceText
+                        }
+                    }
+
+                    MouseArea {
+                        id: buttonArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            button.forceActiveFocus();
+                            root.press();
                         }
                     }
                 }
 
-                StyledText {
-                    anchors.centerIn: parent
-                    text: root.view.button
-                    font.pixelSize: Theme.fontSizeMedium
-                    color: root.view.state === "collecting" ? Theme.surfaceVariantText : Theme.surfaceText
-                }
-
-                MouseArea {
-                    id: buttonArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        button.forceActiveFocus();
-                        root.press();
-                    }
-                }
-            }
-
-            Item {
-                id: mark
-                objectName: "control"
-                width: 44
-                height: 44
-                activeFocusOnTab: true
-                Accessible.role: Accessible.Link
-                Accessible.name: "Open a new issue for Sands on GitHub"
-                Accessible.onPressAction: root.openIssues()
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                        root.openIssues();
-                        event.accepted = true;
-                    }
-                }
-
-                FocusRing {
-                    border.color: Theme.primary
-                    visible: mark.activeFocus
-                }
-                GitHubMark {
-                    anchors.centerIn: parent
-                    size: 18
-                    color: root.view.markActive || controls.markLabel ? Theme.primary : Theme.surfaceVariantText
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: controls.markLabel || root.view.markActive ? root.fadeIn : root.fadeOut
+                Item {
+                    id: mark
+                    objectName: "control"
+                    width: 44
+                    height: 44
+                    activeFocusOnTab: true
+                    Accessible.role: Accessible.Link
+                    Accessible.name: "Open a new issue for Sands on GitHub"
+                    Accessible.onPressAction: root.openIssues()
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                            root.openIssues();
+                            event.accepted = true;
                         }
                     }
-                }
-                MouseArea {
-                    id: markArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.openIssues()
-                }
-            }
-        }
-    }
 
-    // Under the controls, 4 px below; wraps inside the column
-    Rectangle {
-        id: markLabel
-        visible: opacity > 0.01
-        opacity: controls.markLabel ? 1 : 0
-        width: Math.min(labelText.implicitWidth + 16, root.width)
-        height: labelText.implicitHeight + 8
-        radius: Theme.cornerRadius
-        color: Theme.surfaceContainerHigh
-        border.width: 1
-        border.color: Theme.withAlpha(Theme.outline, 0.24)
-        Behavior on opacity {
-            NumberAnimation {
-                duration: controls.markLabel ? root.fadeIn : root.fadeOut
+                    FocusRing {
+                        border.color: Theme.primary
+                        visible: mark.activeFocus
+                    }
+                    GitHubMark {
+                        anchors.centerIn: parent
+                        size: 18
+                        color: root.view.markActive || controls.markLabel ? Theme.primary : Theme.surfaceVariantText
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: controls.markLabel || root.view.markActive ? root.fadeIn : root.fadeOut
+                            }
+                        }
+                    }
+                    MouseArea {
+                        id: markArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.openIssues()
+                    }
+                }
             }
-        }
-        StyledText {
-            id: labelText
-            x: 8
-            y: 4
-            width: parent.width - 16
-            text: "Open an issue on GitHub"
-            wrapMode: Text.WordWrap
-            font.pixelSize: Theme.fontSizeSmall
-            color: Theme.surfaceText
         }
     }
 
     // The guided message when no clipboard tool worked: stays until the next press
-    Rectangle {
+    HelpNote {
         id: message
-        visible: root.view.note !== null
-        width: parent.width
-        height: visible ? noteRow.implicitHeight + 16 : 0
-        radius: Theme.cornerRadius
-        color: Theme.surfaceContainerHighest
-        border.width: 1
-        border.color: Theme.withAlpha(Theme.outline, 0.24)
-        Accessible.role: Accessible.AlertMessage
-        Accessible.name: root.view.note ? root.view.note.title : ""
-        Accessible.description: root.view.note ? root.view.note.hint : ""
+        daemon: root.daemon
+        info: root.view.note
+        fill: true
+        sticky: true
+        maxWidth: root.width
+    }
 
-        Row {
-            id: noteRow
-            x: 12
-            y: 8
-            spacing: Theme.spacingM
-            Column {
-                width: message.width - 24 - 28 - Theme.spacingM
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 1
-                StyledText {
-                    width: parent.width
-                    text: root.view.note ? root.view.note.title : ""
-                    wrapMode: Text.WordWrap
-                    font.pixelSize: Theme.fontSizeMedium
-                    font.weight: Font.Bold
-                    color: Theme.surfaceText
-                }
-                StyledText {
-                    width: parent.width
-                    text: root.view.note ? root.view.note.hint : ""
-                    wrapMode: Text.WordWrap
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.surfaceVariantText
-                }
-            }
-            Item {
-                objectName: "control"
-                width: 28
-                height: 28
-                anchors.verticalCenter: parent.verticalCenter
-                Accessible.role: Accessible.Link
-                Accessible.name: "Open the guide: Report a problem"
-                GitHubMark {
-                    anchors.centerIn: parent
-                    size: 18
-                    color: noteLink.containsMouse ? Theme.primary : Theme.surfaceVariantText
-                }
-                MouseArea {
-                    id: noteLink
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: Qt.openUrlExternally(root.daemon.guideUrl + "#" + root.view.note.anchor)
-                }
-            }
-        }
+    // Nothing stays "Copied" or "none" after the section is gone
+    Component.onDestruction: {
+        if (copier)
+            copier.result = "idle";
     }
 
     // Back to rest alone; runs only while "Copied" is shown

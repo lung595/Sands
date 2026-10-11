@@ -186,6 +186,53 @@ Item {
         }
     }
 
+    function findReportRow(item) {
+        for (const c of item.children) {
+            if (c.settingKey === "report")
+                return c;
+            const hit = findReportRow(c);
+            if (hit)
+                return hit;
+        }
+        return null;
+    }
+
+    // The "Copy report" row in its other states, on every page: copied, the
+    // guided message, and the label of the GitHub mark (focus puts it up)
+    readonly property var reportStatesList: ["copied", "none", "label"]
+    property int reportStep: 0
+
+    Timer {
+        id: reportStates
+        interval: 400
+        onTriggered: {
+            const state = root.reportStatesList[root.reportStep];
+            for (let i = 0; i < cases.children.length - 1; i++) {
+                const c = cases.children[i];
+                if (!c.page)
+                    continue;
+                const row = root.findReportRow(c.page);
+                if (!row)
+                    continue;
+                if (root.reportStep > 0) {
+                    // Measure what the previous step set up
+                    const tag = "help/" + root.reportStatesList[root.reportStep - 1] + " " + c.page.width + " px, case " + (i % root.presets.length);
+                    root.leaves += root.check(tag, c.page);
+                }
+                if (state === undefined)
+                    continue;
+                row.daemon.reportClipboard.result = state === "label" ? "idle" : state;
+                if (state === "label")
+                    row.markControl.forceActiveFocus();
+            }
+            root.reportStep++;
+            if (root.reportStep <= root.reportStatesList.length)
+                restart();
+            else
+                root.openPhase();
+        }
+    }
+
     // Every section is opened in turn on every page and measured
     // "timers" comes twice: the second time with a refusal shown under every row and a
     // command being typed, the tallest the section gets
@@ -254,6 +301,11 @@ Item {
             }
             if (root.sectionIds[root.phase] === "alerts")
                 root.checkSaving(cases.children[0].page);
+            if (root.sectionIds[root.phase] === "help") {
+                root.reportStep = 0;
+                reportStates.restart();
+                return;
+            }
             root.openPhase();
         }
     }

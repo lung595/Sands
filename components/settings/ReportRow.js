@@ -15,7 +15,8 @@ var HELP_COPIED = "Report copied. Read it, then paste it in a GitHub issue.";
 var NO_TOOL = {
     "title": "The report could not be copied",
     "hint": "Install wl-clipboard, or run dms ipc call smartTimer diagnostics in a terminal.",
-    "anchor": "report-a-problem"
+    "anchor": "report-a-problem",
+    "link": "Open the guide: Report a problem"
 };
 
 // phase: "idle", "collecting" (building or copying), "copied" or "none"
