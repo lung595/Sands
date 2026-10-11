@@ -64,8 +64,8 @@ eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger"], "settings o
 eq([S.previousSection("timers"), S.nextSection("timers")], ["timers", "appearance"], "start of the list");
 eq([S.previousSection("help"), S.nextSection("help")], ["alerts", "help"], "end of the list");
 eq(S.nextSection("bogus"), "timers", "unknown section starts at the first");
-eq(S.costly("some").map(s => s.key), ["tick"], "costly settings by level");
-eq([S.costly("high"), S.costly("light")], [[], []], "no costly setting at the other levels");
+eq(S.costly("light").map(s => s.key), ["tick"], "costly settings by level");
+eq([S.costly("high"), S.costly("some")], [[], []], "no costly setting at the other levels");
 eq(S.SETTINGS.filter(s => s.level && (!s.cost || !S.LEVELS.includes(s.level))).length, 0, "a level always comes with a cost note");
 // Every section of the rail has its drawn logo
 for (const sec of S.SECTIONS)

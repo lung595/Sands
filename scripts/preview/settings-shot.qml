@@ -6,6 +6,7 @@ import qs.Common
 
 // Renders the settings page at a given width and store preset to a picture.
 // Usage: QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-shot.qml -- <width> <preset, see mock/Presets.js> <dark|light> <out.png> <query, may be empty>
+// The theme word "focus" renders dark with the keyboard focus on the open rail entry (shows the ring).
 // (the word "light" among the arguments switches the stand-in Theme to a light palette)
 Window {
     id: win
@@ -21,6 +22,23 @@ Window {
         pageWidth: win.pageW
         query: win.args[4]
         preset: Presets.list[parseInt(win.args[1])]
+    }
+
+    function focusOpenEntry(item) {
+        if (item.activeFocusOnTab && item.objectName === "control") {
+            item.forceActiveFocus();
+            return true;
+        }
+        for (const c of item.children) {
+            if (focusOpenEntry(c))
+                return true;
+        }
+        return false;
+    }
+
+    Component.onCompleted: {
+        if (args[2] === "focus")
+            focusOpenEntry(page);
     }
 
     Timer {

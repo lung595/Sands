@@ -83,6 +83,20 @@ Item {
             compare(sp.section, "alerts", "Enter opens the first hit");
         }
 
+        // One Tab lands on the open entry, then Up and Down open the neighbours
+        function test_railKeys() {
+            const sp = find(host, "settingsPage");
+            sp.open("timers", "");
+            const first = sp.section;
+            keyClick(Qt.Key_Tab);
+            keyClick(Qt.Key_Down);
+            verify(sp.section !== first, "Down opens the next section");
+            const second = sp.section;
+            keyClick(Qt.Key_Up);
+            compare(sp.section, first, "Up goes back");
+            verify(second !== "", "a section id");
+        }
+
         function test_revealScrolls() {
             const sp = find(host, "settingsPage");
             flick.contentY = 0;

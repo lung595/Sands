@@ -129,7 +129,7 @@ Item {
             width: parent.width
             height: 44
             radius: Theme.cornerRadius
-            color: Theme.surfaceContainerHigh
+            color: "transparent"
             objectName: "control"
             border.width: field.activeFocus ? 2 : 1
             border.color: field.activeFocus ? Theme.primary : Theme.outline
@@ -239,6 +239,7 @@ Item {
 
             SectionRail {
                 id: rail
+                objectName: "sectionRail"
                 width: root.narrow ? layout.width : 176
                 sections: Sections.visibleSections()
                 current: root.section

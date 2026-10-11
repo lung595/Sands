@@ -55,7 +55,7 @@ Item {
                 width: 160
                 height: root.entryHeight
                 radius: Theme.cornerRadius
-                color: open ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.12) : (hover.hovered ? Theme.surfaceContainerHigh : "transparent")
+                color: open ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.12) : (tap.pressed ? Theme.surfaceContainerHighest : (hover.hovered ? Theme.surfaceContainerHigh : "transparent"))
                 objectName: "control"
                 // Tab reaches the rail once (the open entry), arrows move inside it
                 activeFocusOnTab: open
@@ -67,7 +67,7 @@ Item {
                 Behavior on color {
                     enabled: !SettingsData.reduceMotion
                     ColorAnimation {
-                        duration: hover.hovered ? 150 : 80
+                        duration: tap.pressed ? 80 : (hover.hovered ? 150 : 50)
                     }
                 }
 
@@ -75,6 +75,7 @@ Item {
                     id: hover
                 }
                 TapHandler {
+                    id: tap
                     onTapped: root.picked(entry.modelData.id)
                 }
 
@@ -83,7 +84,14 @@ Item {
                     sectionId: entry.modelData.id
                     size: 20
                     x: 12
-                    anchors.verticalCenter: parent.verticalCenter
+                    // Lifts 2 px on hover (150 ms in, 80 ms out); still under Reduce motion
+                    y: (parent.height - height) / 2 - (hover.hovered && !SettingsData.reduceMotion ? 2 : 0)
+                    Behavior on y {
+                        enabled: !SettingsData.reduceMotion
+                        NumberAnimation {
+                            duration: hover.hovered ? 150 : 80
+                        }
+                    }
                     color: entry.open ? Theme.primary : (hover.hovered ? Theme.surfaceText : Theme.surfaceVariantText)
                 }
 

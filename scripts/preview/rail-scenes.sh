@@ -19,6 +19,8 @@ for theme in dark light; do
     shot "noresult-$theme" "" 404 "$theme" "zzqqxx"
     shot "narrow-$theme" "" 228 "$theme" ""
 done
+# Keyboard focus ring on the open rail entry (theme word "focus" = dark + focus)
+shot "focus-ring" "" 404 focus ""
 # Reduce motion changes only the fade length (150 ms), which a still frame cannot show;
 # the overlap test asserts it. This scene proves the page still renders with the flag.
 shot "reduce-motion" reduce 404 dark ""

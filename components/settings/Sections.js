@@ -69,7 +69,7 @@ var SETTINGS = [
       "words": ["length", "stop", "durée", "arrêt", "sonnerie"] },
     { "key": "tick", "section": "alerts", "label": "Final countdown ticks", "default": false,
       "help": "A soft tick on each of the last 10 seconds",
-      "level": "some", "cost": "Plays a sound on each of the last 10 seconds",
+      "level": "light", "cost": "Plays a sound on each of the last 10 seconds",
       "words": ["countdown", "beep", "compte à rebours", "tic", "tac", "secondes"] },
     { "key": "notify", "section": "alerts", "label": "Notification when done", "default": true,
       "help": "With “Stop” and “+5 min” buttons: handy in fullscreen, when the bar is hidden",
