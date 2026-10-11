@@ -74,6 +74,20 @@ function macro(slope, depth, foot) {
     return Math.max(-1, Math.min(1, face * Math.exp(-depth * 3) - 0.6 * Math.pow(Math.max(0, Math.min(1, foot)), 1.5)));
 }
 
+// Flat tints of the Flat wave cel. Rim: the base mixed toward the lighter of
+// the two roles when that one can reach 3:1 against the base, the other one
+// otherwise, the share raised from one half until 3:1 holds. Line: the base
+// mixed toward the darker role. Speck: half the rim share.
+function cel(base, caption, text) {
+    const hi = lum(text) > lum(caption) ? text : caption, lo = hi === text ? caption : text;
+    const far = ratio(hi, base) >= 3 ? hi : lo;
+    let m = 0.5;
+    while (m < 1 && ratio(mix(base, far, m), base) < 3)
+        m += 0.01;
+    m = Math.min(1, m);
+    return { base: base, rim: mix(base, far, m), line: mix(base, lo, 0.3), speck: mix(base, far, m * 0.5), share: m };
+}
+
 function css(c) {
     return "rgb(" + Math.round(c.r * 255) + "," + Math.round(c.g * 255) + "," + Math.round(c.b * 255) + ")";
 }

@@ -15,7 +15,8 @@ var STYLES = [
 // lands: the settings row greys it instead of promising it.
 var SCENES = {
     "grains": "GrainsScene.qml",
-    "wind": "WindScene.qml"
+    "wind": "WindScene.qml",
+    "wave": "WaveScene.qml"
 };
 
 function isDrawn(value) {

@@ -22,4 +22,14 @@ eq(T.tone(pal, 0.3, false) !== T.tone(pal, 0.31, false), true, "tone is continuo
 eq(T.ratio(caption, { r: 0, g: 0, b: 0 }) >= 0, true, "ratio sane");
 const dk = T.tone(pal, -1, true).match(/\d+/g).map(n => n / 255);
 eq(T.ratio(caption, { r: dk[0], g: dk[1], b: dk[2] }) >= T.FLOOR - 0.05, true, "capped tone holds the floor");
+
+// Flat wave cel: the rim reaches 3:1 against the base, on a light and on a dark primary
+for (const [name, b, c, x] of [["light primary", base, caption, text], ["dark primary", { r: 0.4, g: 0.31, b: 0.64 }, { r: 1, g: 1, b: 1 }, { r: 0.11, g: 0.1, b: 0.13 }]]) {
+    const cel = T.cel(b, c, x);
+    eq(cel.base, b, name + ": the wave is the base itself");
+    eq(T.ratio(cel.rim, b) >= 3, true, name + ": rim reaches 3:1");
+    eq(cel.share >= 0.5 && cel.share <= 1, true, name + ": rim share between one half and all");
+    eq(T.ratio(cel.speck, b) < T.ratio(cel.rim, b), true, name + ": specks are softer than the rim");
+    eq(T.css(cel.line) !== T.css(b), true, name + ": base line differs from the wave");
+}
 done();

@@ -97,7 +97,8 @@ Item {
         function test_each_style_data() {
             return [
                 {tag: "grains", file: "GrainsScene.qml", ms: 2900},
-                {tag: "wind", file: "WindScene.qml", ms: 2600}
+                {tag: "wind", file: "WindScene.qml", ms: 2600},
+                {tag: "wave", file: "WaveScene.qml", ms: 2400}
             ];
         }
 
@@ -168,9 +169,9 @@ Item {
         function test_style_change_while_shown() {
             band.shown = true;
             wait(150);
-            band.style = "wind";
-            tryVerify(() => band.scene !== null && String(sceneFile()).endsWith("/WindScene.qml"), 1000);
-            compare(band.duneState.style, "wind");
+            band.style = "wave";
+            tryVerify(() => band.scene !== null && String(sceneFile()).endsWith("/WaveScene.qml"), 1000);
+            compare(band.duneState.style, "wave");
             verify(band.duneState.step < 5, "run restarted: step " + band.duneState.step);
             tryVerify(() => !band.animating, 4000, "timer stops");
             verify(band.duneState.done);

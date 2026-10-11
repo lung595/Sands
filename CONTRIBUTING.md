@@ -87,7 +87,7 @@ Sands/
 │   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
 │   │   ├── TimerStore.qml, AlarmSound.qml, TimerNotifier.qml, TimerIpc.qml
 │   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js, PlainText.js   (tested)
-│   ├── alert/                  # "Rising dune" alert: DuneAlert (host), RingAlert (wiring to the engine), DuneWindows (layer window per screen), DuneBand (Loader, 30 Hz Timer, legend), GrainsScene (Last grains), WindScene (Wind dune); pure logic DuneStyles.js, DuneMotion.js, SandTint.js, AlertPolicy.js, HaloMotion.js   (logic tested by gjs, band by tests/qml-dune/run.sh)
+│   ├── alert/                  # "Rising dune" alert: DuneAlert (host), RingAlert (wiring to the engine), DuneWindows (layer window per screen), DuneBand (Loader, 30 Hz Timer, legend), GrainsScene (Last grains), WindScene (Wind dune), WaveScene (Flat wave); pure logic DuneStyles.js, DuneMotion.js, SandTint.js, AlertPolicy.js, HaloMotion.js   (logic tested by gjs, band by tests/qml-dune/run.sh)
 │   ├── TimerPanelContent.qml   # panel: state, switching between timers, wiring of the parts below
 │   ├── PanelGlass.qml          # hourglass, gestures (GlassGestures), dots (TimerDots), frost (FrostMist, FrostDust)
 │   ├── PanelClock.qml          # name, big time, end time (FrostHalo behind it)
