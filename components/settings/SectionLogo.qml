@@ -15,13 +15,13 @@ Item {
     height: size
 
     Shape {
-        width: 24
-        height: 24
-        scale: logo.size / 24
+        width: 16
+        height: 16
+        scale: logo.size / 16
         transformOrigin: Item.TopLeft
         preferredRendererType: Shape.CurveRenderer
         ShapePath {
-            strokeWidth: 1.8
+            strokeWidth: 1.5
             strokeColor: logo.color
             fillColor: "transparent"
             capStyle: ShapePath.RoundCap

@@ -181,8 +181,9 @@ Item {
 
         StyledText {
             width: parent.width
+            leftPadding: Theme.spacingM
             visible: root.query !== "" && root.results.length === 0
-            text: "No setting found"
+            text: "No setting found. Try another word."
             color: Theme.surfaceVariantText
             font.pixelSize: Theme.fontSizeMedium
         }
@@ -198,11 +199,13 @@ Item {
                 delegate: Rectangle {
                     id: hit
                     required property var modelData
+                    required property int index
                     readonly property var setting: Sections.SETTINGS.find(s => s.key === modelData.key)
                     width: parent.width
                     height: 44
                     radius: Theme.cornerRadius
-                    color: tap.pressed || hov.hovered ? Theme.surfaceContainerHigh : "transparent"
+                    // The first hit is the one Enter opens, so it reads as selected
+                    color: tap.pressed || hov.hovered || index === 0 ? Theme.surfaceContainerHigh : "transparent"
                     objectName: "control"
 
                     HoverHandler {
