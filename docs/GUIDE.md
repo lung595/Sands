@@ -10,6 +10,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [The launcher](#the-launcher)
 - [Syntax](#syntax) · [Natural phrases](#natural-phrases) · [What the launcher shows](#what-the-launcher-shows)
 - [Snoozing from a keybind](#snoozing-from-a-keybind)
+- [Reading the timers from a script](#reading-the-timers-from-a-script)
 - [Settings](#settings) · [Sound](#sound) · [If the alarm makes no sound](#if-the-alarm-makes-no-sound)
 - [Privacy](#privacy)
 - [Performance](#performance)
@@ -146,6 +147,10 @@ Nothing starts before <kbd>Enter</kbd>. Everything is read on your machine; Sand
 ## Snoozing from a keybind
 
 `dms ipc call smartTimer snooze 10` restarts the ringing timer for 10 minutes. A length outside 1 to 120 minutes is clamped; `0` gives 5 minutes (the length is required: Quickshell has no optional IPC arguments). The answer is always JSON: `{"snoozed":true,"minutes":10}`, or `{"snoozed":false,"reason":"nothing is ringing"}` when no timer rings, in which case nothing changes. `start`, `stop` and `status` cover starting, stopping and reading the time left.
+
+## Reading the timers from a script
+
+`dms ipc call smartTimer status` prints the running and paused timers as JSON: for each one its label, the seconds left and its phase. It is built only when you call it, so nothing runs in between. `list` gives the same information as plain text.
 
 ## Settings
 

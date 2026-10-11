@@ -143,6 +143,7 @@ dms ipc call smartTimer stop                   # stop the alarm, or cancel the n
 dms ipc call smartTimer add 5                  # +5 min to the next timer
 dms ipc call smartTimer snooze 10              # snooze the ringing timer 10 min (0: 5 min), JSON answer
 dms ipc call smartTimer list                   # list running timers
+dms ipc call smartTimer status                 # timers as JSON for scripts (remaining seconds, phase)
 dms ipc call smartTimer clear                  # cancel every timer
 dms ipc call smartTimer panel                  # open/close the panel (needs the bar widget)
 dms ipc call launcher openQuery "timer "       # launcher pre-filled with "timer "
