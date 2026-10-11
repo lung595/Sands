@@ -166,7 +166,7 @@ Nothing starts before <kbd>Enter</kbd>. Everything is read on your machine; Sand
 
 ## Settings
 
-The page has a left rail of sections (Timers, Appearance, Alerts & sounds, Help) and a search bar on top; one section is shown at a time. Type a few letters of a name, a help line or a synonym (French works, small typos are forgiven): **Enter** opens the first result, jumps to its section and the setting fades in once. **Esc** clears the search, **Ctrl+F** or **/** focuses it. A setting with a real battery cost carries a chip (*High*, *Some* or *Light on battery*) and a one-line note. Nothing is built until the page opens, and only the shown section is built.
+The page has a left rail of sections (Timers, Appearance, Alerts & sounds, Help) and a search bar on top; one section is shown at a time. Type a few letters of a name, a help line or a synonym (French works, small typos are forgiven): **Enter** opens the first result, jumps to its section and the setting fades in once. **Esc** clears the search, **Ctrl+F** or **/** focuses it. A setting with a real battery cost carries a chip (*High*, *Some* or *Light on battery*) and a one-line note. Nothing is built until the page opens; then every section is built once and only the current one is shown.
 
 | Setting | Description | Default |
 | --- | --- | --- |

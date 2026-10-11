@@ -5,7 +5,7 @@ import "Sections.js" as Sections
 import "Search.js" as Search
 
 // The settings page: search on top, the section rail on the left, one section
-// at a time on the right. Only the open section is built (Loader), so a closed
+// at a time on the right. The sections are built with the page, so a closed
 // page costs nothing. Picking a search result opens its section and fades a
 // highlight over its row once.
 Item {
@@ -63,8 +63,8 @@ Item {
 
     function open(id, key) {
         query = "";
-        section = id;
         pendingKey = key || "";
+        section = id;
         if (pendingKey !== "")
             flashTimer.restart();
     }
@@ -102,7 +102,7 @@ Item {
 
     readonly property int fadeDuration: SettingsData.reduceMotion ? 150 : 600
 
-    // Waits one tick so the Loader has built the section before the row is looked up
+    // Waits one tick so the section is shown before the row is looked up
     Timer {
         id: flashTimer
         interval: 0
@@ -249,17 +249,36 @@ Item {
             Item {
                 id: content
                 width: root.narrow ? layout.width : layout.width - 176 - Theme.spacingM
-                height: loader.item ? loader.item.implicitHeight : 0
+                height: sectionsHost.current.implicitHeight
 
-                Loader {
-                    id: loader
+                // Built once with the page and only shown or hidden. Building a section on
+                // demand (Loader) crashed Quickshell inside Qt's deferred Popup background
+                // when the Alerts section was opened (NAK-708). Cause not proven: a Loader
+                // plus a deferred Popup is only suspected; building everything up front,
+                // as before the rail, did not crash.
+                Item {
+                    id: sectionsHost
                     width: parent.width
-                    sourceComponent: ({
-                            "timers": timers,
-                            "appearance": appearance,
-                            "alerts": alerts,
-                            "help": help
-                        })[root.section]
+                    readonly property Item current: root.section === "timers" ? timersSection : root.section === "appearance" ? appearanceSection : root.section === "alerts" ? alertsSection : helpSection
+
+                    TimersSection {
+                        id: timersSection
+                        visible: root.section === "timers"
+                    }
+                    AppearanceSection {
+                        id: appearanceSection
+                        visible: root.section === "appearance"
+                    }
+                    AlertsSection {
+                        id: alertsSection
+                        visible: root.section === "alerts"
+                        soundOptions: root.soundOptions
+                        daemon: root.daemon
+                    }
+                    HelpSection {
+                        id: helpSection
+                        visible: root.section === "help"
+                    }
                 }
 
                 // One-shot highlight of a found row: it fades out and stops
@@ -286,26 +305,6 @@ Item {
                     }
                 }
             }
-        }
-    }
-
-    Component {
-        id: timers
-        TimersSection {}
-    }
-    Component {
-        id: appearance
-        AppearanceSection {}
-    }
-    Component {
-        id: help
-        HelpSection {}
-    }
-    Component {
-        id: alerts
-        AlertsSection {
-            soundOptions: root.soundOptions
-            daemon: root.daemon
         }
     }
 }

@@ -146,7 +146,7 @@ gjs tests/journal.test.js       # journal rows, layer heights, thread lengths
 sh tests/journal-layout.sh      # offscreen: every journal state and look, alone and inside the panel, narrow and wide; overlap, closed-panel read, Clear the journal
 ```
 
-Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qml-page/run.sh` checks Ctrl+F, `/`, typing, Esc, Enter and the scroll of a picked row inside a Flickable.
+Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qml-page/run.sh` checks Ctrl+F, `/`, typing, Esc, Enter and the scroll of a picked row inside a Flickable, and `tst_sections.qml` checks that every section is built with the page and that walking the rail repeatedly never builds or drops one (NAK-708).
 
 Settings overlap (offscreen, needs `qml-qt6`): `cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml` loads the settings page at 228, 360 and 404 px and exits 1 on any overlap, elided text or text off the page. `scripts/preview/before-after.sh <commit> <out.html>` builds the before/after page (dark and light, two widths, four made-up stores; stores live in `scripts/preview/mock/Presets.js`).
 
