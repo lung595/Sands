@@ -187,7 +187,9 @@ Item {
     }
 
     // Every section is opened in turn on every page and measured
-    readonly property var sectionIds: ["timers", "appearance", "alerts"]
+    // "timers" comes twice: the second time with a refusal shown under every row and a
+    // command being typed, the tallest the section gets
+    readonly property var sectionIds: ["timers", "timers", "appearance", "alerts", "advanced"]
     property int phase: -1
     property int leaves: 0
 
@@ -205,7 +207,38 @@ Item {
             if (c.page)
                 findItem(c.page, "settingsPage").section = sectionIds[phase];
         }
+        if (phase === 1)
+            Qt.callLater(stressEndActions);
         settle.restart();
+    }
+
+    // Every end-action row shows a long refusal, and the new-command form is open with one
+    function stressEndActions() {
+        const long = "“abcdefghijklmnopqrstuvwx” already belongs to Stop the music. Pick another word for this action.";
+        for (let i = 0; i < cases.children.length - 1; i++) {
+            const c = cases.children[i];
+            const section = c.page ? findRow(c.page, "endActions") : null;
+            if (!section)
+                continue;
+            for (const r of section.rows)
+                section.setError(r.id, {
+                    "word": long
+                });
+            section.drafting = true;
+            section.draftError = long;
+            section.draftField = "command";
+        }
+    }
+
+    function findRow(item, key) {
+        for (const c of item.children) {
+            if (c.settingKey === key)
+                return c;
+            const hit = findRow(c, key);
+            if (hit)
+                return hit;
+        }
+        return null;
     }
 
     // The rows load their saved value through Qt.callLater, so wait until the pages

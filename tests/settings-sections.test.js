@@ -55,14 +55,14 @@ eq(S.SETTINGS.filter(s => !s.words.length || !s.help || !s.label).map(s => s.key
 
 // Section order and the hidden rule
 eq(ids, ["timers", "focus", "appearance", "effects", "bar", "desktop", "alerts", "advanced", "help"], "section order");
-eq(S.visibleSections().map(s => s.id), ["timers", "appearance", "alerts", "help"], "empty sections are hidden, order kept");
+eq(S.visibleSections().map(s => s.id), ["timers", "appearance", "alerts", "advanced", "help"], "empty sections are hidden, order kept");
 
 // Helpers
 eq(S.sectionOf("volume"), "alerts", "section of a key");
 eq(S.sectionOf("nope"), "", "unknown key has no section");
-eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger"], "settings of a section, pending held back");
+eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger", "endActions"], "settings of a section, pending held back");
 eq([S.previousSection("timers"), S.nextSection("timers")], ["timers", "appearance"], "start of the list");
-eq([S.previousSection("help"), S.nextSection("help")], ["alerts", "help"], "end of the list");
+eq([S.previousSection("help"), S.nextSection("help")], ["advanced", "help"], "end of the list");
 eq(S.nextSection("bogus"), "timers", "unknown section starts at the first");
 eq(S.costly("light").map(s => s.key), ["tick"], "costly settings by level");
 eq([S.costly("high"), S.costly("some")], [[], []], "no costly setting at the other levels");

@@ -8,9 +8,9 @@ const keys = q => Se.find(q).map(r => r.key);
 const first = q => keys(q)[0];
 
 // Every visible setting is found by its English name, a French synonym and one typo
-const french = { noTrigger: "détection", trigger: "déclencheur", hourglassStyle: "sablier", sound: "sonnerie", customSound: "fichier", volume: "niveau", rampUp: "progressif", ringDuration: "durée", tick: "compte à rebours", notify: "notifier", respectDnd: "silence", examples: "exemple" };
+const french = { noTrigger: "détection", trigger: "déclencheur", hourglassStyle: "sablier", sound: "sonnerie", customSound: "fichier", volume: "niveau", rampUp: "progressif", ringDuration: "durée", tick: "compte à rebours", notify: "notifier", respectDnd: "silence", examples: "exemple", endActions: "mots", eraseHistory: "effacer" };
 // One typo each (a letter swapped, dropped or added) in a word of the label or a synonym
-const typo = { noTrigger: "detectoin", trigger: "triger", hourglassStyle: "hourglas", sound: "sonud", customSound: "custm", volume: "volmue", rampUp: "progresif", ringDuration: "duraton", tick: "countdwn", notify: "notificaton", respectDnd: "respct", examples: "exampls" };
+const typo = { noTrigger: "detectoin", trigger: "triger", hourglassStyle: "hourglas", sound: "sonud", customSound: "custm", volume: "volmue", rampUp: "progresif", ringDuration: "duraton", tick: "countdwn", notify: "notificaton", respectDnd: "respct", examples: "exampls", endActions: "acions", eraseHistory: "histry" };
 for (const s of Sec.visibleSettings()) {
     eq(keys(s.label).includes(s.key), true, "English name finds " + s.key);
     eq(keys(french[s.key]).includes(s.key), true, "French synonym finds " + s.key);

@@ -45,4 +45,10 @@ Item {
         color: Theme.surface
         wrapMode: Text.NoWrap
     }
+    // Tests click it like the real button; a disabled one ignores the click
+    MouseArea {
+        anchors.fill: parent
+        enabled: root.enabled
+        onClicked: root.clicked()
+    }
 }

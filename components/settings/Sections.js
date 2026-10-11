@@ -40,6 +40,10 @@ var SETTINGS = [
       "help": "A quiet heads-up before a long timer ends",
       "words": ["warning", "reminder", "heads-up", "préavis", "avertissement", "avant la fin"] },
 
+    { "key": "endActions", "section": "timers", "label": "End actions", "default": "",
+      "help": "Power off, Sleep, Stop the music or a command of your own, started by a word after a timer",
+      "words": ["words", "launcher", "command", "program", "power off", "shutdown", "sleep", "suspend", "music", "after", "film", "off", "commande", "mots", "éteindre", "veille", "musique", "ajouter", "add", "remove", "reset"] },
+
     // Appearance
     { "key": "lookPreset", "section": "appearance", "label": "Look", "pending": true,
       "help": "Fil, Pivot or your own mix",
@@ -77,6 +81,11 @@ var SETTINGS = [
     { "key": "respectDnd", "section": "alerts", "label": "Respect Do Not Disturb", "default": true,
       "help": "In Do Not Disturb, no sound: the pill still pulses",
       "words": ["dnd", "silent", "quiet", "mute", "ne pas déranger", "silence", "muet"] },
+
+    // Advanced
+    { "key": "eraseHistory", "section": "advanced", "label": "Erase history",
+      "help": "Empties the journal and the favourites at once; the file stays on this machine",
+      "words": ["clear", "delete", "journal", "favourites", "privacy", "data", "effacer", "historique", "supprimer", "vider", "favoris"] },
 
     // Help: a read-only entry, so the section exists and search finds the examples
     { "key": "examples", "section": "help", "label": "Examples and commands",

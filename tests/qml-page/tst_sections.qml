@@ -28,7 +28,7 @@ Item {
         name: "SettingsSections"
         when: windowShown
 
-        readonly property var ids: ["timers", "appearance", "alerts", "help"]
+        readonly property var ids: ["timers", "appearance", "alerts", "advanced", "help"]
 
         function find(item, name) {
             for (const c of item.children) {
@@ -54,11 +54,13 @@ Item {
             return n;
         }
 
-        // Settings rows that carry a key, shown or hidden: a row built late would be missing
+        // Settings rows that carry a key of the table, shown or hidden: a row built late
+        // would be missing. The stores of the end actions carry a key of their own that
+        // is not a row of the table (ObjectStore), so they are not counted.
         function builtRows(item) {
             let n = 0;
             for (const c of item.children) {
-                if (c.settingKey !== undefined)
+                if (c.settingKey !== undefined && Sections.sectionOf(c.settingKey) !== "")
                     n++;
                 n += builtRows(c);
             }

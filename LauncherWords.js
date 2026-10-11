@@ -25,7 +25,19 @@ var TOO_MANY_ACTIONS = "too-many-actions";
 
 // A word is one launcher token: letters of any alphabet, digits, - and _,
 // and it must start with a letter so it can never be read as a duration.
-var RE_WORD = /^\p{L}[\p{L}\p{N}_-]*$/u;
+// A letter is a character that has two cases: QML's engine has no \p{L}
+// (it rejects every word there), and the words are French or English.
+function isLetter(ch) {
+    return ch.toLowerCase() !== ch.toUpperCase();
+}
+
+// Letters, ASCII digits, - and _, starting with a letter
+function isWord(w) {
+    var chars = Array.from(w);
+    return chars.length > 0 && isLetter(chars[0]) && chars.every(function (ch) {
+        return isLetter(ch) || /^[0-9_-]$/.test(ch);
+    });
+}
 // Digits, optionally glued to a unit ("30", "30min", "1h30")
 var RE_NUMBER = /^\d+(?:[a-z]+\d*)?$/;
 // Number and unit words come from the parser itself, so a word the parser
@@ -61,11 +73,11 @@ function checkWord(raw) {
         return { ok: false, reason: EMPTY };
     if (w.length > MAX_WORD_LENGTH)
         return { ok: false, reason: TOO_LONG };
-    if (RE_NUMBER.test(w) || NUMBER_WORDS.indexOf(w) >= 0 || (RE_WORD.test(w) && !isNaN(TP.wordToNumber(w))))
+    if (RE_NUMBER.test(w) || NUMBER_WORDS.indexOf(w) >= 0 || (isWord(w) && !isNaN(TP.wordToNumber(w))))
         return { ok: false, reason: READS_AS_NUMBER };
     if (UNIT_WORDS.indexOf(w) >= 0)
         return { ok: false, reason: READS_AS_UNIT };
-    if (!RE_WORD.test(w))
+    if (!isWord(w))
         return { ok: false, reason: BAD_CHARS };
     return { ok: true, word: w };
 }

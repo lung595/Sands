@@ -5,6 +5,11 @@ import qs.Modules.Plugins
 
 // The "Timers" section: how the launcher understands what is typed.
 Column {
+    id: root
+
+    // The daemon, for the guide link of the end actions
+    required property var daemon
+
     width: parent.width
     spacing: Theme.spacingM
 
@@ -23,5 +28,9 @@ Column {
         description: "Example with “timer”: “timer 20 min”"
         placeholder: "timer"
         defaultValue: "timer"
+    }
+
+    EndActionsSection {
+        daemon: root.daemon
     }
 }
