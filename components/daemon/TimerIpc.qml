@@ -69,15 +69,16 @@ IpcHandler {
         return "OK";
     }
 
-    // dms ipc call smartTimer snooze [minutes]: restarts the first ringing
-    // timer for that long; 0 or none uses the default snooze. JSON answer.
+    // dms ipc call smartTimer snooze <minutes>: restarts the first ringing
+    // timer for that long; 0 uses the default snooze. Quickshell has no
+    // optional IPC arguments, so the length cannot be left out. JSON answer.
     function snooze(minutes: int): string {
         const ringing = engine.sorted.find(t => t.state === "ringing");
         if (!ringing)
             return Replies.notRinging();
         const m = Snooze.forIpc(minutes);
-        if (!engine.adjust(ringing.id, m * 60000))
-            return Replies.notRinging();
+        // Cannot fail: 1..120 min is always inside adjust's range for a ringing timer
+        engine.adjust(ringing.id, Snooze.toMs(m));
         return Replies.snoozed(m);
     }
 

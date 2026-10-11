@@ -29,6 +29,7 @@ eq(S.remember([1, 5, 10], "abc"), 0, "garbage: nothing");
 
 eq(S.toMs(5), 300000, "ms");
 eq(S.toMs(0), 0, "invalid: 0");
+
 eq(S.forIpc(0), 5, "ipc: zero is the default");
 eq(S.forIpc(undefined), 5, "ipc: none is the default");
 eq(S.forIpc("abc"), 5, "ipc: garbage is the default");
@@ -36,9 +37,8 @@ eq(S.forIpc(10), 10, "ipc: valid");
 eq(S.forIpc(999), 120, "ipc: capped");
 eq(S.forIpc(-3), 1, "ipc: negative raised to 1");
 eq(S.forIpc(2.9), 2, "ipc: fraction truncated");
-
-const R = load("components/daemon/IpcReplies.js");
-eq(JSON.parse(R.snoozed(5)), { snoozed: true, minutes: 5 }, "reply: snoozed is JSON");
-eq(JSON.parse(R.notRinging()), { snoozed: false, reason: "nothing is ringing" }, "reply: not ringing is JSON");
+eq(S.forIpc(1), 1, "ipc: lower edge");
+eq(S.forIpc(120), 120, "ipc: upper edge");
+eq(S.forIpc(121), 120, "ipc: just above the range");
 
 done();

@@ -9,6 +9,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [The hourglass panel](#the-hourglass-panel)
 - [The launcher](#the-launcher)
 - [Syntax](#syntax) · [Natural phrases](#natural-phrases) · [What the launcher shows](#what-the-launcher-shows)
+- [Snoozing from a keybind](#snoozing-from-a-keybind)
 - [Settings](#settings) · [Sound](#sound) · [If the alarm makes no sound](#if-the-alarm-makes-no-sound)
 - [Privacy](#privacy)
 - [Performance](#performance)
@@ -142,6 +143,10 @@ When your text is a timer, the first line says exactly what <kbd>Enter</kbd> wil
 
 Nothing starts before <kbd>Enter</kbd>. Everything is read on your machine; Sands makes no network call.
 
+## Snoozing from a keybind
+
+`dms ipc call smartTimer snooze 10` restarts the ringing timer for 10 minutes. A length outside 1 to 120 minutes is clamped; `0` gives 5 minutes (the length is required: Quickshell has no optional IPC arguments). The answer is always JSON: `{"snoozed":true,"minutes":10}`, or `{"snoozed":false,"reason":"nothing is ringing"}` when no timer rings, in which case nothing changes. `start`, `stop` and `status` cover starting, stopping and reading the time left.
+
 ## Settings
 
 | Setting | Description | Default |
@@ -200,7 +205,3 @@ Sands costs nothing while you are not looking at it. In % of one CPU core for th
 | Panel open, paused (frozen) | 3.9 % |
 
 How this is achieved is in [CONTRIBUTING.md](../CONTRIBUTING.md#performance-rules).
-
-## Snoozing from a keybind
-
-`dms ipc call smartTimer snooze 10` restarts the ringing timer for 10 minutes. A length outside 1 to 120 minutes is clamped; `0` or no length gives 5 minutes. The answer is always JSON: `{"snoozed":true,"minutes":10}`, or `{"snoozed":false,"reason":"nothing is ringing"}` when no timer rings, in which case nothing changes. `start`, `stop` and `status` cover starting, stopping and reading the time left.

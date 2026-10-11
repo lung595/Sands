@@ -8,6 +8,7 @@ import "AlexBridge.js" as AlexBridge
 import "components/daemon"
 import "components/daemon/Lifecycle.js" as Lifecycle
 import "components/daemon/Notifications.js" as Notifications
+import "components/daemon/Snooze.js" as Snooze
 
 // Timer engine, instantiated once. The bar and the launcher
 // reach it through PluginService.pluginDaemonInstances["smartTimer"].
@@ -379,7 +380,7 @@ Item {
     TimerNotifier {
         id: notifier
         onStopRequested: id => root.dismiss(id)
-        onSnoozeRequested: id => root.adjust(id, 300000)
+        onSnoozeRequested: id => root.adjust(id, Snooze.toMs(Snooze.DEFAULT_MINUTES))
     }
 
     TimerIpc {
