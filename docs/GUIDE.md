@@ -7,6 +7,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [Use cases](#use-cases)
 - [The bar pill](#the-bar-pill)
 - [The hourglass panel](#the-hourglass-panel)
+- [The time journal](#the-time-journal)
 - [The launcher](#the-launcher)
 - [Syntax](#syntax) · [Natural phrases](#natural-phrases) · [What the launcher shows](#what-the-launcher-shows)
 - [Snoozing from a keybind](#snoozing-from-a-keybind)
@@ -74,6 +75,17 @@ The ring turns amber during the last minute and beats during the last ten second
 **Two hourglasses.** The classic one, or **Glass of Time**, a nod to *Steven Universe*: the glass floats in a cyan sphere with a gold ring around its waist. Only the frame changes.
 
 ![Glass of Time, running and frozen](images/glass-of-time.png)
+
+## The time journal
+
+The panel has a second screen, **This week**, that adds up the time of the timers that rang since Monday, name by name. Open it from the link under the hourglass; "Back to timers" returns. Nothing is read or drawn until you open it.
+
+- **Strata** (default): the week as a glass filling with layers. The longest name is the bottom layer, each layer has its own texture so it is readable without colour, and the legend gives the time. After five names the rest folds into "N more names".
+- **Threads**: one thin bar per name, longest first, up to seven, the rest folded the same way.
+- Times read "48 min", "1 h 15" or "6 h". A very long name is cut with an ellipsis, and the full name shows when you hover it.
+- With no timer finished this week, the screen says so and shows nothing else.
+- **Clear the journal** erases the private history at once. Nothing is sent anywhere: the history stays in the file described under [Privacy](#privacy).
+- With Reduce motion on, the glass and the bars appear already full.
 
 ## The launcher
 
