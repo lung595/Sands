@@ -54,6 +54,7 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 - `TimeParser.js`: natural-language parser (English and French) and formatting.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
 - `components/daemon/*.js`: the rules of the daemon's parts (see the table above). They import `TimeParser.js` and `Timers.js` where needed.
+- `components/alert/*.js`: the visual alert of a finished timer, `AlertPolicy.js` (which alert and when) and `HaloMotion.js` (the Edge halo steps), both tested and not wired yet.
 - `Preview.js`: the one-line preview and the « Rings at … » line the launcher shows before Enter.
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
