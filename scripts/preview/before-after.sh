@@ -20,7 +20,7 @@ for side in before after; do
         for w in 228 404; do
             for p in 0 1 2 3; do
                 (cd "$work/$side/scripts/preview" && QT_QPA_PLATFORM=offscreen timeout 60 \
-                    qml-qt6 -I imports settings-shot.qml -- "$w" "$p" "$theme" "$work/$side-$theme-$w-$p.png" 2>/dev/null)
+                    qml-qt6 -I imports settings-shot.qml -- "$w" "$p" "$theme" "$work/$side-$theme-$w-$p.png" "" 2>/dev/null)
             done
         done
     done

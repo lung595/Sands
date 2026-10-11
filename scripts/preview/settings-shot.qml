@@ -5,11 +5,11 @@ import "mock/Presets.js" as Presets
 import qs.Common
 
 // Renders the settings page at a given width and store preset to a picture.
-// Usage: QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-shot.qml -- <width> <preset, see mock/Presets.js> <dark|light> <out.png>
+// Usage: QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-shot.qml -- <width> <preset, see mock/Presets.js> <dark|light> <out.png> <query, may be empty>
 // (the word "light" among the arguments switches the stand-in Theme to a light palette)
 Window {
     id: win
-    readonly property var args: Qt.application.arguments.slice(-4)
+    readonly property var args: Qt.application.arguments.slice(-5)
     readonly property int pageW: parseInt(args[0])
     width: pageW
     height: page.height
@@ -19,6 +19,7 @@ Window {
     SettingsCase {
         id: page
         pageWidth: win.pageW
+        query: win.args[4]
         preset: Presets.list[parseInt(win.args[1])]
     }
 
