@@ -8,6 +8,8 @@ for t in "$here"/tst_*.qml; do
   QML_TMP=$(mktemp -d)
   cp "$t" "$QML_TMP/"
   for f in $(sed -n 's|^// needs: ||p' "$t"); do cp "$here/../../$f" "$QML_TMP/"; done
+  # "stubs: qs" stages the preview stand-ins of the DMS modules (qs.Common...)
+  grep -q '^// stubs: qs' "$t" && cp -r "$here/../../scripts/preview/imports/qs/." "$QML_TMP/"
   out=$(cd "$QML_TMP" && QML_TMP=$QML_TMP QT_QPA_PLATFORM=offscreen timeout 60 quickshell -p "$(basename "$t")" 2>&1)
   rm -rf "$QML_TMP"
   echo "$out" | grep -q 'qml.*PASS' && echo "ok $(basename "$t")" || { echo "FAIL $(basename "$t")"; echo "$out" | tail -12; exit 1; }
