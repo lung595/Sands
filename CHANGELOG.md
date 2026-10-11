@@ -21,6 +21,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Documentation
 
 - Design mockup and spec of the "Copy report" row in the settings Help section, with a GitHub mark that opens a new issue (`docs/design/copy-report.md` and `docs/design/copy-report/`, NAK-535). Design only: no code change.
+- Design mockup of the « when a timer ends » row in Sands settings: three choices, greyed without Alex, narrow form (`docs/design/alex-row/index.html`, NAK-545). Design only: no code change.
 
 ### Fixed
 

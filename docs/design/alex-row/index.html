@@ -1,0 +1,208 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sands · NAK-545 · When a Sands timer ends</title>
+<style>
+/* Every colour below is a DMS Theme role; the palettes are fictitious theme data set from JS (same as NAK-535). */
+:root{--r:12px;--ease:cubic-bezier(.33,1,.68,1)}
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:var(--bg);color:var(--text);font:14px/1.4 Inter,'Noto Sans',sans-serif}
+h1{font-size:20px;font-weight:600;margin:0 0 4px}h2{font-size:16px;font-weight:600;margin:32px 0 12px}
+p{margin:0 0 4px;color:var(--variant);max-width:76ch}
+.num{font-variant-numeric:tabular-nums}
+.switches{display:flex;flex-wrap:wrap;gap:12px 20px;margin:20px 0}
+.grp{display:flex;flex-wrap:wrap;align-items:center;gap:4px}.grp>span{font-size:12px;color:var(--variant);margin-right:4px}
+.grp button{font:inherit;min-height:44px;padding:0 12px;border-radius:var(--r);border:1px solid var(--outline);background:none;color:var(--text);cursor:pointer}
+.grp button[aria-pressed=true]{background:var(--primary);color:var(--onprimary);border-color:var(--primary)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+#stage{overflow:auto;max-width:100%;padding:4px}
+#panel{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:16px}
+.head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.head b{font-size:18px;font-weight:600;flex:1 1 120px}
+.search{flex:1 1 160px;min-width:0;height:44px;border-radius:var(--r);border:1px solid var(--outline);background:none;color:var(--text);font:inherit;padding:0 12px}
+.search::placeholder{color:var(--variant);opacity:1}
+.body{display:flex;align-items:flex-start}
+/* D414 rail, drawn as approved in NAK-505 (A · Dune). Static here: the rail is not the subject of this page. */
+.rail{position:relative;flex:0 0 176px;width:176px;padding:0 8px;display:flex;flex-direction:column;gap:4px}
+.ent{position:relative;z-index:1;width:160px;height:40px;border-radius:var(--r);color:var(--variant);font-size:14px;line-height:16px;display:flex;align-items:center;gap:8px;padding:0 12px}
+.ent svg{flex:0 0 16px}.ent span{min-width:0;overflow-wrap:anywhere}
+.ent.on{color:var(--text);font-weight:600}.ent.on svg{color:var(--primary)}
+.logo{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.mk{position:absolute;left:8px;top:0;width:160px;height:40px;border-radius:var(--r);pointer-events:none}
+.mk .tint{position:absolute;inset:0;border-radius:var(--r);background:var(--primary);opacity:.14}
+.mk .dune{position:absolute;left:0;top:0;width:160px;height:40px;color:var(--primary)}
+.content{flex:1 1 0;min-width:0;padding-left:16px;display:flex;flex-direction:column;gap:16px}
+.content h3,.cell h3{margin:0;font-size:16px;font-weight:600;line-height:24px}
+/* Sands' own wrapping row (NAK-425): title and help first, the control always under them, so nothing can meet at any width. */
+.rowx{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tt{font-weight:600;line-height:20px;overflow-wrap:anywhere}
+.hp{font-size:12px;line-height:16px;color:var(--variant);overflow-wrap:anywhere}
+.ctx{display:flex;gap:16px;align-items:center}.ctx>div{flex:1 1 0;min-width:0}
+.tog{flex:0 0 44px;width:44px;height:24px;border-radius:12px;background:var(--primary);position:relative}.tog::after{content:"";position:absolute;right:4px;top:4px;width:16px;height:16px;border-radius:8px;background:var(--onprimary)}
+/* Three choices: one line when it fits, stacked when it does not (class set from a measurement, as the QML will do). */
+.seg{display:flex;border:1px solid var(--outline);border-radius:var(--r);overflow:hidden;width:max-content;max-width:100%}
+.seg.stack{flex-direction:column;width:100%}
+.sg{position:relative;font:inherit;font-size:13px;line-height:20px;min-height:44px;padding:0 12px 0 8px;border:0;border-left:1px solid var(--outline);background:none;color:var(--text);display:flex;align-items:center;gap:4px;white-space:nowrap;text-align:left;cursor:pointer}
+.sg:first-child{border-left:0}
+.stack .sg{white-space:normal;overflow-wrap:anywhere;padding:12px 12px 12px 8px;border-left:0;border-top:1px solid var(--outline)}.stack .sg:first-child{border-top:0}
+.sg::before{content:"";position:absolute;inset:0;background:var(--primary);opacity:0;transition:opacity .1s var(--ease)}
+.sg>*{position:relative}
+.sg:hover::before,.sg.f-hover::before{opacity:.12}.sg:active::before,.sg.f-press::before{opacity:.16}
+.sg[aria-checked=true]{color:var(--onprimary);font-weight:600}.sg[aria-checked=true]::before{opacity:1;transition-duration:.15s}
+.sg .ck{flex:0 0 16px;opacity:0;transform:scale(.6);transition:opacity .1s var(--ease),transform .1s var(--ease)}
+.sg[aria-checked=true] .ck{opacity:1;transform:none;transition-duration:.15s}
+/* The label keeps the width of its bold form, so selecting never moves the neighbours. */
+.lb{display:grid;min-width:0}.lb>span{grid-area:1/1}.lb::after{content:attr(data-t);grid-area:1/1;font-weight:600;visibility:hidden;height:0;overflow:hidden}
+.sg:focus-visible,.sg.f-focus{outline:2px solid var(--primary);outline-offset:-4px;border-radius:var(--r)}
+.sg[aria-checked=true]:focus-visible,.sg[aria-checked=true].f-focus{outline-color:var(--onprimary)}
+/* Greyed: dashed edge (the same sign as the empty seat in the preview), muted labels, no fill. Never by opacity, so the text stays AA. */
+.off .seg{border-style:dashed}.off .sg{color:var(--variant);cursor:default;border-left-style:dashed;border-top-style:dashed}
+.off .sg::before{display:none}.off .tt{color:var(--variant)}
+/* The bar when the timer rings, in miniature: who shows the alarm is told by form. */
+.strip{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-height:40px;padding:5px 7px;border-radius:var(--r);border:1px solid var(--line)}
+.pl{height:28px;border-radius:14px;background:var(--high);display:flex;align-items:center;gap:4px;padding:0 8px;font-size:12px;line-height:16px;font-weight:600;color:var(--text)}
+.pl.chip{background:var(--chip)}.pl.chip svg{color:var(--error)}
+.pl.seat{width:32px;background:none;border:1.5px dashed var(--outline)}
+.pl.zz{color:var(--variant)}
+.pl .hgp{color:var(--primary)}
+.cap{width:24px;height:16px;border-radius:8px}.cap.stop{background:var(--primary)}.cap.snz{border:1.5px solid var(--outline)}
+.pop{animation:pop .15s var(--ease) both}
+@keyframes pop{from{opacity:0;transform:translateY(2px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+/* Guided note (value 10): why the row is greyed, what to do, and the GitHub mark to the guide section. */
+.hn{display:flex;align-items:center;gap:4px;padding:8px 4px 8px 12px;border-radius:var(--r);background:var(--high);border:1px solid var(--line)}
+.hn div{flex:1 1 0;min-width:0}
+.hn b{display:block;font-weight:700;line-height:20px;overflow-wrap:anywhere}
+.hn small{display:block;font-size:12px;line-height:16px;color:var(--variant);overflow-wrap:anywhere}
+.gh{flex:0 0 44px;width:44px;height:44px;border:0;border-radius:var(--r);background:none;color:var(--variant);cursor:pointer;display:grid;place-items:center;transition:color .1s var(--ease)}
+.gh:hover,.gh.f-hover{color:var(--primary);transition-duration:.15s}
+.gh.f-focus{outline:2px solid var(--primary);outline-offset:2px}
+/* D419 cost pill, same anatomy as Abyss NAK-263. */
+.cost{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12px;line-height:16px;color:var(--variant)}
+.cost>span:last-child{flex:1 1 120px;min-width:0;overflow-wrap:anywhere}
+.cpill{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 8px;border-radius:10px;border:1px solid var(--outline);color:var(--text);white-space:nowrap;background:var(--tint10)}
+.cpill i{width:2px;height:8px;border-radius:1px;background:var(--text);margin-right:-3px}.cpill i.o{opacity:.3}.cpill i:last-of-type{margin-right:0}
+.sheet{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.cell{width:342px;background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:8px}
+.cell>small{font-size:12px;color:var(--variant)}
+table{border-collapse:collapse;font-size:12px;margin:8px 0}td,th{border:1px solid var(--outline);padding:4px 8px;text-align:left;vertical-align:top}th{font-weight:600}
+.rm .sg::before,.rm .sg .ck,.rm .gh{transition-duration:.1s!important}.rm .sg .ck{transform:none!important}.rm .pop{animation:fade .1s linear both}
+@media (prefers-reduced-motion:reduce){.sg::before,.sg .ck,.gh{transition-duration:.1s!important}.sg .ck{transform:none!important}.pop{animation:fade .1s linear both}}
+</style></head>
+<body>
+<h1>Sands · NAK-545 · The "When a Sands timer ends" row</h1>
+<p>Where it lives: Sands settings, section "Alerts &amp; sounds", last row. Same title, same help and same three choices as in Alex settings (NAK-492); one value, kept by Alex, so both pages always agree. The default is "Alarm in the Alex island" (D466). Click a choice in the panel: the small bar under it shows what happens when the timer rings. Switch "Alex" to "Turned off" or "Not installed" to see the greyed row with its reason and the GitHub mark that opens the guide.</p>
+<p>Why it is not generic: the row does not explain the choice with more text or a lock. It draws the bar at the ring: the Sands chip is always there, and Alex's seat beside it is quiet, paged, carrying the alarm, asleep or empty (dashed). The dashed edge of the greyed control is that same empty seat.</p>
+<div class="switches" id="sw"></div>
+<div id="stage"><div id="panel"></div></div>
+<p id="said" aria-live="polite"></p>
+<h2>Every state, at the width of the settings column</h2><div class="sheet" id="sheet"></div>
+<h2>Motion</h2><div id="motion"></div>
+<h2>Contrast, measured from the palette shown (WCAG formula, tints composited)</h2><div id="contrast"></div>
+<h2>Exact copy</h2><div id="copy"></div>
+<script>
+"use strict";
+// Fictitious DMS themes (same data as NAK-535): stock, one coloured, one wallpaper-generated. Keys are Theme roles.
+const TH={stock:{dark:{bg:"#141218",surface:"#211F26",high:"#36343B",text:"#E6E0E9",variant:"#CAC4D0",outline:"#938F99",primary:"#D0BCFF",onprimary:"#381E72",error:"#F2B8B5"},
+light:{bg:"#E7E0EC",surface:"#FEF7FF",high:"#E6E0E9",text:"#1D1B20",variant:"#49454F",outline:"#79747E",primary:"#6750A4",onprimary:"#FFFFFF",error:"#B3261E"}},
+green:{dark:{bg:"#10140F",surface:"#1C211B",high:"#313630",text:"#E0E4DB",variant:"#C2C8BC",outline:"#8C9387",primary:"#A1D39A",onprimary:"#0A390F",error:"#FFB4AB"},
+light:{bg:"#E3E9DC",surface:"#F7FBF1",high:"#E0E4DB",text:"#191D17",variant:"#424940",outline:"#72796F",primary:"#3A6A36",onprimary:"#FFFFFF",error:"#BA1A1A"}},
+wall:{dark:{bg:"#17130B",surface:"#231F17",high:"#39342B",text:"#ECE1D4",variant:"#D1C5B4",outline:"#9A8F80",primary:"#EFBF6D",onprimary:"#422C00",error:"#FFB4AB"},
+light:{bg:"#EFE3D0",surface:"#FFF8F1",high:"#EDE1D0",text:"#1F1B13",variant:"#4E4639",outline:"#807667",primary:"#7A5900",onprimary:"#FFFFFF",error:"#BA1A1A"}}};
+// choice: sands | react | alex (the kept values of NAK-544). alex: yes | off | no. name: the agent name follows Alex's rename setting (NAK-489).
+const S={theme:"stock",mode:"dark",w:720,rm:false,alex:"yes",name:"short",choice:"alex"};
+const VAL=["sands","react","alex"];
+const N=()=>S.name==="long"?"Mademoiselle Clochette":"Alex";
+const C=n=>({title:"When a Sands timer ends",help:`Sands always keeps its sound and its bar chip. The ${n} island can show the alarm with Stop and Snooze.`,
+ ch:["Sands only",`Sands + ${n} reacts`,`Alarm in the ${n} island`],
+ noTitle:`${n} is not installed`,noHint:"Install it to choose. Sands then follows the choice made in either page.",
+ offTitle:`${n} is turned off`,offHint:"Turn it on in DMS Settings, Plugins, to choose. Until then Sands rings alone.",
+ gh:`Open the guide: ${n}`,pill:"Light on battery",cost:"one 3 s pose or one island per timer end, nothing between",cap:"In the bar when it rings",
+ pv:{sands:`Sands chip rings. ${n} stays quiet.`,react:`Sands chip rings. ${n} reacts for 3 seconds.`,alex:`Sands chip rings. The ${n} island shows the alarm with Stop and Snooze.`,off:`Sands chip rings alone. ${n} is asleep.`,no:`Sands chip rings alone. The seat of ${n} is empty.`}});
+const LOGO={timers:"M4 2.5h8M4 13.5h8M5 2.5c0 3 2.6 3.6 3 5.5c.4-1.9 3-2.5 3-5.5M5 13.5c0-3 2.6-3.6 3-5.5c.4 1.9 3 2.5 3 5.5",
+look:"M8 2.5a5.5 5.5 0 1 0 0 11a5.5 5.5 0 0 0 0-11zM3.5 10.5c2-2.6 4-2.6 5.5-.5s2.5 1 3.5 0",
+fx:"M2.5 5.5h10v6h-10zM14 7.5v2M4.5 10l5-3",
+alerts:"M3 11.5c0-6.5 10-6.5 10 0zM8 3.5v2.5M8 14h.01",
+help:"M6 6a2 2 0 1 1 3.1 1.7c-.8.5-1.1 1-1.1 1.8M8 12.5h.01M8 1.5a6.5 6.5 0 1 0 0 13a6.5 6.5 0 0 0 0-13z",
+check:"M3 8.5l3.5 3.5l6.5-7.5",
+// A plain pager stands for Alex here; its real mascot is drawn in the Alex page (NAK-492).
+face:"M3.5 6h9a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1zM8 6V3.5M6 9.5h.01M10 9.5h.01",
+paged:"M3.5 6h9a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1zM8 6V3.5M6 9.5h.01M10 9.5h.01M5.5 1.5c-.8.8-.8 2 0 2.8M10.5 1.5c.8.8.8 2 0 2.8",
+asleep:"M3.5 6h9a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1zM8 6V4.5M5.5 9.5h1.5M9 9.5h1.5"};
+const SECS=[["timers","Timers"],["look","Appearance"],["fx","Effects & battery"],["alerts","Alerts & sounds"],["help","Help"]];
+const lg=(id,cls,sz)=>`<svg class="logo${cls?" "+cls:""}" width="${sz||16}" height="${sz||16}" viewBox="0 0 16 16" aria-hidden="true"><path d="${LOGO[id]}"/></svg>`;
+const GH=`<svg width="18" height="18" viewBox="0 0 98 96" aria-hidden="true"><path fill="currentColor" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/></svg>`;
+const $=id=>document.getElementById(id);
+// Alex's seat in the miniature bar, one form per situation.
+function seat(alex,choice,pop){const p=pop?" pop":"";
+ if(alex==="no")return`<span class="pl seat${p}"></span>`;
+ if(alex==="off")return`<span class="pl zz${p}">${lg("asleep")}</span>`;
+ if(choice==="sands")return`<span class="pl${p}">${lg("face")}</span>`;
+ if(choice==="react")return`<span class="pl${p}">${lg("paged")}${lg("timers","hgp",12)}</span>`;
+ return`<span class="pl${p}">${lg("face")}${lg("timers","hgp")}<i class="cap stop"></i><i class="cap snz"></i></span>`;}
+// o: {choice, alex, f:[segment index, forced class], g: forced class on the mark, live}
+function rowHTML(o){const c=C(N()),on=o.alex==="yes",f=o.f||[-1,""];
+ return`<div class="rowx${on?"":" off"}"${o.live?' id="row"':""}><div><div class="tt">${c.title}</div><div class="hp">${c.help}</div></div>
+<div class="seg" role="radiogroup" aria-label="${c.title}"${on?"":' aria-disabled="true"'}>${c.ch.map((t,i)=>`<button class="sg${f[0]===i?" "+f[1]:""}" role="radio" aria-checked="${on&&VAL[i]===o.choice}"${on?"":' aria-disabled="true"'} tabindex="${o.live&&on&&VAL[i]===o.choice?0:-1}" data-i="${i}">${lg("check","ck")}<span class="lb" data-t="${t}"><span>${t}</span></span></button>`).join("")}</div>
+<div class="hp cp">${c.cap}</div><div class="strip" role="img" aria-label="${c.pv[on?o.choice:o.alex]}"><span class="pl chip">${lg("timers")}<span class="num">0:00</span></span>${seat(o.alex,o.choice)}</div>
+${on?`<div class="cost"><span class="cpill"><i></i><i class="o"></i><i class="o"></i>${c.pill}</span><span>${c.cost}</span></div>`
+:`<div class="hn" role="note"><div><b>${o.alex==="no"?c.noTitle:c.offTitle}</b><small>${o.alex==="no"?c.noHint:c.offHint}</small></div><button class="gh${o.g?" "+o.g:""}"${o.live?"":' tabindex="-1"'} aria-label="${c.gh}">${GH}</button></div>`}</div>`;}
+// Stack the three choices when one line does not fit (the QML measures implicitWidth the same way).
+function fit(){for(const s of document.querySelectorAll(".seg")){s.classList.remove("stack");if(s.scrollWidth>s.clientWidth+.5)s.classList.add("stack");}}
+// Live pick: update in place so the fill, the check and the seat animate (transform and opacity only).
+function pick(i,focus){if(S.alex!=="yes")return;S.choice=VAL[i];const r=$("row"),c=C(N());
+ r.querySelectorAll(".sg").forEach((b,k)=>{b.setAttribute("aria-checked",k===i);b.tabIndex=k===i?0:-1;if(k===i&&focus)b.focus();});
+ const st=r.querySelector(".strip");st.setAttribute("aria-label",c.pv[S.choice]);st.lastElementChild.outerHTML=seat("yes",S.choice,true);
+ $("said").textContent="Kept by Alex, shown the same in both pages: "+c.ch[i];}
+const lin=c=>{c/=255;return c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)};
+const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const lum=c=>.2126*lin(c[0])+.7152*lin(c[1])+.0722*lin(c[2]);
+const mix=(f,b,a)=>f.map((v,i)=>v*a+b[i]*(1-a));
+const css=a=>"rgb("+a.map(Math.round).join(",")+")";
+const cr=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+function pairs(t){const s=rgb(t.surface),h=rgb(t.high),p=rgb(t.primary),op=rgb(t.onprimary),tx=rgb(t.text),v=rgb(t.variant),o=rgb(t.outline),e=rgb(t.error),chip=mix(e,h,.18);
+ return[["Title (text) / surface",4.5,cr(tx,s)],["Help, caption, cost reason (variant) / surface",4.5,cr(v,s)],["Choice label (text) / surface",4.5,cr(tx,s)],
+ ["Choice label (text) / hover fill, primary 12 %",4.5,cr(tx,mix(p,s,.12))],["Choice label (text) / pressed fill, primary 16 %",4.5,cr(tx,mix(p,s,.16))],
+ ["Selected label and check (onprimary) / primary",4.5,cr(op,p)],["Selected fill (primary) / surface",3,cr(p,s)],["Control edge (outline) / surface",3,cr(o,s)],
+ ["Focus ring (primary) / surface",3,cr(p,s)],["Focus ring on the selected choice (onprimary) / primary",3,cr(op,p)],
+ ["Greyed title and labels (variant) / surface",4.5,cr(v,s)],["Greyed dashed edge (outline) / surface",3,cr(o,s)],
+ ["Note title (text) / note fill (high)",4.5,cr(tx,h)],["Note hint (variant) / note fill (high)",4.5,cr(v,h)],["GitHub mark (variant) / note fill (high)",3,cr(v,h)],["GitHub mark, hover (primary) / note fill (high)",3,cr(p,h)],
+ ["Cost pill label (text) / primary 10 %",4.5,cr(tx,mix(p,s,.10))],["Cost pill edge (outline) / surface",3,cr(o,s)],
+ ["Chip time (text) / chip fill, error 18 % on high",4.5,cr(tx,chip)],["Chip hourglass (error) / chip fill",3,cr(e,chip)],
+ ["Alex glyph (text) / pill (high)",3,cr(tx,h)],["Sender hourglass and Stop (primary) / pill (high)",3,cr(p,h)],["Snooze edge (outline) / pill (high)",3,cr(o,h)],
+ ["Asleep glyph (variant) / pill (high)",3,cr(v,h)],["Empty seat, dashed (outline) / surface",3,cr(o,s)]];}
+const SW=[["theme","Theme",[["stock","Stock"],["green","Green"],["wall","Wallpaper"]]],["mode","Mode",[["dark","Dark"],["light","Light"]]],
+ ["w","Settings width",[[720,"720 wide"],[518,"518"],[436,"436 narrow"],[360,"360 extreme"]]],["alex","Alex",[["yes","Installed"],["off","Turned off"],["no","Not installed"]]],
+ ["name","Agent name",[["short","Alex"],["long","Very long name"]]],["rm","Reduce motion",[[false,"Off"],[true,"On"]]]];
+function render(){const t=TH[S.theme][S.mode],de=document.documentElement,c=C(N());for(const k in t)de.style.setProperty("--"+k,t[k]);
+ // Theme.withAlpha(Theme.outline, 0.24): a decorative edge. Tints are composited so the contrast table measures real colours.
+ de.style.setProperty("--line",css(mix(rgb(t.outline),rgb(t.surface),.24)));
+ de.style.setProperty("--chip",css(mix(rgb(t.error),rgb(t.high),.18)));de.style.setProperty("--tint10",css(mix(rgb(t.primary),rgb(t.surface),.10)));
+ $("sw").innerHTML=SW.map(g=>`<div class="grp" role="group" aria-label="${g[1]}"><span>${g[1]}</span>${g[2].map(o=>`<button aria-pressed="${S[g[0]]===o[0]}" data-sw="${g[0]}" data-v="${o[0]}">${o[1]}</button>`).join("")}</div>`).join("");
+ const p=$("panel");p.style.width=S.w+"px";document.body.className=S.rm?"rm":"";
+ p.innerHTML=`<div class="head"><b>Sands</b><input class="search" type="search" placeholder="Search settings" aria-label="Search settings"></div>
+<div class="body"><div class="rail" aria-label="Sections"><div class="mk" style="transform:translateY(${3*44}px)"><i class="tint"></i><svg class="dune" viewBox="0 0 160 40" aria-hidden="true"><path fill="currentColor" d="M4 40V38.5C10 38.5 13 33 20 33S32 37.5 56 38.5L156 39.5V40Z"/></svg></div>
+${SECS.map((s,i)=>`<div class="ent${i===3?" on":""}">${lg(s[0])}<span>${s[1]}</span></div>`).join("")}</div>
+<div class="content" id="content"><h3>Alerts &amp; sounds</h3>
+<div class="ctx"><div><div class="tt">Alarm sound</div><div class="hp">Plays when a timer ends</div></div><i class="tog" aria-hidden="true"></i></div>
+${rowHTML({choice:S.choice,alex:S.alex,live:true})}</div></div>`;
+ const cells=[["Selected: Sands only",{choice:"sands",alex:"yes"}],["Selected: Sands + Alex reacts",{choice:"react",alex:"yes"}],["Selected: Alarm in the Alex island (default)",{choice:"alex",alex:"yes"}],
+ ["Hover on a choice",{choice:"alex",alex:"yes",f:[0,"f-hover"]}],["Pressed",{choice:"alex",alex:"yes",f:[1,"f-press"]}],["Keyboard focus on a choice",{choice:"alex",alex:"yes",f:[1,"f-focus"]}],
+ ["Keyboard focus on the selected choice",{choice:"alex",alex:"yes",f:[2,"f-focus"]}],["Alex turned off (greyed)",{choice:"alex",alex:"off"}],["Alex not installed (greyed)",{choice:"alex",alex:"no"}],
+ ["Greyed, mark hovered",{choice:"alex",alex:"no",g:"f-hover"}],["Greyed, keyboard focus on the mark",{choice:"alex",alex:"no",g:"f-focus"}]];
+ $("sheet").innerHTML=cells.map(x=>`<div class="cell"><small>${x[0]}</small>${rowHTML(x[1])}</div>`).join("");
+ fit();
+ $("motion").innerHTML=`<table><tr><th>Trigger</th><th>What moves</th><th>Enter</th><th>Exit</th><th>Reduce motion</th></tr>
+<tr><td>A choice is selected</td><td>Fill of the choice (opacity), check (opacity, scale 0.6 to 1)</td><td class="num">150 ms OutCubic</td><td class="num">100 ms OutCubic</td><td class="num">opacity only, 100 ms</td></tr>
+<tr><td>A choice is selected</td><td>Alex's seat in the small bar (opacity, 2 px rise, scale 0.96 to 1)</td><td class="num">150 ms OutCubic</td><td>replaced at once</td><td class="num">opacity only, 100 ms</td></tr>
+<tr><td>Pointer on a choice or on the mark</td><td>Fill opacity 12 %, mark colour</td><td class="num">150 ms</td><td class="num">100 ms</td><td class="num">100 ms</td></tr>
+<tr><td>Rest</td><td>Nothing moves, no timer exists</td><td>none</td><td>none</td><td>none</td></tr></table>`;
+ const rows=pairs(t);$("contrast").innerHTML=`<table><tr><th>Pair</th><th>Needs</th><th>Measured</th><th></th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2].toFixed(2)}</td><td>${r[2]>=r[1]?"pass":"FAIL"}</td></tr>`).join("")}</table>`;
+ $("copy").innerHTML=`<table><tr><th>Part</th><th>Text (English only, D87)</th></tr>${[["Section","Alerts &amp; sounds (last row)"],["Title",c.title],["Help",c.help],["Choices",c.ch.join(" · ")],["Caption of the small bar",c.cap],
+ ["Cost pill (D419)",c.pill+" · "+c.cost],["Not installed",c.noTitle+". "+c.noHint],["Turned off",c.offTitle+". "+c.offHint],["Mark, accessible name",c.gh+" (opens docs/GUIDE.md, section Alex, in the browser, on click only)"],
+ ["Small bar, accessible names",Object.values(c.pv).join(" / ")]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table>`;}
+document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.sw){const k=b.dataset.sw,v=b.dataset.v;S[k]=k==="w"?+v:k==="rm"?v==="true":v;render();const again=document.querySelector(`[data-sw="${k}"][data-v="${v}"]`);if(again)again.focus();return;}
+ if(b.closest("#row")&&b.classList.contains("sg"))pick(+b.dataset.i,true);
+ else if(b.classList.contains("gh"))$("said").textContent="The mark opens the guide in the browser: docs/GUIDE.md, section Alex. Nothing is fetched by the plugin.";});
+// Radio group keyboard: arrows move and select, one tab stop.
+document.addEventListener("keydown",e=>{const b=e.target.closest&&e.target.closest("#row .sg");if(!b||S.alex!=="yes")return;const d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d)return;e.preventDefault();pick((+b.dataset.i+d+3)%3,true);});
+render();
+</script></body></html>
