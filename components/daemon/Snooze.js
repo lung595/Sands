@@ -52,3 +52,16 @@ function remember(raw, picked) {
 function toMs(picked) {
     return minutes(picked) * 60000;
 }
+
+// Snooze used when the caller gives none (0) and the settings hold no
+// default yet; matches the "+5 min" notification button
+var DEFAULT_MINUTES = 5;
+
+// The minutes for `smartTimer snooze <n>`: 0 or garbage gives the default,
+// anything else is clamped into 1..MAX_MINUTES
+function forIpc(value) {
+    const n = Math.trunc(Number(value));
+    if (!Number.isFinite(n) || n === 0)
+        return DEFAULT_MINUTES;
+    return Math.min(MAX_MINUTES, Math.max(1, n));
+}

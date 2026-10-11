@@ -39,3 +39,12 @@ function list(sortedTimers, now) {
         return Plain.plain(Timers.displayLabel(t)) + "\t" + TP.formatClock(Timers.remainingOf(t, now)) + state;
     }).join("\n");
 }
+
+// JSON answers of `smartTimer snooze`, like `status`: always parseable
+function snoozed(minutes) {
+    return JSON.stringify({ snoozed: true, minutes: minutes });
+}
+
+function notRinging() {
+    return JSON.stringify({ snoozed: false, reason: "nothing is ringing" });
+}

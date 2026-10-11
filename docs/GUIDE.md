@@ -200,3 +200,7 @@ Sands costs nothing while you are not looking at it. In % of one CPU core for th
 | Panel open, paused (frozen) | 3.9 % |
 
 How this is achieved is in [CONTRIBUTING.md](../CONTRIBUTING.md#performance-rules).
+
+## Snoozing from a keybind
+
+`dms ipc call smartTimer snooze 10` restarts the ringing timer for 10 minutes. A length outside 1 to 120 minutes is clamped; `0` or no length gives 5 minutes. The answer is always JSON: `{"snoozed":true,"minutes":10}`, or `{"snoozed":false,"reason":"nothing is ringing"}` when no timer rings, in which case nothing changes. `start`, `stop` and `status` cover starting, stopping and reading the time left.

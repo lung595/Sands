@@ -3,6 +3,7 @@ import Quickshell.Io
 import qs.Services
 import "../../TimeParser.js" as TP
 import "IpcReplies.js" as Replies
+import "Snooze.js" as Snooze
 import "Status.js" as Status
 
 // dms ipc call smartTimer <function> [arguments]
@@ -66,6 +67,18 @@ IpcHandler {
         if (!engine.adjust(engine.primary.id, minutes * 60000))
             return Replies.notChanged(engine.guideUrl);
         return "OK";
+    }
+
+    // dms ipc call smartTimer snooze [minutes]: restarts the first ringing
+    // timer for that long; 0 or none uses the default snooze. JSON answer.
+    function snooze(minutes: int): string {
+        const ringing = engine.sorted.find(t => t.state === "ringing");
+        if (!ringing)
+            return Replies.notRinging();
+        const m = Snooze.forIpc(minutes);
+        if (!engine.adjust(ringing.id, m * 60000))
+            return Replies.notRinging();
+        return Replies.snoozed(m);
     }
 
     // Bind to a shortcut: opens / closes the panel on the active screen.
