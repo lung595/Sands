@@ -15,7 +15,7 @@ Item {
     signal clicked
 
     activeFocusOnTab: enabled
-    implicitWidth: label.implicitWidth + Theme.spacingM * 2
+    implicitWidth: label.implicitWidth + Theme.spacingS * 2
     implicitHeight: 44
     scale: area.pressed && !reducedMotion ? 0.97 : 1
     Keys.onPressed: event => {

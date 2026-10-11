@@ -7,7 +7,7 @@ Item {
     id: root
 
     required property string path
-    property color color: "white"
+    required property color color
     property real size: 16
 
     width: size

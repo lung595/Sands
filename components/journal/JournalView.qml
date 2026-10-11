@@ -116,21 +116,28 @@ Column {
         }
     }
 
-    // Privacy line and the erase link on one row
-    Row {
+    // Privacy line and the erase link on one row; when the note would need more
+    // than two lines beside the link, the link drops under it, right aligned.
+    Item {
+        id: foot
+        readonly property bool stacked: root.inner < 280
+        readonly property real rowHeight: Math.max(44, note.implicitHeight)
         width: root.inner
-        height: Math.max(44, note.implicitHeight)
-        spacing: Theme.spacingS
+        height: stacked ? rowHeight + 44 : rowHeight
 
         Glyph {
-            anchors.verticalCenter: parent.verticalCenter
+            id: deskIcon
+            y: foot.rowHeight / 2 - height / 2
             path: "M2.5 3h11v8h-11zM6 13.5h4M5 9c1.5-2.6 4.5-2.6 6 0"
             color: Theme.surfaceVariantText
         }
         StyledText {
             id: note
-            width: parent.width - 16 - clear.width - parent.spacing * 2
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: deskIcon.right
+            anchors.leftMargin: Theme.spacingS
+            anchors.right: foot.stacked ? parent.right : clear.left
+            anchors.rightMargin: Theme.spacingS
+            y: (foot.rowHeight - implicitHeight) / 2
             text: "Kept on this machine only. Nothing is sent."
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.surfaceVariantText
@@ -139,7 +146,9 @@ Column {
         LinkButton {
             id: clear
             objectName: "clear"
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            anchors.verticalCenter: foot.stacked ? undefined : parent.verticalCenter
+            anchors.bottom: foot.stacked ? parent.bottom : undefined
             caption: "Clear the journal"
             underline: true
             textColor: Theme.primary
