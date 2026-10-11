@@ -21,6 +21,11 @@ Canvas {
     // Grain sizes 2 to 4 px; the count follows the area, capped for a wide screen
     readonly property int speckCount: Math.min(1500, Math.round(width * height / 160))
 
+    // What a style built on this scene turns off or changes (WindScene): the
+    // falling thread, and loose grains that hop on the sand instead of the floor
+    property bool thread: true
+    property bool grainsRide: false
+
     // Caption box in scene coordinates: tints behind it are held to a contrast
     // floor against the on-primary caption (set by the band)
     property real capLeft: 0
@@ -154,7 +159,7 @@ Canvas {
 
         // The thread falls from the top edge while the heap grows under it
         const t = s.step / Motion.STEP_HZ;
-        if (!s.done && t < 1.5) {
+        if (thread && !s.done && t < 1.5) {
             const top = _surface(h, 0.5), cx = Math.round(width / 2);
             ctx.fillStyle = sets.plain[2];
             ctx.fillRect(cx - 1, 0, 2, Math.min(top, height * Math.min(1, t / 0.4)));
@@ -163,6 +168,6 @@ Canvas {
         // Loose grains: y is a share of the band height above the floor
         ctx.fillStyle = sets.plain[3];
         for (const g of s.grains)
-            ctx.fillRect(Math.round(g.x * width), Math.round(height - g.y * height * reach - 3), 3, 3);
+            ctx.fillRect(Math.round(g.x * width), Math.round((grainsRide ? _surface(h, Math.max(0, Math.min(1, g.x))) : height) - g.y * height * reach - 3), 3, 3);
     }
 }

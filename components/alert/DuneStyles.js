@@ -14,7 +14,8 @@ var STYLES = [
 // is known (its saved value is kept) but shows the default until its scene
 // lands: the settings row greys it instead of promising it.
 var SCENES = {
-    "grains": "GrainsScene.qml"
+    "grains": "GrainsScene.qml",
+    "wind": "WindScene.qml"
 };
 
 function isDrawn(value) {

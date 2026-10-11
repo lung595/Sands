@@ -174,6 +174,17 @@ function stateAt(style, n, seed, reduceMotion) {
     };
 }
 
+// Whether every column between the shares x0 and x1 of the width stands at
+// least `need` high (a share of the scene reach): sand is behind the caption
+function covers(heights, x0, x1, need) {
+    const n = heights.length;
+    const a = Math.max(0, Math.min(n - 1, Math.floor(x0 * n))), b = Math.max(a, Math.min(n - 1, Math.floor(x1 * n)));
+    for (let i = a; i <= b; i++)
+        if (!(heights[i] >= need))
+            return false;
+    return true;
+}
+
 // D482: nothing is drawn over a full-screen app unless the user asked for it
 function shouldDraw(fullscreen, showOverFullscreen) {
     return !fullscreen || showOverFullscreen === true;

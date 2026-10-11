@@ -49,6 +49,19 @@ eq(M.stateAt("wave", 16, 1, false).grains.length > 0, true, "wave throws grains 
 const wh = M.stateAt("wind", 20, 1, false).heights;
 eq(wh[0] > wh[wh.length - 1], true, "wind front is further left than right at 0.67 s");
 
+// covers: sand behind the caption (Wind dune shows its legend then)
+eq(M.covers([0.5, 0.5, 0.5, 0.5], 0, 1, 0.4), true, "covered when every column is high enough");
+eq(M.covers([0.5, 0.5, 0.1, 0.5], 0, 1, 0.4), false, "one low column under the caption: not covered");
+eq(M.covers([0.5, 0.5, 0.1, 0.5], 0, 0.4, 0.4), true, "a low column outside the span does not count");
+eq(M.covers([0.5, NaN], 0, 1, 0.4), false, "a broken height is not covered");
+eq(M.covers([0.5, 0.5], -1, 3, 0.4), true, "span clamped to the band");
+const span = n => M.covers(M.stateAt("wind", n, 1, false).heights, 0.4, 0.6, 0.2);
+eq([span(3), span(M.steps("wind", false))], [false, true], "wind: the centre is bare at first, covered at the end");
+let flips = 0;
+for (let i = 1; i <= M.steps("wind", false); i++) flips += span(i) !== span(i - 1) ? 1 : 0;
+eq(flips, 1, "wind: covered once, never bare again");
+for (const edge of [[0, 1], [0.04, 0.96]]) eq(M.covers(M.posed("wind").heights, edge[0], edge[1], 0.28), true, "wind: posed dune covers a full-width caption");
+
 // D482
 eq(M.shouldDraw(false, false), true, "windowed app: draw");
 eq(M.shouldDraw(true, false), false, "full screen, setting off: no draw");

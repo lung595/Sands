@@ -33,9 +33,12 @@ Item {
     readonly property bool animating: tick.running
     // Present from the first step until the 150 ms fade out has ended
     readonly property bool sceneLoaded: sceneLoader.active
+    readonly property Item scene: sceneLoader.item
     readonly property var duneState: _state
-    // Legend appears within 0.4 s of the first step, at once under Reduce motion
-    readonly property bool legendVisible: shown && (_state.done || _state.step >= 12)
+    // Legend appears within 0.4 s of the first step, at once under Reduce motion.
+    // Wind dune: once the front has put sand behind the whole caption.
+    readonly property bool legendVisible: shown && (_state.done || (drawn === "wind" ? _covered : _state.step >= 12))
+    readonly property bool _covered: sceneLoader.item ? Motion.covers(_state.heights, legendBox.x / Math.max(1, width), (legendBox.x + legendBox.width) / Math.max(1, width), (height - legendBox.y - (legendBox.height - captionRow.height) / 2 + 4) / Math.max(1, height * sceneLoader.item.reach)) : false
 
     signal stopRequested
 
@@ -48,6 +51,8 @@ Item {
 
     onShownChanged: _restart()
     onReduceMotionChanged: _restart()
+    // A style picked while the alert shows starts its own run
+    onDrawnChanged: _restart()
 
     function _restart() {
         _state = shown ? Motion.stateAt(drawn, 0, seed, reduceMotion) : Motion.posed(drawn);
