@@ -1,4 +1,5 @@
 import QtQuick
+import "../../diagnostics/Log.js" as Log
 
 // Persistence of the engine: what survives a restart goes through DMS's
 // plugin state (timers, next id, recents), nothing else is written. Nothing
@@ -21,8 +22,13 @@ QtObject {
 
     // { timers, nextId, recents } as saved, unprocessed
     function read() {
+        const timers = pluginService.loadPluginState(pluginId, "timers", []);
+        if (!Array.isArray(timers))
+            Log.event("SND-E002", {
+                "reason": "bad_data"
+            });
         return {
-            timers: pluginService.loadPluginState(pluginId, "timers", []),
+            timers: timers,
             nextId: pluginService.loadPluginState(pluginId, "nextId", 1),
             recents: pluginService.loadPluginState(pluginId, "recents", []) || []
         };

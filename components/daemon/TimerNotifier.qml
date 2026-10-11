@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../../diagnostics/Log.js" as Log
 import "Notifications.js" as Notifications
 
 // The end-of-timer notification with Stop / +5 min buttons (useful in
@@ -79,7 +80,12 @@ Item {
                 }
             }
 
-            onExited: {
+            onExited: exitCode => {
+                if (exitCode !== 0)
+                    Log.event("SND-E003", {
+                        "tool": "notify_send",
+                        "code": exitCode
+                    });
                 const map = Object.assign({}, notifier._notifiers);
                 if (map[proc.timerId] && map[proc.timerId].proc === proc) {
                     delete map[proc.timerId];

@@ -3,6 +3,7 @@ import Quickshell.Io
 import qs.Services
 import "../../TimeParser.js" as TP
 import "../../diagnostics/Gather.js" as Gather
+import "../../diagnostics/Log.js" as Log
 import "IpcReplies.js" as Replies
 import "Snooze.js" as Snooze
 import "Status.js" as Status
@@ -24,8 +25,12 @@ IpcHandler {
         if (TP.tooLong(text))
             return Replies.tooLong(engine.guideUrl);
         const r = engine.startText(text);
-        if (!r)
+        if (!r) {
+            Log.event("SND-W011", {
+                "reason": "bad_input"
+            });
             return Replies.notUnderstood(engine.guideUrl);
+        }
         return Replies.started(r, engine.lastRefusal, engine.maxTimers, engine.guideUrl, engine.use24h());
     }
 

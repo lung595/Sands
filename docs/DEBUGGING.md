@@ -19,7 +19,7 @@ An anonymous text you read before you paste it into a GitHub issue. Sands never 
 
 The CPU figure is the **whole shell** (DMS and every plugin together) over one second, measured only when you ask for the report. The shell is one process, so Sands's own share cannot be told apart from it.
 
-The module is in `diagnostics/`; the ways to ask for a report (settings button, `dms ipc call`, script) are not wired yet.
+The module is in `diagnostics/`. Ask for a report with **Settings -> Help -> Copy report** (clipboard, `wl-copy --sensitive`, fallback `dms clipboard copy`), `dms ipc call smartTimer diagnostics`, or `sh scripts/diagnose.sh` (adds the latest Quickshell crash folder, login removed). Opening the bug form on GitHub: `.github/ISSUE_TEMPLATE/bug.yml` asks you to paste it.
 
 ## Reading the journal yourself
 

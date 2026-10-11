@@ -27,6 +27,8 @@ Column {
     readonly property int fadeOut: 100
     readonly property bool still: SettingsData.reduceMotion
 
+    // The only door to the browser; a test swaps it so nothing really opens
+    property var openUrl: url => Qt.openUrlExternally(url)
     // The address was opened (click or key press); the test reads this
     signal issuesOpened
 
@@ -38,7 +40,7 @@ Column {
     }
 
     function openIssues() {
-        Qt.openUrlExternally(Row.GITHUB_URL);
+        openUrl(Row.GITHUB_URL);
         issuesOpened();
     }
 

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import qs.Common
 import "../../Guide.js" as Guide
+import "../../diagnostics/Log.js" as Log
 import "Sound.js" as Sound
 
 // Everything that makes noise: the repeating alarm, the settings preview and
@@ -125,6 +126,9 @@ Item {
                 // Both players failed: the file is the problem, so keep
                 // pw-play as the first choice next time
                 sound._useFallbackPlayer = false;
+                Log.event("SND-E004", {
+                    "reason": "no_sound"
+                });
                 sound.engine.explain(Guide.silentNote());
                 return;
             }

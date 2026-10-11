@@ -13,6 +13,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [Snoozing from a keybind](#snoozing-from-a-keybind)
 - [Reading the timers from a script](#reading-the-timers-from-a-script)
 - [Settings](#settings) · [Sound](#sound) · [If the alarm makes no sound](#if-the-alarm-makes-no-sound)
+- [Report a problem](#report-a-problem)
 - [Privacy](#privacy)
 - [Performance](#performance)
 
@@ -248,6 +249,12 @@ The last row of *Alerts & sounds* picks who shows the alarm: **Sands only**, **S
 The value belongs to Alex: the same choice is in Alex's settings, and a change in either page shows in the other while both are open. Sands keeps no copy and writes nothing in Alex's settings. It asks Alex through `dms ipc call` and follows the notice Alex publishes, only while this page is open.
 
 If Alex is not installed or is turned off, the row is greyed with nothing selected and Sands rings on its own. Install or enable Alex, then reopen the page. Nothing listens and nothing polls while the row is greyed or the page is closed.
+
+## Report a problem
+
+**Settings -> Help -> Copy report** builds an anonymous report (versions, a few settings, counts, the shell's CPU over one second, the last events) and copies it to the clipboard, ready to paste into a GitHub issue. The GitHub mark beside the button opens a new issue for Sands in your browser; it is a plain link, nothing is prefilled and the report is never put in the address.
+
+From a terminal: `dms ipc call smartTimer diagnostics`, or `sh scripts/diagnose.sh`, which also reads the latest Quickshell crash folder with your login removed. If neither `wl-copy` nor `dms clipboard copy` exists, the row says so and tells you what to install. What the report holds is listed in [DEBUGGING.md](DEBUGGING.md).
 
 ## Privacy
 
