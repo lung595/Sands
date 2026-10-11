@@ -1,4 +1,4 @@
-// Journal.js tests — run with: gjs -m tests/journal.test.js (from the plugin root)
+// Journal.js tests — run with: gjs tests/journal.test.js (from the plugin root)
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
 const { load, eq, done } = imports.harness;
 const J = load("components/journal/Journal.js");

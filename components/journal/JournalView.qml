@@ -26,7 +26,12 @@ Column {
     leftPadding: Theme.spacingL
     rightPadding: Theme.spacingL
 
-    Component.onCompleted: daemon?.historyThisWeek(e => {
+    // The daemon may answer after the screen was closed
+    property bool alive: true
+    Component.onDestruction: alive = false
+    Component.onCompleted: daemon.historyThisWeek(e => {
+        if (!root.alive)
+            return;
         root.entries = e;
         root.loaded = true;
     })
@@ -36,7 +41,7 @@ Column {
 
     Column {
         width: root.inner
-        visible: root.loaded
+        visible: root.loaded && !root.empty
         StyledText {
             text: "This week"
             font.pixelSize: Theme.fontSizeSmall
@@ -44,8 +49,7 @@ Column {
             wrapMode: Text.NoWrap
         }
         StyledTime {
-            visible: !root.empty
-            text: Journal.duration(root.entries.reduce((a, e) => a + e.ms, 0))
+            text: Journal.duration(Journal.sum(root.entries))
             font.pixelSize: 32
             font.weight: Font.Light
         }
@@ -141,6 +145,7 @@ Column {
                 wrapMode: Text.NoWrap
             }
             MouseArea {
+                objectName: "clear"
                 anchors.fill: parent
                 enabled: !root.empty
                 cursorShape: Qt.PointingHandCursor

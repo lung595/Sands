@@ -16,21 +16,19 @@ StyledText {
         id: hover
     }
 
-    DankTooltipV2 {
-        id: tip
-    }
-
-    Timer {
-        interval: 600
-        running: hover.hovered && root.truncated
-        onTriggered: tip.show(root.text, root, 0, 0, "bottom")
-    }
-
-    Connections {
-        target: hover
-        function onHoveredChanged() {
-            if (!hover.hovered)
-                tip.hide();
+    // Built only while a cut name is under the pointer
+    Loader {
+        active: hover.hovered && root.truncated
+        sourceComponent: Item {
+            DankTooltipV2 {
+                id: tip
+            }
+            Timer {
+                interval: 600
+                running: true
+                onTriggered: tip.show(root.text, root, 0, 0, "bottom")
+            }
+            Component.onDestruction: tip.hide()
         }
     }
 }

@@ -1,12 +1,15 @@
 import QtQuick
 import QtQuick.Window
 import qs.Common
+import "../../components"
 import "../../components/journal"
 import "mock"
 
 // Offscreen render of the time journal from made-up weeks.
 // Usage: QT_QPA_PLATFORM=offscreen qml-qt6 -I imports journal.qml -- <state> <look> <out.png> [light] [reduce] [narrow]
 //   state: empty, one, five, long, many   look: strata, threads
+// Extra words: "panel" mounts the whole panel with the journal opened by its
+// link (and checks that nothing is read before), "erase" clicks "Clear the journal".
 // Also checks the layout: any row wider than the popout or overlapping
 // another prints OVERLAP and exits 1.
 Window {
@@ -41,12 +44,42 @@ Window {
                 }))
     }
 
-    JournalView {
+    readonly property bool panel: args.indexOf("panel") >= 0
+    readonly property bool erase: args.indexOf("erase") >= 0
+
+    // Alone, or inside the panel where the link opens it
+    Loader {
         id: view
         width: win.width
-        daemon: fake
-        look: win.look
-        reducedMotion: win.reduce
+        sourceComponent: win.panel ? panelC : journalC
+    }
+
+    Component {
+        id: journalC
+        JournalView {
+            daemon: fake
+            look: win.look
+            reducedMotion: win.reduce
+        }
+    }
+
+    Component {
+        id: panelC
+        TimerPanelContent {
+            daemon: fake
+            journalLook: win.look
+        }
+    }
+
+    function find(item, name) {
+        if (item.objectName === name)
+            return item;
+        for (const c of item.children) {
+            const f = find(c, name);
+            if (f)
+                return f;
+        }
+        return null;
     }
 
     // Every text and track must stay inside the popout, and no two texts of a
@@ -68,6 +101,20 @@ Window {
                 });
         });
         let bad = 0;
+        if (win.erase && !win.panel) {
+            const clear = find(view, "clear");
+            if (clear.enabled !== (win.state !== "empty")) {
+                console.warn("OVERLAP clear link enabled=" + clear.enabled);
+                bad++;
+            }
+            if (clear.enabled) {
+                clear.clicked(null);
+                if (fake.week.length !== 0 || !view.item.empty) {
+                    console.warn("OVERLAP clear did not empty the journal");
+                    bad++;
+                }
+            }
+        }
         for (const b of boxes)
             if (b.p.x < -0.5 || b.p.x + b.w > win.width + 0.5) {
                 console.warn("OVERLAP outside " + b.t);
@@ -84,12 +131,29 @@ Window {
         return bad;
     }
 
+    // Panel: nothing is read while the journal is closed, one read once opened
+    Timer {
+        interval: 100
+        running: win.panel
+        onTriggered: {
+            if (fake.reads !== 0) {
+                console.warn("OVERLAP journal read while closed");
+                Qt.exit(1);
+            }
+            view.item.journalOpen = true;
+        }
+    }
+
     // Past the last rise (200 ms + 30 ms x 12 names) the picture is final
     Timer {
         interval: 900
         running: true
         onTriggered: {
-            const bad = win.check();
+            let bad = win.check();
+            if (win.panel && fake.reads !== 1) {
+                console.warn("OVERLAP journal reads=" + fake.reads);
+                bad++;
+            }
             win.contentItem.grabToImage(r => {
                 r.saveToFile(win.out);
                 Qt.exit(bad > 0 ? 1 : 0);

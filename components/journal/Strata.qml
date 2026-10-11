@@ -33,6 +33,7 @@ Column {
     Canvas {
         id: glass
 
+        // Only listed so that a theme change triggers a repaint
         readonly property var colours: [Theme.primary, Theme.surface, Theme.outline]
 
         anchors.horizontalCenter: parent.horizontalCenter
@@ -70,7 +71,8 @@ Column {
             for (let i = 0; i < root.heights.length; i++) {
                 y -= root.heights[i];
                 const p = Math.max(0, Math.min(1, (root.elapsed - root.stepMs * i) / root.riseMs));
-                const rise = 100 * (1 - (1 - (1 - p) * (1 - p)));
+                // Quadratic ease out: the layer slows as it settles
+                const rise = 100 * (1 - p) * (1 - p);
                 Texture.paint(ctx, Journal.textureOf(i), 122, y + rise, 96, root.heights[i] - 1, Theme.primary.toString(), Theme.surface.toString());
             }
             ctx.restore();

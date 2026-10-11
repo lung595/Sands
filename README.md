@@ -75,6 +75,7 @@ The pill only shows while you have a timer (running, paused or ringing), so an e
 - **Zero clutter**: the bar pill only exists while you have a timer.
 - **Sand synced by volume** to the real remaining time.
 - **Several named timers** at once, each with its own color.
+- **A time journal**: the "This week" link under the hourglass shows the time per name, as layers in a glass or as threads. It is read only when you open it.
 - **Survives a restart**: timers are stored as end times.
 - **Matches your theme**, static or generated from your wallpaper.
 - **Lightweight and private**: a few percent of CPU with the panel open, no network.

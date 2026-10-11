@@ -7,7 +7,8 @@ Canvas {
     id: root
 
     required property int kind
-    readonly property var colours: [Theme.primary, Theme.surfaceContainer]
+    // Only listed so that a theme change triggers a repaint
+    readonly property var colours: [Theme.primary, Theme.surface]
 
     width: 16
     height: 16
@@ -19,6 +20,6 @@ Canvas {
         ctx.beginPath();
         ctx.roundedRect(0, 0, 16, 16, 4, 4);
         ctx.clip();
-        Texture.paint(ctx, kind, 0, 0, 16, 16, Theme.primary.toString(), Theme.surfaceContainer.toString());
+        Texture.paint(ctx, kind, 0, 0, 16, 16, Theme.primary.toString(), Theme.surface.toString());
     }
 }

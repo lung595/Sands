@@ -8,7 +8,7 @@ cd "$here/../scripts/preview" || exit 1
 export TZ=UTC QT_QPA_PLATFORM=offscreen
 for look in strata threads; do
   for state in empty one five long many; do
-    for extra in "" "narrow" "narrow light reduce"; do
+    for extra in "" "narrow" "narrow light reduce" "narrow erase" "narrow panel" "panel"; do
       # shellcheck disable=SC2086
       if ! log=$(timeout 40 qml-qt6 -I imports journal.qml -- "$state" "$look" "$out/j.png" $extra 2>&1); then
         echo "FAIL journal $state $look $extra"; echo "$log" | grep -E 'OVERLAP|rror' | head -5

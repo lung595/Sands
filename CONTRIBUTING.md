@@ -104,6 +104,7 @@ Sands/
 │   ├── GitHubMark.qml          # GitHub logo that opens the guide section
 │   ├── RoundButton.qml, Chip.qml
 │   └── Motion.js               # looping motion as pure functions of time (tested)
+├── components/journal/         # the time journal screen: JournalView (one Loader, two looks), Strata, Threads, Swatch, ElidedName, Journal.js (pure rules, tested)
 ├── sounds/                     # the shipped rings (hourglass.ogg, silt-chime.ogg)
 ├── tools/sounds/               # renders hourglass.ogg (python3 tools/sounds/generate.py OUT), check.py inspects rings; README.md lists hashes
 ├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
@@ -112,7 +113,7 @@ Sands/
 │   ├── motion.test.js
 │   ├── timers.test.js
 │   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
-│   ├── hourglass.test.js
+│   ├── hourglass.test.js, journal.test.js, journal-layout.sh
 │   ├── harness.js              # shared loader for the daemon tests
 │   ├── preview.test.js
 │   └── guide.test.js
@@ -141,6 +142,8 @@ gjs tests/alex-bridge.test.js   # 8 tests: event shape, id per ring, label cap a
 # scripts/preview/alex.qml: offscreen check of the Alex bridge (present / absent), see the header;
 # needs QT_FORCE_STDERR_LOGGING=1 to print OK / FAIL, exit code 1 on failure
 gjs tests/hourglass.test.js     # 35 checks: hourglass geometry, volumes, outline, frost shapes
+gjs tests/journal.test.js       # journal rows, layer heights, thread lengths
+sh tests/journal-layout.sh      # offscreen: every journal state and look, alone and inside the panel, narrow and wide; overlap, closed-panel read, Clear the journal
 ```
 
 Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qml-page/run.sh` checks Ctrl+F, `/`, typing, Esc, Enter and the scroll of a picked row inside a Flickable.

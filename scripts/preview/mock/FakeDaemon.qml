@@ -99,7 +99,10 @@ QtObject {
     }
     // The journal's read side: [{ name, ms }] set by the scene, answered at once
     property var week: []
+    // How many times the screen asked, so a test can see that a closed panel never does
+    property int reads: 0
     function historyThisWeek(done) {
+        reads++;
         done(week);
     }
     function eraseHistory() {
