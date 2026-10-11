@@ -115,6 +115,25 @@ Item {
         return null;
     }
 
+    // Search wiring: a query finds a setting, picking it opens its section and clears
+    // the query, a nonsense query finds nothing
+    function checkSearch(page) {
+        const sp = findItem(page, "settingsPage");
+        sp.query = "sound";
+        if (sp.results.length === 0)
+            fail("search finds nothing for \"sound\"");
+        else {
+            const hit = sp.results[0];
+            sp.open(hit.section, hit.key);
+            if (sp.section !== hit.section || sp.query !== "")
+                fail("picking a result did not open its section and clear the query");
+        }
+        sp.query = "zzqqxxjj";
+        if (sp.results.length !== 0)
+            fail("a nonsense query found a setting");
+        sp.query = "";
+    }
+
     // Every section is opened in turn on every page and measured
     readonly property var sectionIds: ["timers", "appearance", "alerts"]
     property int phase: -1
@@ -123,6 +142,7 @@ Item {
     function openPhase() {
         phase++;
         if (phase >= sectionIds.length) {
+            checkSearch(cases.children[0].page);
             console.warn(failures.length === 0 ? "OK: no overlap in " + leaves + " texts and controls" : failures.length + " problems");
             Qt.exit(failures.length === 0 ? 0 : 1);
             return;
