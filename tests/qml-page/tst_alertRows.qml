@@ -4,7 +4,7 @@ import "../../scripts/preview/mock"
 import "../../components/settings"
 
 // The visual alert rows of "Alerts & sounds" with real clicks: the three kind
-// cards, the dune style cards (a style without a scene cannot be picked), the
+// cards, the screen list ("Show on"), the dune style cards (a style without a scene cannot be picked), the
 // full-screen switch, the moment, and "Test the alarm", which asks the daemon.
 // Run: tests/qml-page/run.sh
 Item {
@@ -33,6 +33,17 @@ Item {
         AlertsSection {
             id: section
             daemon: fake
+            // Two screens, as on a desk with a second monitor
+            screens: [
+                {
+                    "name": "DP-2",
+                    "model": "Wide 27"
+                },
+                {
+                    "name": "HDMI-A-1",
+                    "model": ""
+                }
+            ]
             soundOptions: [
                 {
                     "label": "Hourglass",
@@ -92,10 +103,93 @@ Item {
             tryCompare(row("alertKind"), "ready", true);
             row("alertKind").value = "dune";
             row("duneStyle").value = "grains";
+            row("alertScreen").value = "all";
+            section.screens = twoScreens;
             fake.haloAvailable = true;
             fake.alertShowing = false;
             fake.alertTests = 0;
             fake.previews = [];
+        }
+
+        readonly property var twoScreens: [
+            {
+                "name": "DP-2",
+                "model": "Wide 27"
+            },
+            {
+                "name": "HDMI-A-1",
+                "model": ""
+            }
+        ]
+        function dropdown(key) {
+            return find(row(key), c => c.dropdownWidth !== undefined && c.options !== undefined);
+        }
+
+        function test_screenRowDefaultsToAllScreens() {
+            const r = row("alertScreen");
+            compare(r.label, "Show on");
+            compare(r.defaultValue, "all");
+            compare(r.value, "all");
+            verify(r.visible && r.height > 0);
+            compare(dropdown("alertScreen").currentValue, "All screens");
+            compare(dropdown("alertScreen").options, ["All screens", "Active screen", "Wide 27 (DP-2)", "HDMI-A-1"]);
+            // Right under the kind cards, above the dune style
+            verify(r.y > row("alertKind").y && r.y < row("duneStyle").y);
+        }
+
+        function test_screenRowSavesTheChoice() {
+            const d = dropdown("alertScreen");
+            d.valueChanged("Active screen");
+            compare(host.saved.alertScreen, "focused");
+            compare(d.currentValue, "Active screen");
+            d.valueChanged("Wide 27 (DP-2)");
+            compare(host.saved.alertScreen, "DP-2");
+            d.valueChanged("HDMI-A-1");
+            compare(host.saved.alertScreen, "HDMI-A-1");
+            d.valueChanged("All screens");
+            compare(host.saved.alertScreen, "all");
+        }
+
+        function test_screenRowFollowsThePluggedScreens() {
+            const d = dropdown("alertScreen");
+            d.valueChanged("HDMI-A-1");
+            // The saved screen is unplugged: still shown, marked, nothing rewritten
+            section.screens = [twoScreens[0]];
+            compare(d.options, ["All screens", "Active screen", "Wide 27 (DP-2)", "HDMI-A-1 (not connected)"]);
+            compare(d.currentValue, "HDMI-A-1 (not connected)");
+            compare(host.saved.alertScreen, "HDMI-A-1");
+            // Plugged again
+            section.screens = twoScreens;
+            compare(d.options, ["All screens", "Active screen", "Wide 27 (DP-2)", "HDMI-A-1"]);
+            compare(d.currentValue, "HDMI-A-1");
+            // A third screen arrives while the page is open
+            section.screens = twoScreens.concat([
+                {
+                    "name": "eDP-1",
+                    "model": "Laptop"
+                }
+            ]);
+            compare(d.options.length, 5);
+            compare(d.options[4], "Laptop (eDP-1)");
+            // No screen list at all
+            section.screens = [];
+            compare(d.options, ["All screens", "Active screen", "HDMI-A-1 (not connected)"]);
+        }
+
+        function test_screenRowHiddenForNone() {
+            click(card("alertKind", "halo"));
+            verify(row("alertScreen").visible);
+            click(card("alertKind", "none"));
+            verify(!row("alertScreen").visible);
+            click(card("alertKind", "dune"));
+            verify(row("alertScreen").visible);
+        }
+
+        function test_screenRowHasNoLongDash() {
+            const r = row("alertScreen");
+            const texts = [r.label, r.description].concat(dropdown("alertScreen").options);
+            for (const t of texts)
+                verify(String(t).indexOf("\u2014") < 0, t);
         }
 
         function test_defaults() {
@@ -105,7 +199,7 @@ Item {
             compare(row("duneOverFullscreen").defaultValue, false);
             verify(card("alertKind", "dune").selected);
             verify(card("duneStyle", "grains").selected);
-            for (const k of ["alertKind", "duneStyle", "duneOverFullscreen", "alertWhen", "testAlarm"])
+            for (const k of ["alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "testAlarm"])
                 verify(row(k).visible && row(k).height > 0, k + " is shown");
         }
 

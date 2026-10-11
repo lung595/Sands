@@ -17,6 +17,9 @@ Item {
     property string reason: ""
     property bool overFullscreen: false
     property int seed: 1
+    // Names of the screens to draw on, taken at the ring point; a list that
+    // matches no screen draws on all of them
+    property var screenNames: []
 
     readonly property int bandHeight: 200
 
@@ -39,7 +42,7 @@ Item {
     }
 
     Variants {
-        model: Quickshell.screens
+        model: Policy.pickScreens(Quickshell.screens, root.screenNames)
 
         PanelWindow {
             id: win

@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import qs.Services
 import "AlertPolicy.js" as Policy
 import "DuneStyles.js" as Styles
@@ -23,7 +24,11 @@ Item {
     readonly property string when: _read("alertWhen", Policy.DEFAULT_WHEN)
     readonly property string style: _read("duneStyle", Styles.DEFAULT)
     readonly property bool overFullscreen: _read("duneOverFullscreen", false) === true
+    // All screens, the one with the focus at the ring point, or one by name
+    readonly property string screen: Policy.screenOf(_read("alertScreen", Policy.DEFAULT_SCREEN))
     property int _seed: 1
+    // The screens of the alert on screen now, chosen when it starts
+    property var _screenNames: []
 
     // Read by the settings page: greys the Edge halo card, holds the test button
     readonly property bool haloAvailable: alert.haloAvailable
@@ -38,12 +43,31 @@ Item {
         return engine.setting(key, fallback);
     }
 
+    // The output that has the focus, as DMS knows it from the compositor
+    // (niri: the output of the focused workspace). "" when it cannot say.
+    function _focusedName() {
+        if (typeof CompositorService.getFocusedScreenName === "function")
+            return CompositorService.getFocusedScreenName() || "";
+        // Older DMS: only the screen itself is offered
+        return CompositorService.getFocusedScreen()?.name ?? "";
+    }
+
+    // Chooses the screens of the alert that starts now. Kept for the whole
+    // alert: moving the focus during the ring does not move the alert.
+    function _aim() {
+        const names = [];
+        for (let i = 0; i < Quickshell.screens.length; i++)
+            names.push(Quickshell.screens[i].name);
+        _screenNames = Policy.screensFor(screen, names, screen === Policy.SCREEN_FOCUSED ? _focusedName() : "");
+    }
+
     // "Test the alarm" of the settings page: the saved choice once, whatever
     // the moment, named "Pasta". Does nothing while an alert is on screen.
     function test() {
         if (alert.showing)
             return;
         _seed = (Date.now() % 65535) + 1;
+        _aim();
         alert.test();
     }
 
@@ -69,6 +93,9 @@ Item {
         function onRingingChanged() {
             if (root.engine.ringing) {
                 root._seed = (Date.now() % 65535) + 1;
+                // A second timer ending during the ring keeps the screens of the first
+                if (!alert.showing || alert.testing)
+                    root._aim();
                 alert.ring();
             } else {
                 alert.dismiss();
@@ -82,6 +109,7 @@ Item {
         when: root.when
         soundState: root._soundState
         showOverFullscreen: root.overFullscreen
+        screenNames: root._screenNames
         timerName: root.lastRinging ? root.engine.displayLabel(root.lastRinging) : ""
         // The dune needs its whole rise before a test dismisses it
         testMs: Policy.kindOf(root.kind) === "dune" ? Math.round(Motion.DURATION[Styles.drawnOf(root.style)] * 1000) + 1500 : 2500
@@ -92,6 +120,7 @@ Item {
             reason: alert.testing ? "Click to stop" : Policy.legendReason(alert.kind, root.when, root._soundState)
             overFullscreen: alert.showOverFullscreen
             seed: root._seed
+            screenNames: root._screenNames
             onStopRequested: {
                 if (alert.testing)
                     alert.dismiss();

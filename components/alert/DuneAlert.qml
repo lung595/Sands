@@ -16,6 +16,9 @@ Item {
     property var soundState: ({})
     property bool fullscreen: false
     property bool showOverFullscreen: false
+    // Names of the screens the alert is drawn on, taken by the wiring at the
+    // ring point (AlertPolicy.screensFor); empty draws on every screen
+    property var screenNames: []
     // Name of the finished timer, shown in the legend
     property string timerName: ""
     // The dune scene, supplied by the wiring (null until it is wired): the host
@@ -111,6 +114,7 @@ Item {
         HaloScene {
             legend: root._legend(root._testing ? "Pasta" : root.timerName)
             windowed: root.windowed
+            screenNames: root.screenNames
             onStopRequested: root.dismiss()
         }
     }

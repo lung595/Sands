@@ -1,8 +1,10 @@
 import QtQuick
+import Quickshell
 import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
 import "../../Guide.js" as Guide
+import "../alert/AlertPolicy.js" as AlertPolicy
 import "../alert/DuneStyles.js" as DuneStyles
 import "../"
 
@@ -15,6 +17,9 @@ Column {
     // [{label, value}] sounds to pick from, and the daemon that plays a preview
     required property var soundOptions
     required property var daemon
+
+    // The screens plugged in now ({ name, model }); follows a screen plugged or unplugged
+    property var screens: Quickshell.screens ?? []
 
     width: parent.width
     spacing: Theme.spacingM
@@ -72,6 +77,18 @@ Column {
                 onClicked: Qt.openUrlExternally(Guide.URL + "#" + Guide.VISUAL_ANCHOR)
             }
         }
+    }
+
+    // Every screen, the one in use when the timer ends, or one screen by name.
+    // A saved screen that is unplugged stays listed; the alert then goes to all.
+    ChoiceRow {
+        id: screenSetting
+        settingKey: "alertScreen"
+        visible: kindSetting.value !== "none"
+        label: "Show on"
+        description: "Which screen the alert is drawn on. A screen that is unplugged gives all screens"
+        options: AlertPolicy.screenChoices(root.screens, value)
+        defaultValue: "all"
     }
 
     // Three styles, one card each. A style whose scene is not written yet is

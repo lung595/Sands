@@ -13,6 +13,8 @@ Item {
     // "Pasta is done · Sound is muted", built by the host
     required property string legend
     property bool reduceMotion: SettingsData.reduceMotion
+    // Names of the screens that get a rim, handed to the windows
+    property var screenNames: []
 
     // Emitted once the exit has finished (or at once with Reduce motion)
     signal finished
@@ -81,6 +83,13 @@ Item {
         target: windows.item
         property: "legend"
         value: root.legend
+        when: windows.item !== null
+    }
+
+    Binding {
+        target: windows.item
+        property: "screenNames"
+        value: root.screenNames
         when: windows.item !== null
     }
 

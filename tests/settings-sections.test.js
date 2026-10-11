@@ -11,7 +11,7 @@ const qml = ["Timers", "Appearance", "Alerts"].map(n => new TextDecoder().decode
 const keys = S.SETTINGS.map(s => s.key);
 
 // Every key of the settings page is in the table, once, with its default
-const existing = ["trigger", "noTrigger", "hourglassStyle", "alertKind", "duneStyle", "duneOverFullscreen", "alertWhen", "sound", "customSound", "volume", "rampUp", "ringDuration", "tick", "notify", "respectDnd"];
+const existing = ["trigger", "noTrigger", "hourglassStyle", "alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "sound", "customSound", "volume", "rampUp", "ringDuration", "tick", "notify", "respectDnd"];
 for (const k of existing)
     eq(keys.filter(x => x === k).length, 1, "key present once: " + k);
 eq(new Set(keys).size, keys.length, "no key is listed twice");
@@ -76,15 +76,25 @@ eq(L.pathFor("bogus"), "", "unknown id draws nothing");
 // the keys the daemon reads (RingAlert.qml) and the defaults of the pure rules
 const P = load("components/alert/AlertPolicy.js");
 const D = load("components/alert/DuneStyles.js");
-const alertKeys = ["alertKind", "duneStyle", "duneOverFullscreen", "alertWhen", "testAlarm"];
-eq(S.settingsOf("alerts").map(s => s.key).slice(0, 5), alertKeys, "the visual alert rows come first, in page order");
+const alertKeys = ["alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "testAlarm"];
+eq(S.settingsOf("alerts").map(s => s.key).slice(0, 6), alertKeys, "the visual alert rows come first, in page order");
 const ring = new TextDecoder().decode(GLib.file_get_contents(root + "/components/alert/RingAlert.qml")[1]);
 const read = [...ring.matchAll(/_read\("(\w+)"/g)].map(m => m[1]);
-eq(["alertKind", "duneStyle", "duneOverFullscreen", "alertWhen"].filter(k => !read.includes(k)), [], "every saved alert key is read by the daemon");
+eq(["alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen"].filter(k => !read.includes(k)), [], "every saved alert key is read by the daemon");
 eq(read.filter(k => !keys.includes(k)), [], "the daemon reads no alert key the page does not have");
 const def = k => S.SETTINGS.find(s => s.key === k).default;
 eq([def("alertKind"), def("alertWhen"), def("duneStyle"), def("duneOverFullscreen")], [P.DEFAULT_KIND, P.DEFAULT_WHEN, D.DEFAULT, false], "defaults are the ones of AlertPolicy and DuneStyles");
 eq(def("alertWhen"), "always", "the alert shows every time by default (owner's choice)");
+// The screen of the alert: all by default, the same word as the pure rule, and the
+// choice reaches the dune and the halo, for a ring and for a test
+eq([def("alertScreen"), P.DEFAULT_SCREEN], ["all", "all"], "the alert shows on every screen by default, as before the setting");
+const src = n => new TextDecoder().decode(GLib.file_get_contents(root + "/components/alert/" + n)[1]);
+for (const n of ["DuneWindows.qml", "HaloWindows.qml"])
+    eq(/model: Policy\.pickScreens\(Quickshell\.screens, root\.screenNames\)/.test(src(n)), true, n + " draws on the chosen screens only");
+eq((ring.match(/screenNames: root\._screenNames/g) || []).length, 2, "the wiring hands the chosen screens to the halo host and to the dune");
+eq(/screenNames: root\.screenNames/.test(src("DuneAlert.qml")), true, "the host hands them to the halo");
+eq(/property: "screenNames"/.test(src("HaloScene.qml")), true, "the halo scene hands them to its windows");
+eq((ring.match(/_aim\(\);/g) || []).length, 2, "the screens are chosen at the ring point and at a test");
 eq(keys.includes("visualAlert"), false, "the pending placeholder row is replaced");
 eq(/DuneAlert\s*\{/.test(qml), false, "the page holds no alert host of its own: the test goes through the daemon");
 eq(/daemon\.testAlert\(\)/.test(qml), true, "Test the alarm asks the daemon");

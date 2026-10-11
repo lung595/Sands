@@ -50,6 +50,7 @@ var SETTINGS = {
     "sound": ["default", "silt-chime", "custom"],
     "volume": "int",
     "alertKind": ["dune", "halo", "none"],
+    "alertScreen": ["all", "focused"],
     "duneStyle": ["grains", "wind", "wave"],
     "duneOverFullscreen": "bool",
     "alertWhen": ["muted", "always"],

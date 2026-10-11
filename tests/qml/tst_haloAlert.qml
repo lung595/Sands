@@ -86,10 +86,12 @@ ShellRoot {
             setup("halo", "muted", {
                 outputMuted: true
             }, false, false);
+            host.screenNames = ["DP-2"];
             host.ring();
             check(host.showing, "halo shows when muted");
             return true;
         }, function () {
+            check(host.scene.screenNames.length === 1 && host.scene.screenNames[0] === "DP-2", "the halo gets the chosen screens");
             check(host.scene.running || host.scene.level > 0, "halo plays");
             return true;
         }, function () {

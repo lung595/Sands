@@ -9,6 +9,13 @@ const WHEN = ["muted", "always"];
 const DEFAULT_KIND = "dune";
 const DEFAULT_WHEN = "always";
 
+// Where the alert is drawn ("alertScreen"): on every screen, on the screen
+// that has the focus at the ring point, or on one screen by its output name
+// (for example "DP-2"). Anything else saved is read as an output name.
+const SCREEN_ALL = "all";
+const SCREEN_FOCUSED = "focused";
+const DEFAULT_SCREEN = SCREEN_ALL;
+
 // The "sound" setting value that means no sound. Reserved: Sound.js does not
 // offer it yet (soundFile("none") would still ring the default), so the story
 // that wires the host into the daemon adds it there and imports this constant
@@ -47,6 +54,58 @@ function shouldShow(kind, when, soundState, fullscreen, showOverFullscreen) {
     if (fullscreen === true && showOverFullscreen !== true)
         return false;
     return whenOf(when) === "always" || isInaudible(soundState);
+}
+
+function screenOf(raw) {
+    return typeof raw === "string" && raw !== "" ? raw : DEFAULT_SCREEN;
+}
+
+// Names of the screens the alert is drawn on. setting: the saved choice;
+// names: the outputs plugged in now; focused: the output that has the focus
+// ("" when the compositor does not say). A screen that is not there (unplugged,
+// renamed, focus unknown) gives every screen: the alert is never drawn on none
+// while a screen exists.
+function screensFor(setting, names, focused) {
+    const all = (names || []).filter(n => typeof n === "string" && n !== "");
+    const choice = screenOf(setting);
+    if (choice === SCREEN_ALL)
+        return all;
+    const wanted = choice === SCREEN_FOCUSED ? focused : choice;
+    return all.indexOf(wanted) >= 0 ? [wanted] : all;
+}
+
+// The screens (objects with a name) kept for a list of names taken at the
+// ring point. A list that matches no screen any more keeps them all.
+function pickScreens(screens, names) {
+    const list = screens || [];
+    const kept = [];
+    for (let i = 0; i < list.length; i++)
+        if (list[i] && (names || []).indexOf(list[i].name) >= 0)
+            kept.push(list[i]);
+    return kept.length > 0 ? kept : list;
+}
+
+// Rows of the "Show on" list: every screen, the active one, then one per
+// screen plugged in, "Model (DP-2)" or the bare name without a model. A saved
+// screen that is unplugged stays in the list, marked, so the row shows what
+// is saved.
+function screenChoices(screens, saved) {
+    const out = [
+        { "label": "All screens", "value": SCREEN_ALL },
+        { "label": "Active screen", "value": SCREEN_FOCUSED }
+    ];
+    const list = screens || [];
+    for (let i = 0; i < list.length; i++) {
+        const s = list[i];
+        if (!s || typeof s.name !== "string" || s.name === "" || out.some(o => o.value === s.name))
+            continue;
+        const model = typeof s.model === "string" ? s.model.trim() : "";
+        out.push({ "label": model !== "" && model !== s.name ? model + " (" + s.name + ")" : s.name, "value": s.name });
+    }
+    const choice = screenOf(saved);
+    if (!out.some(o => o.value === choice))
+        out.push({ "label": choice + " (not connected)", "value": choice });
+    return out;
 }
 
 // True when a finished timer would give no sign at all: no sound and no
