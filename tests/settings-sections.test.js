@@ -5,7 +5,8 @@ const GLib = imports.gi.GLib;
 const S = load("components/settings/Sections.js");
 
 const root = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
-const qml = new TextDecoder().decode(GLib.file_get_contents(root + "/TimerSettings.qml")[1]);
+// The rows live in the section files next to the page
+const qml = ["Timers", "Appearance", "Alerts"].map(n => new TextDecoder().decode(GLib.file_get_contents(root + "/components/settings/" + n + "Section.qml")[1])).join("\n");
 const keys = S.SETTINGS.map(s => s.key);
 
 // Every key of the settings page is in the table, once, with its default

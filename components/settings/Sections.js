@@ -13,15 +13,15 @@
 
 // Order is the order of the rail. A section without a visible setting is hidden.
 var SECTIONS = [
-    { "id": "timers", "label": "Timers" },
-    { "id": "focus", "label": "Focus & chains" },
-    { "id": "appearance", "label": "Appearance" },
-    { "id": "effects", "label": "Effects & battery" },
-    { "id": "bar", "label": "Bar" },
-    { "id": "desktop", "label": "Desktop" },
-    { "id": "alerts", "label": "Alerts & sounds" },
-    { "id": "advanced", "label": "Advanced" },
-    { "id": "help", "label": "Help" }
+    { "id": "timers", "label": "Timers", "icon": "hourglass_empty" },
+    { "id": "focus", "label": "Focus & chains", "icon": "link" },
+    { "id": "appearance", "label": "Appearance", "icon": "palette" },
+    { "id": "effects", "label": "Effects & battery", "icon": "battery_charging_full" },
+    { "id": "bar", "label": "Bar", "icon": "dock_to_bottom" },
+    { "id": "desktop", "label": "Desktop", "icon": "desktop_windows" },
+    { "id": "alerts", "label": "Alerts & sounds", "icon": "notifications" },
+    { "id": "advanced", "label": "Advanced", "icon": "tune" },
+    { "id": "help", "label": "Help", "icon": "help" }
 ];
 
 var SETTINGS = [
