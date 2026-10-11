@@ -172,3 +172,15 @@ function favourites(history, count) {
     entries.sort((a, b) => b.count - a.count);
     return entries.slice(0, wanted);
 }
+
+// The record kept for a timer that rang: `label` is the displayed name,
+// `total` its duration in ms and `finishedAt` the end time (epoch ms)
+function fromTimer(label, finishedAt, total) {
+    return { name: label, start: finishedAt - total, end: finishedAt };
+}
+
+// [{ name, ms }] for the local week holding `now` (a Date), longest first
+function thisWeek(history, now) {
+    const week = weekKey(now);
+    return perWeek(history).filter(e => e.week === week).sort((a, b) => b.ms - a.ms);
+}

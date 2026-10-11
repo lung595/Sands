@@ -8,7 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Added
 
 - Pure logic for the four look choices (`components/settings/Variants.js`, NAK-646): the journal, favourites, notice and end-of-timer modes, with their keys, allowed values, defaults, English labels and `clean(key, value)`. Not wired to any view yet; covered by `tests/variants.test.js`.
-- The daemon keeps each timer that rings in the private history (`HistoryStore`, NAK-647): one record at the ring through `History.js`, nothing while a timer runs or at rest; stopped timers are not kept. Read side on demand only (`historyThisWeek`, `historyFavourites`), `eraseHistory`, and the file and its folder are removed when the plugin is uninstalled. Covered by `tests/qml/run.sh`.
+- The daemon keeps each timer that rings in the private history (`HistoryStore`, NAK-647): one record at the ring through `History.js`, nothing while a timer runs or at rest; stopped timers are not kept. Read side on demand only (`historyThisWeek`, `historyFavourites`), `eraseHistory`, and the file and its folder are removed when the plugin is uninstalled (`HistorySweep`, a detached removal once the manifest is gone). Covered by `tests/qml/run.sh` and `tests/history.test.js`.
 
 ## 1.6.0 - 2026-10-11
 

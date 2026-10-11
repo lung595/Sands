@@ -338,20 +338,13 @@ Item {
     // A timer that rings is kept in the private history; stopping or removing
     // one never reaches this. Written once, at the ring, never while it runs.
     function _keep(t) {
-        history.append({
-            name: displayLabel(t),
-            start: t.finishedAt - t.total,
-            end: t.finishedAt
-        });
+        history.append(History.fromTimer(displayLabel(t), t.finishedAt, t.total));
     }
 
     // Read side for the views, computed on demand only (one file read each):
     // `done` gets [{ name, ms }] for the local week holding `now`, longest first
     function historyThisWeek(done) {
-        history.load(h => {
-            const week = History.weekKey(new Date());
-            done(History.perWeek(h).filter(e => e.week === week).sort((a, b) => b.ms - a.ms));
-        });
+        history.load(h => done(History.thisWeek(h, new Date())));
     }
 
     // `done` gets the 3 most started names: [{ name, count }]
@@ -410,10 +403,10 @@ Item {
 
     // DMS deletes nothing at uninstall: if our manifest is gone when the daemon
     // unloads, the history file and its folder go with it (value 12).
-    FileView {
-        id: manifest
-        path: Qt.resolvedUrl("plugin.json")
-        blockLoading: true
+    HistorySweep {
+        manifest: Qt.resolvedUrl("plugin.json")
+        dir: history.dir
+        path: history.path
     }
 
     AlarmSound {
@@ -457,7 +450,5 @@ Item {
     Component.onDestruction: {
         ticker.stop();
         alarm.shutdown();
-        if (!manifest.loaded)
-            history.removeAll();
     }
 }

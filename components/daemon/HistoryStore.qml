@@ -18,11 +18,11 @@ QtObject {
     }
     readonly property string path: dir + "/history.json"
 
-    // After the last queued step of append(), erase() or removeAll() ends
+    // After the last queued step of append() or erase() ends
     signal settled
 
     // One ordered queue, so an append made after an erase is written after it
-    property var _steps: []      // { kind: "append"|"erase"|"remove", entry }
+    property var _steps: []      // { kind: "append"|"read"|"erase", ... }
     property bool _busy: false
 
     // Keeps a finished timer: { name, start, end } in epoch ms. Appends that
@@ -42,9 +42,13 @@ QtObject {
     function load(done) {
         if (typeof done !== "function")
             return;
+        // Without a usable folder there is nothing to read; never leave a view waiting
+        if (dir.charAt(0) !== "/") {
+            done(History.empty());
+            return;
+        }
         _enqueue({
             kind: "read",
-            batch: [],
             done: done
         });
     }
@@ -53,13 +57,6 @@ QtObject {
     function erase() {
         _enqueue({
             kind: "erase"
-        });
-    }
-
-    // Deletes the file and the folder (uninstall)
-    function removeAll() {
-        _enqueue({
-            kind: "remove"
         });
     }
 
@@ -104,8 +101,7 @@ QtObject {
             // umask first, so the folder is born 0700 and the file 0600; the rename
             // keeps the old file whole if the write is cut
             write: 'umask 077 && mkdir -p -- "$1" && chmod 700 -- "$1" && cat > "$2.tmp" && mv -f -- "$2.tmp" "$2"',
-            erase: 'rm -f -- "$2" "$2.tmp"',
-            remove: 'rm -f -- "$2" "$2.tmp"; rmdir -- "$1" 2>/dev/null; exit 0'
+            erase: 'rm -f -- "$2" "$2.tmp"'
         })
 
     // The step ended; a read step has `text`: fold its batch in, then write

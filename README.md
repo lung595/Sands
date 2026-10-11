@@ -171,6 +171,7 @@ bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 | --- | --- |
 | A timer runs but nothing shows in the bar | Add the widget, see [Add a widget](#3-add-a-widget) |
 | The launcher does not suggest a timer | Type a duration (`20 min`); if *Automatic detection* is off, type your prefix first |
+| `~/.local/state/sands` is still there after removing Sands | The plugin was deleted while the shell was off: run `rm -rf ~/.local/state/sands` |
 | The alarm makes no sound | Pick another sound in *Sound*, check the volume and Do Not Disturb: see [If the alarm makes no sound](docs/GUIDE.md#if-the-alarm-makes-no-sound) |
 
 ## Privacy

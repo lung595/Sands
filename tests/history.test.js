@@ -89,4 +89,12 @@ eq(H.parse(unsorted, NOW).records.map(r => r.name), ["early", "late"], "parse so
 eq(H.parse(H.serialize(base), t(2020, 1, 1)).records.length, 1, "clock gone backwards keeps records");
 eq(H.parse(H.serialize(base), 1e16).records.length, 1, "now outside Date range keeps records");
 eq(H.parse(H.serialize(base), NOW / 1000).records.length, 1, "now in seconds keeps records");
+// fromTimer and thisWeek (daemon wiring, kept pure)
+eq(H.fromTimer("Tea", t(2026, 10, 10, 11), 5 * MIN), { name: "Tea", start: t(2026, 10, 10, 11) - 5 * MIN, end: t(2026, 10, 10, 11) }, "record of a timer");
+let wk = H.empty();
+wk = H.add(wk, "Old", t(2026, 10, 4, 10), t(2026, 10, 4, 10, 5), NOW);
+wk = H.add(wk, "Short", t(2026, 10, 6, 10), t(2026, 10, 6, 10, 2), NOW);
+wk = H.add(wk, "Long", t(2026, 10, 7, 10), t(2026, 10, 7, 10, 30), NOW);
+eq(H.thisWeek(wk, new Date(NOW)).map(e => e.name), ["Long", "Short"], "this week only, longest first");
+eq(H.thisWeek(H.empty(), new Date(NOW)), [], "no week when empty");
 done();
