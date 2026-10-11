@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Io
 import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
@@ -6,6 +7,7 @@ import "Timers.js" as Timers
 import "Guide.js" as Guide
 import "AlexBridge.js" as AlexBridge
 import "components/daemon"
+import "components/daemon/History.js" as History
 import "components/daemon/Lifecycle.js" as Lifecycle
 import "components/daemon/Notifications.js" as Notifications
 import "components/daemon/Snooze.js" as Snooze
@@ -329,7 +331,37 @@ Item {
             alarm.startRinging();
             newly.forEach(t => _notify(t));
             newly.forEach(t => _tellAlex(t));
+            newly.forEach(t => _keep(t));
         }
+    }
+
+    // A timer that rings is kept in the private history; stopping or removing
+    // one never reaches this. Written once, at the ring, never while it runs.
+    function _keep(t) {
+        history.append({
+            name: displayLabel(t),
+            start: t.finishedAt - t.total,
+            end: t.finishedAt
+        });
+    }
+
+    // Read side for the views, computed on demand only (one file read each):
+    // `done` gets [{ name, ms }] for the local week holding `now`, longest first
+    function historyThisWeek(done) {
+        history.load(h => {
+            const week = History.weekKey(new Date());
+            done(History.perWeek(h).filter(e => e.week === week).sort((a, b) => b.ms - a.ms));
+        });
+    }
+
+    // `done` gets the 3 most started names: [{ name, count }]
+    function historyFavourites(done) {
+        history.load(h => done(History.favourites(h)));
+    }
+
+    // Empties the history (the settings "erase" action)
+    function eraseHistory() {
+        history.erase();
     }
 
     // One event per ended timer, and no call at all when Alex is not loaded.
@@ -370,6 +402,18 @@ Item {
         id: store
         pluginService: root.pluginService
         pluginId: root.pluginId
+    }
+
+    HistoryStore {
+        id: history
+    }
+
+    // DMS deletes nothing at uninstall: if our manifest is gone when the daemon
+    // unloads, the history file and its folder go with it (value 12).
+    FileView {
+        id: manifest
+        path: Qt.resolvedUrl("plugin.json")
+        blockLoading: true
     }
 
     AlarmSound {
@@ -413,5 +457,7 @@ Item {
     Component.onDestruction: {
         ticker.stop();
         alarm.shutdown();
+        if (!manifest.loaded)
+            history.removeAll();
     }
 }

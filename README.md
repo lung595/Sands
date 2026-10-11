@@ -175,7 +175,7 @@ bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 
 ## Privacy
 
-No network access, no telemetry. Only short-lived local tools run (`pw-play` to ring, `notify-send` for the notification). Your running and recent timers are saved by DMS, nothing else. If the Alex plugin is loaded, Sands publishes the label you typed (60 characters at most) and the end time when a timer ends, in the shell's memory only, where any loaded plugin can read the last event; without Alex nothing is published. See [Alex](docs/GUIDE.md#alex) and the [user guide](docs/GUIDE.md#privacy).
+No network access, no telemetry. Only short-lived local tools run (`pw-play` to ring, `notify-send` for the notification). Your running and recent timers are saved by DMS. When a timer rings, Sands also keeps its name and times in its own private history file, `~/.local/state/sands/history.json` (readable by you only, 12 months at most, never read or written while idle); uninstalling the plugin removes it with its folder. If the Alex plugin is loaded, Sands publishes the label you typed (60 characters at most) and the end time when a timer ends, in the shell's memory only, where any loaded plugin can read the last event; without Alex nothing is published. See [Alex](docs/GUIDE.md#alex) and the [user guide](docs/GUIDE.md#privacy).
 
 ## Documentation
 

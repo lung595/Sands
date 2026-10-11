@@ -37,6 +37,18 @@ QtObject {
         });
     }
 
+    // Reads the history once, on demand: `done(history)` gets a History.js value
+    // (empty if the file is missing or corrupted). Queued behind pending writes.
+    function load(done) {
+        if (typeof done !== "function")
+            return;
+        _enqueue({
+            kind: "read",
+            batch: [],
+            done: done
+        });
+    }
+
     // Deletes the history in one call; the folder stays for the next timer
     function erase() {
         _enqueue({
@@ -100,7 +112,9 @@ QtObject {
     function _finish(step, text) {
         // The queue must move on whatever the fold does
         try {
-            if (step.kind === "read") {
+            if (step.kind === "read" && step.done) {
+                step.done(History.parse(text, Date.now()));
+            } else if (step.kind === "read") {
                 const now = Date.now();
                 let h = History.parse(text, now);
                 for (const e of step.batch)

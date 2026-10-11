@@ -11,6 +11,7 @@ ShellRoot {
     readonly property string tmp: Quickshell.env("QML_TMP")
     property int step: 0
     property bool failed: false
+    property int before: 0
 
     function check(ok, what) {
         if (!ok) {
@@ -116,7 +117,21 @@ ShellRoot {
         } else if (step === 7) {
             look(l => {
                 check(l[1] === "600" && l[2].indexOf('"Y"') > 0 && l[2].indexOf('"Z"') < 0, "unreadable file recovered");
-                store.removeAll();
+                // The read side: one load after one append sees exactly one more record
+                store.load(h => {
+                    root.before = h.records.length;
+                    store.append({
+                        name: "Last",
+                        start: Date.now() - 5000,
+                        end: Date.now() - 1000
+                    });
+                    store.load(h2 => {
+                        check(h2.records.length === root.before + 1, "a timer that ends adds exactly one record");
+                        check(h2.records[h2.records.length - 1].name === "Last", "the new record is the last");
+                        // Loading never writes: the file is unchanged by a second load
+                        store.removeAll();
+                    });
+                });
             });
         } else if (step === 8) {
             look(l => {
