@@ -3,6 +3,7 @@ import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
 import "Preview.js" as Preview
+import "Guide.js" as Guide
 
 // Launcher provider. No prefix by default: it only answers when the
 // input looks like a duration (« timer 20 min », « 1h30 pâtes », « à 18h »),
@@ -41,13 +42,15 @@ Item {
 
         // Too long to be a timer: say so instead of freezing the shell (value 10)
         if (TP.tooLong(q))
-            return withTrigger ? [{
+            return withTrigger ? [
+                {
                     name: "Too long for a timer",
                     icon: "material:help",
                     comment: "Keep it under " + TP.MAX_INPUT + " characters, like \u201c12 min pasta\u201d · Enter: open the guide",
                     action: "guide:syntax",
                     categories: ["Minuteur"]
-                }] : [];
+                }
+            ] : [];
         const now = Date.now();
         const results = TP.parse(q, now, {
             keyword: withTrigger
@@ -55,13 +58,15 @@ Item {
         // Nothing understood: say so and point to the syntax (value 10),
         // but only when the query was meant for Sands.
         if (results.length === 0 && (withTrigger || /^(timer|minuteur|minuterie|countdown)\s/i.test(q)))
-            return [{
+            return [
+                {
                     name: "No duration found in \u201c" + q + "\u201d",
                     icon: "material:help",
                     comment: (Preview.hintOf(results) || "Try \u201c12 min pasta\u201d or \u201cat 6pm\u201d") + " · Enter: open the guide",
                     action: "guide:syntax",
                     categories: ["Minuteur"]
-                }];
+                }
+            ];
         return results.map(r => _startItem(r, now));
     }
 
@@ -83,12 +88,12 @@ Item {
         if (!d || !d.hasTimers)
             return [];
         const items = d.sorted.map(t => ({
-            name: "Cancel " + d.displayLabel(t) + " \u2014 " + TP.formatClock(d.remainingOf(t)),
-            icon: "material:timer_off",
-            comment: d.count > 1 ? "Enter: cancel this timer" : "Enter: cancel",
-            action: "cancel:" + t.id,
-            categories: ["Minuteur"]
-        }));
+                    name: "Cancel " + d.displayLabel(t) + " \u2014 " + TP.formatClock(d.remainingOf(t)),
+                    icon: "material:timer_off",
+                    comment: d.count > 1 ? "Enter: cancel this timer" : "Enter: cancel",
+                    action: "cancel:" + t.id,
+                    categories: ["Minuteur"]
+                }));
         if (d.count > 1)
             items.push({
                 name: "Cancel all " + d.count + " timers",
@@ -173,7 +178,7 @@ Item {
         if (type === "guide") {
             // Opens in the browser on request only; the plugin itself
             // makes no network access.
-            Qt.openUrlExternally("https://github.com/lung595/Sands/blob/main/docs/GUIDE.md#" + data);
+            Qt.openUrlExternally(Guide.URL + "#" + data);
             return;
         }
         const d = daemon;

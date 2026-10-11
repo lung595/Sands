@@ -12,6 +12,8 @@ ThemeColors {
     property color warning: root.light ? "#8A5100" : "#FFB95C"
     property color success: root.light ? "#1B6E2E" : "#8FD99A"
     property color outline: root.light ? "#79747E" : "#938F99"
+    property color outlineVariant: root.light ? "#CAC4D0" : "#49454F"
+    property color primaryText: root.light ? "#FFFFFF" : "#381E72"
     property color surface: root.light ? "#FEF7FF" : "#141218"
     property color surfaceContainer: root.light ? "#F3EDF7" : "#211F26"
     property color surfaceContainerHigh: root.light ? "#ECE6F0" : "#2B2930"

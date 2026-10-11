@@ -1,4 +1,5 @@
 import QtQuick
+import qs.Services
 
 // Preview stand-in: no program is started (no sound on the real PipeWire, no
 // real notification). A player "plays" for `playMs` then exits with 0, like
@@ -21,8 +22,10 @@ QtObject {
 
     // String() is not callable on a list entry here, so concatenate
     readonly property bool _stays: command.length > 0 && ("" + command[0]).indexOf("notify") >= 0
+    // A `dms` call is answered at once by the mocked Alex in PluginService
+    readonly property bool _isDms: command.length > 0 && command[0] === "dms"
     property Timer _end: Timer {
-        interval: process.playMs
+        interval: process._isDms ? 1 : process.playMs
         onTriggered: {
             process.running = false;
         }
@@ -33,6 +36,13 @@ QtObject {
         if (running) {
             _wasRunning = true;
             started();
+            if (_isDms) {
+                const reply = PluginService.dms(command);
+                if (stdout) {
+                    stdout.text = reply;
+                    stdout.streamFinished();
+                }
+            }
             if (!_stays)
                 _end.restart();
         } else if (_wasRunning) {
