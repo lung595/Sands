@@ -8,7 +8,7 @@ import qs.Widgets
 Column {
     id: root
 
-    // [{id, label, icon}] in rail order
+    // [{id, label}] in rail order
     required property var sections
     property string current: ""
     signal picked(string id)
@@ -63,9 +63,9 @@ Column {
                 }
             }
 
-            DankIcon {
+            SectionLogo {
                 id: logo
-                name: entry.modelData.icon
+                sectionId: entry.modelData.id
                 size: 20
                 x: 14
                 anchors.verticalCenter: parent.verticalCenter

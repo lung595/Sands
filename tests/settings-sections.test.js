@@ -3,6 +3,7 @@ imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.progr
 const { load, eq, done } = imports.harness;
 const GLib = imports.gi.GLib;
 const S = load("components/settings/Sections.js");
+const L = load("components/settings/SectionLogos.js");
 
 const root = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
 // The rows live in the section files next to the page
@@ -53,4 +54,8 @@ eq(S.nextSection("bogus"), "timers", "unknown section starts at the first");
 eq(S.costly("some").map(s => s.key), ["tick"], "costly settings by level");
 eq([S.costly("high"), S.costly("light")], [[], []], "no costly setting at the other levels");
 eq(S.SETTINGS.filter(s => s.level && (!s.cost || !S.LEVELS.includes(s.level))).length, 0, "a level always comes with a cost note");
+// Every section of the rail has its drawn logo
+for (const sec of S.SECTIONS)
+    eq(L.pathFor(sec.id) !== "", true, "logo drawn for " + sec.id);
+eq(L.pathFor("bogus"), "", "unknown id draws nothing");
 done();
