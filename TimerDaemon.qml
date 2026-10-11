@@ -6,6 +6,7 @@ import "TimeParser.js" as TP
 import "Timers.js" as Timers
 import "Guide.js" as Guide
 import "AlexBridge.js" as AlexBridge
+import "components/alert"
 import "components/daemon"
 import "components/daemon/History.js" as History
 import "components/daemon/Lifecycle.js" as Lifecycle
@@ -434,6 +435,11 @@ Item {
         // Read with every change of the list (the settings are not observable here)
         minutes: root.timers ? root.setting("noticeMinutes", undefined) : undefined
         onNoticeDue: id => root.noticeDue(id)
+    }
+
+    RingAlert {
+        engine: root
+        sound: alarm
     }
 
     // ------------------------------------------------------------------

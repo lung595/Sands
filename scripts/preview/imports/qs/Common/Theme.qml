@@ -6,6 +6,7 @@ import QtQuick
 ThemeColors {
     id: root
     // `light` among the arguments switches the whole preview to a light palette
+    lightMode: light
     readonly property bool light: Qt.application.arguments.indexOf("light") >= 0
     property color primary: root.light ? "#6750A4" : "#D0BCFF"
     property color error: root.light ? "#B3261E" : "#F2B8B5"

@@ -7,7 +7,7 @@
 const KINDS = ["dune", "halo", "none"];
 const WHEN = ["muted", "always"];
 const DEFAULT_KIND = "dune";
-const DEFAULT_WHEN = "muted";
+const DEFAULT_WHEN = "always";
 
 // The "sound" setting value that means no sound. Reserved: Sound.js does not
 // offer it yet (soundFile("none") would still ring the default), so the story
@@ -67,4 +67,14 @@ function legendReason(kind, when, soundState) {
     if (isInaudible(soundState))
         return "Sound is muted";
     return whenOf(when) === "always" ? "Click to stop" : "";
+}
+
+// Several timers ending together share one alert named after the last one to
+// ring (the latest finishedAt); null when none rings.
+function lastRinging(timers) {
+    let last = null;
+    for (const t of timers || [])
+        if (t.state === "ringing" && (last === null || t.finishedAt >= last.finishedAt))
+            last = t;
+    return last;
 }

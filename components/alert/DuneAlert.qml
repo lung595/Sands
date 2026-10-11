@@ -11,7 +11,7 @@ Item {
 
     // Saved choices; unknown values fall back to the defaults in AlertPolicy
     property string kind: "dune"
-    property string when: "muted"
+    property string when: "always"
     // { choice, volume, outputMuted, hasOutput }
     property var soundState: ({})
     property bool fullscreen: false

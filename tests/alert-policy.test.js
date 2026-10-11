@@ -8,8 +8,8 @@ const A = load("components/alert/AlertPolicy.js");
 eq(A.kindOf(undefined), "dune", "missing kind");
 eq(A.kindOf("sparkle"), "dune", "unknown kind");
 eq([A.kindOf("dune"), A.kindOf("halo"), A.kindOf("none")], ["dune", "halo", "none"], "known kinds");
-eq(A.whenOf(null), "muted", "missing moment");
-eq(A.whenOf("never"), "muted", "unknown moment");
+eq(A.whenOf(null), "always", "missing moment");
+eq(A.whenOf("never"), "always", "unknown moment");
 eq(A.whenOf("always"), "always", "known moment");
 
 const audible = { choice: "default", volume: 0.8, outputMuted: false, hasOutput: true };
@@ -46,5 +46,12 @@ eq(A.legendReason("halo", "muted", audible), "", "muted, audible: not shown, no 
 eq(A.legendReason("halo", "always", states["output muted"][0]), "Sound is muted", "always, muted");
 eq(A.legendReason("dune", "muted", states["sound none"][0]), "No sound chosen", "no sound chosen");
 eq(A.legendReason("none", "muted", states["volume 0"][0]), "", "no alert, no legend");
+
+// Several timers ending together: one alert, named after the last to ring
+const ring = (id, at, state = "ringing") => ({ id, state, finishedAt: at });
+eq(A.lastRinging([ring(1, 100), ring(2, 300), ring(3, 200)]).id, 2, "latest finishedAt wins");
+eq(A.lastRinging([ring(1, 100, "running"), ring(2, 50)]).id, 2, "running timers are ignored");
+eq(A.lastRinging([ring(1, 100, "paused")]), null, "none ringing");
+eq(A.lastRinging(undefined), null, "no list");
 
 done();
