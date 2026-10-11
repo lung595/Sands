@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Common
+import "journal"
 
 // Panel content: hourglass, time, controls, other timers.
 Column {
@@ -7,6 +8,10 @@ Column {
 
     property var daemon: null
     property bool use24h: true
+    // Raw "Time journal view" setting; until its row exists the default look applies
+    property string journalLook: ""
+    // The journal replaces the timers while open; it is built only then
+    property bool journalOpen: false
     // 0 → 1: freeze (pause), driven by the panel
     // Frost: always an ice blue (cold means blue), but its lightness follows
     // the theme: pale on a dark theme, deeper on a light one so it stays visible.
@@ -132,6 +137,7 @@ Column {
 
     PanelGlass {
         id: glassArea
+        visible: !pop.journalOpen
         width: parent.width
         opacity: 1 - Math.abs(pop.slide)
         transform: Translate {
@@ -145,7 +151,7 @@ Column {
         frost: pop.frost
         frostColor: pop.frostColor
         reducedMotion: pop.reducedMotion
-        animate: pop.shown
+        animate: pop.shown && !pop.journalOpen
         topInset: pop.topPadding
         ids: pop.ids
         index: pop.index
@@ -159,6 +165,7 @@ Column {
     }
 
     PanelClock {
+        visible: !pop.journalOpen
         width: parent.width
         opacity: 1 - Math.abs(pop.slide)
         transform: Translate {
@@ -175,6 +182,7 @@ Column {
     }
 
     AdjustChips {
+        visible: !pop.journalOpen
         anchors.horizontalCenter: parent.horizontalCenter
         daemon: pop.d
         timer: pop.t
@@ -183,6 +191,7 @@ Column {
     }
 
     PanelControls {
+        visible: !pop.journalOpen
         width: parent.width
         daemon: pop.d
         timer: pop.t
@@ -194,12 +203,34 @@ Column {
     // Built only while there are other timers.
     Loader {
         width: parent.width
-        active: pop.others.length > 0
+        active: pop.others.length > 0 && !pop.journalOpen
         visible: active
         sourceComponent: OtherTimers {
             daemon: pop.d
             idsKey: pop.othersKey
             onPicked: id => pop.showId(id, 1)
+        }
+    }
+
+    Loader {
+        width: parent.width
+        active: pop.journalOpen && pop.shown
+        visible: active
+        sourceComponent: JournalView {
+            daemon: pop.d
+            look: pop.journalLook
+            reducedMotion: pop.reducedMotion
+        }
+    }
+
+    // Opens and closes the journal; shown only when a daemon can answer
+    Loader {
+        width: parent.width
+        active: !!pop.d
+        visible: active
+        sourceComponent: JournalLink {
+            open: pop.journalOpen
+            onToggled: pop.journalOpen = !pop.journalOpen
         }
     }
 }

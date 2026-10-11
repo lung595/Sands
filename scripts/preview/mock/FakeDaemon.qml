@@ -97,6 +97,14 @@ QtObject {
                 endAt: now + t.remaining
             }));
     }
+    // The journal's read side: [{ name, ms }] set by the scene, answered at once
+    property var week: []
+    function historyThisWeek(done) {
+        done(week);
+    }
+    function eraseHistory() {
+        week = [];
+    }
     function restart(id) {
     }
     function dismiss(id) {
