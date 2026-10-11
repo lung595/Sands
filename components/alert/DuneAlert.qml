@@ -1,5 +1,7 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import "AlertPolicy.js" as AlertPolicy
+import "../daemon/PlainText.js" as PlainText
 
 // Host of the visual alert of a finished timer. Reads the kind and the moment
 // through AlertPolicy and holds at most one scene in a Loader that exists only
@@ -27,7 +29,9 @@ Item {
     // Read by the settings page to grey the halo card
     readonly property bool haloAvailable: layerShell
     readonly property bool showing: loader.active
-    readonly property alias scene: loader.item
+    // Untyped on purpose: the scene is a dune or a halo, both honour
+    // dismiss() and finished
+    readonly property var scene: loader.item
 
     // True while test() plays
     property bool _testing: false
@@ -44,11 +48,24 @@ Item {
         const reason = AlertPolicy.legendReason(kind, _testing ? "muted" : when, _testing ? {
             hasOutput: false
         } : soundState);
-        return name + " is done" + (reason ? " · " + reason : "");
+        // The name comes from the user or a launcher: no em dash on screen
+        return PlainText.plain(name) + " is done" + (reason ? " · " + reason : "");
+    }
+
+    // Destroys the scene and clears the test flag. Internal: every exit path
+    // (finished signal, scene without dismiss(), a real alert ringing) ends here
+    // so that a test never leaves its state behind.
+    function _loaderOff() {
+        testEnd.stop();
+        loader.active = false;
+        _testing = false;
     }
 
     // Called at the ring point
     function ring() {
+        // A real alert replaces a test that is still playing
+        if (_testing)
+            _loaderOff();
         if (loader.active)
             return;
         if (_scene && AlertPolicy.shouldShow(kind, when, soundState, fullscreen, showOverFullscreen))
@@ -57,10 +74,12 @@ Item {
 
     // Called when the alert is dismissed (stop, snooze, delete)
     function dismiss() {
-        if (loader.item && typeof loader.item.dismiss === "function")
-            loader.item.dismiss();
+        // The stale test end must not dismiss a later alert
+        testEnd.stop();
+        if (scene && typeof scene.dismiss === "function")
+            scene.dismiss();
         else
-            loader.active = false;
+            _loaderOff();
     }
 
     // Plays the current choice once with the fake name "Pasta", then dismisses
@@ -72,7 +91,6 @@ Item {
         if (!AlertPolicy.shouldShow(kind, "always", {}, fullscreen, showOverFullscreen))
             return;
         _testing = true;
-        timerName = "Pasta";
         loader.active = true;
         testEnd.restart();
     }
@@ -87,22 +105,24 @@ Item {
     Component {
         id: haloComponent
         HaloScene {
-            legend: root._legend(root.timerName)
+            legend: root._legend(root._testing ? "Pasta" : root.timerName)
             windowed: root.windowed
             onStopRequested: root.dismiss()
         }
-    }
-
-    function loaderOff() {
-        loader.active = false;
-        _testing = false;
     }
 
     Loader {
         id: loader
         active: false
         sourceComponent: root._scene
-        onLoaded: if (item && item.finished)
-            item.finished.connect(root.loaderOff)
+    }
+
+    // The scene says when its exit is over; a scene without the signal is ignored
+    Connections {
+        target: loader.item
+        ignoreUnknownSignals: true
+        function onFinished() {
+            root._loaderOff();
+        }
     }
 }

@@ -65,12 +65,30 @@ Item {
     property bool windowed: true
 
     Loader {
+        id: windows
         active: root.windowed
         source: "HaloWindows.qml"
-        onLoaded: {
-            item.level = Qt.binding(() => root.level);
-            item.legend = Qt.binding(() => root.legend);
-            item.stopRequested.connect(root.stopRequested);
+    }
+
+    Binding {
+        target: windows.item
+        property: "level"
+        value: root.level
+        when: windows.item !== null
+    }
+
+    Binding {
+        target: windows.item
+        property: "legend"
+        value: root.legend
+        when: windows.item !== null
+    }
+
+    Connections {
+        target: windows.item
+        ignoreUnknownSignals: true
+        function onStopRequested() {
+            root.stopRequested();
         }
     }
 }

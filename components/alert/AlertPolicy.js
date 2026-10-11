@@ -10,9 +10,9 @@ const DEFAULT_KIND = "dune";
 const DEFAULT_WHEN = "muted";
 
 // The "sound" setting value that means no sound. Reserved: Sound.js does not
-// offer it yet (soundFile("none") would still ring the default), so the wiring
-// story (NAK-680) adds it there and imports this constant from one place
-// instead of keeping a copy (Q181). Both choices are kept when the alert is
+// offer it yet (soundFile("none") would still ring the default), so the story
+// that wires the host into the daemon adds it there and imports this constant
+// from one place instead of keeping a copy (Q181). Both choices are kept when the alert is
 // also "none"; the page only warns (isSilent).
 const SILENT_SOUND = "none";
 
