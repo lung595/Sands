@@ -76,6 +76,8 @@ Column {
         settingKey: "tick"
         label: "Final countdown ticks"
         description: "A soft tick on each of the last 10 seconds"
+        level: "some"
+        cost: "Plays a sound on each of the last 10 seconds"
         defaultValue: false
     }
 

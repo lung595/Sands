@@ -12,6 +12,8 @@ Item {
     required property string settingKey
     required property string label
     property string description: ""
+    property string level: ""
+    property string cost: ""
     property bool defaultValue: false
     property bool value: defaultValue
     // Set once the saved value is read, so the read itself is never written back
@@ -31,6 +33,8 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         title: root.label
         description: root.description
+        level: root.level
+        cost: root.cost
     }
 
     DankToggle {
