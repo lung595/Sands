@@ -2,7 +2,8 @@
 
 // Stroke paths of the rail logos, drawn on a 24 x 24 grid. One per section id
 // so the rail does not depend on an icon font and every logo shares one
-// stroke weight.
+// stroke weight. Paths of sections not shown yet stay here on purpose: they belong
+// with the table in Sections.js and cost nothing until their section is listed.
 var PATHS = {
     "timers": "M7 3H17M7 21H17M8 3C8 9 12 10 12 12C12 14 8 15 8 21M16 3C16 9 12 10 12 12C12 14 16 15 16 21",
     "focus": "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",

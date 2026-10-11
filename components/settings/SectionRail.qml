@@ -3,7 +3,7 @@ import qs.Common
 import qs.Widgets
 
 // The left rail: one entry per section (logo + name). The open section is
-// marked by a heap of sand that settles under its logo, one short transition
+// marked by a heap of sand under its logo that fades in, one short transition
 // and nothing running at rest.
 Column {
     id: root
@@ -44,7 +44,7 @@ Column {
                 onTapped: root.picked(entry.modelData.id)
             }
 
-            // The heap: flat when closed, settled under the logo when open
+            // The heap: absent when closed, faded in under the logo when open
             Rectangle {
                 id: dune
                 width: 20
@@ -54,8 +54,6 @@ Column {
                 y: entry.height - height - 4
                 color: Theme.primary
                 opacity: entry.open ? 0.9 : 0
-                transformOrigin: Item.Bottom
-                scale: 1
                 Behavior on opacity {
                     NumberAnimation {
                         duration: SettingsData.reduceMotion ? 150 : 180

@@ -1,6 +1,8 @@
 import QtQuick
 import "mock"
 import "mock/Presets.js" as Presets
+import "../../components/settings/Sections.js" as Sections
+import qs.Common
 
 // Offscreen overlap check of the whole settings page at the narrowest real widths.
 // Fails (exit code 1) when two texts or controls intersect, a text is elided or
@@ -134,6 +136,65 @@ Item {
         sp.query = "";
     }
 
+    // Ctrl+F and / focus the field, Esc clears a query and is left alone otherwise
+    function checkKeys(page) {
+        const sp = findItem(page, "settingsPage");
+        const field = findItem(sp, "searchField");
+        field.focus = false;
+        if (!sp.handleKey(Qt.Key_F, Qt.ControlModifier) || !field.activeFocus)
+            fail("Ctrl+F does not focus the search field");
+        field.focus = false;
+        if (!sp.handleKey(Qt.Key_Slash, 0) || !field.activeFocus)
+            fail("/ does not focus the search field");
+        if (sp.handleKey(Qt.Key_A, 0))
+            fail("an ordinary key was taken by the page");
+        sp.query = "sound";
+        if (!sp.clearQuery() || sp.query !== "")
+            fail("Esc does not clear a query");
+        if (sp.clearQuery())
+            fail("Esc is swallowed with nothing to clear");
+        sp.section = "timers";
+        sp.query = "sound";
+        sp.openFirst();
+        if (sp.query !== "" || sp.section !== "alerts")
+            fail("Enter does not open the first result");
+    }
+
+    // After a pick, the highlight sits on the row (or on its anchor when hidden)
+    property var flashKeys: []
+    function nextFlash() {
+        if (flashKeys.length === 0) {
+            console.warn(failures.length === 0 ? "OK: no overlap in " + leaves + " texts and controls" : failures.length + " problems");
+            Qt.exit(failures.length === 0 ? 0 : 1);
+            return;
+        }
+        const sp = findItem(cases.children[0].page, "settingsPage");
+        const key = flashKeys[0];
+        sp.open(Sections.sectionOf(key), key);
+        flashCheck.restart();
+    }
+
+    Timer {
+        id: flashCheck
+        interval: 150
+        onTriggered: {
+            const sp = root.findItem(cases.children[0].page, "settingsPage");
+            const key = root.flashKeys.shift();
+            const row = sp.flashTarget(key);
+            const flash = root.findItem(sp, "flash");
+            if (!row)
+                root.fail("no row to highlight for " + key);
+            else {
+                const p = row.mapToItem(flash.parent, 0, 0);
+                if (flash.height <= 0 || Math.abs(flash.x - p.x) > 0.5 || Math.abs(flash.y - p.y) > 0.5 || Math.abs(flash.width - row.width) > 0.5 || Math.abs(flash.height - row.height) > 0.5)
+                    root.fail("the highlight is not on the row of " + key);
+            }
+            if (sp.fadeDuration !== (SettingsData.reduceMotion ? 150 : 600))
+                root.fail("the fade duration ignores Reduce motion");
+            root.nextFlash();
+        }
+    }
+
     // Every section is opened in turn on every page and measured
     readonly property var sectionIds: ["timers", "appearance", "alerts"]
     property int phase: -1
@@ -143,8 +204,9 @@ Item {
         phase++;
         if (phase >= sectionIds.length) {
             checkSearch(cases.children[0].page);
-            console.warn(failures.length === 0 ? "OK: no overlap in " + leaves + " texts and controls" : failures.length + " problems");
-            Qt.exit(failures.length === 0 ? 0 : 1);
+            checkKeys(cases.children[0].page);
+            flashKeys = Sections.visibleSettings().map(s => s.key);
+            nextFlash();
             return;
         }
         for (let i = 0; i < cases.children.length - 1; i++) {

@@ -5,7 +5,8 @@
 // moving a section is a one-line change here. Pure, no state, no side effect.
 // Tested by tests/settings-sections.test.js.
 //
-// A setting is { key, section, label, help, words[], default?, level?, cost?, pending? }:
+// A setting is { key, section, label, help, words[], default?, anchor?, level?, cost?, pending? }:
+//   anchor   key of the row to highlight while this one is hidden by the current state
 //   words    search synonyms, English and French
 //   level    battery level when the setting has a real cost: "high" | "some" | "light"
 //   cost     one line saying what the cost is (set with `level`)
@@ -29,7 +30,7 @@ var SETTINGS = [
     { "key": "noTrigger", "section": "timers", "label": "Automatic detection", "default": true,
       "help": "Understands “timer 20 min”, “25m pasta” or “at 6pm” without a prefix",
       "words": ["launcher", "prefix", "detect", "lanceur", "détection", "automatique", "préfixe"] },
-    { "key": "trigger", "section": "timers", "label": "Prefix", "default": "timer",
+    { "key": "trigger", "section": "timers", "label": "Prefix", "default": "timer", "anchor": "noTrigger",
       "help": "The word to type first when automatic detection is off",
       "words": ["trigger", "keyword", "mot", "déclencheur", "préfixe"] },
     { "key": "snooze", "section": "timers", "label": "Snooze choices", "pending": true,
@@ -54,7 +55,7 @@ var SETTINGS = [
     { "key": "sound", "section": "alerts", "label": "Sound", "default": "default",
       "help": "Loops when a timer reaches zero",
       "words": ["alarm", "ring", "tone", "son", "sonnerie", "alarme"] },
-    { "key": "customSound", "section": "alerts", "label": "Sound file", "default": "",
+    { "key": "customSound", "section": "alerts", "label": "Sound file", "default": "", "anchor": "sound",
       "help": "Full path to an .oga, .ogg, .wav, .mp3 or .flac file",
       "words": ["custom", "file", "path", "fichier", "chemin", "personnalisé"] },
     { "key": "volume", "section": "alerts", "label": "Volume", "default": 80,

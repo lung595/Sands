@@ -26,6 +26,32 @@ Item {
     width: parent ? parent.width : 400
     implicitHeight: body.implicitHeight
 
+    // Ctrl+F or / from any control of this page that does not take the key itself (a
+    // text field types "/"), so the rest of the DMS settings window keeps its keys.
+    // True when the key was used.
+    function handleKey(key, modifiers) {
+        if ((key === Qt.Key_F && (modifiers & Qt.ControlModifier)) || key === Qt.Key_Slash) {
+            field.forceActiveFocus();
+            return true;
+        }
+        return false;
+    }
+
+    // Esc only clears a query; with nothing to clear it reaches the window
+    function clearQuery() {
+        const had = query !== "";
+        query = "";
+        return had;
+    }
+
+    // Enter opens the best hit
+    function openFirst() {
+        if (results.length > 0)
+            open(results[0].section, results[0].key);
+    }
+
+    Keys.onPressed: event => event.accepted = handleKey(event.key, event.modifiers)
+
     function open(id, key) {
         query = "";
         section = id;
@@ -34,9 +60,10 @@ Item {
             flashTimer.restart();
     }
 
+    // The shown row carrying this key; a hidden row (zero height) does not count
     function findRow(item, key) {
         for (const c of item.children) {
-            if (c.settingKey === key)
+            if (c.settingKey === key && c.visible && c.height > 0)
                 return c;
             const hit = findRow(c, key);
             if (hit)
@@ -45,12 +72,33 @@ Item {
         return null;
     }
 
+    // What the highlight lands on: the row itself, or the row it depends on when it is
+    // hidden by the current state (the prefix hides behind the automatic detection)
+    function flashTarget(key) {
+        const entry = Sections.SETTINGS.find(s => s.key === key);
+        return findRow(content, key) || (entry && entry.anchor ? findRow(content, entry.anchor) : null);
+    }
+
+    // Brings the row into the settings flickable when the page sits inside one
+    function reveal(row) {
+        let f = root.parent;
+        while (f && f.contentY === undefined)
+            f = f.parent;
+        if (!f)
+            return;
+        const y = row.mapToItem(f.contentItem, 0, 0).y;
+        if (y < f.contentY || y + row.height > f.contentY + f.height)
+            f.contentY = Math.max(0, y - Theme.spacingL);
+    }
+
+    readonly property int fadeDuration: SettingsData.reduceMotion ? 150 : 600
+
     // Waits one tick so the Loader has built the section before the row is looked up
     Timer {
         id: flashTimer
         interval: 0
         onTriggered: {
-            const row = root.findRow(content, root.pendingKey);
+            const row = root.flashTarget(root.pendingKey);
             if (!row)
                 return;
             const p = row.mapToItem(content, 0, 0);
@@ -58,6 +106,7 @@ Item {
             flash.y = p.y;
             flash.width = row.width;
             flash.height = row.height;
+            root.reveal(row);
             fade.restart();
         }
     }
@@ -88,6 +137,7 @@ Item {
 
             TextInput {
                 id: field
+                objectName: "searchField"
                 anchors.left: lens.right
                 anchors.leftMargin: Theme.spacingS
                 anchors.right: parent.right
@@ -99,11 +149,8 @@ Item {
                 maximumLength: Search.MAX_QUERY
                 text: root.query
                 onTextChanged: root.query = text
-                Keys.onEscapePressed: root.query = ""
-                Keys.onReturnPressed: {
-                    if (root.results.length > 0)
-                        root.open(root.results[0].section, root.results[0].key);
-                }
+                Keys.onEscapePressed: event => event.accepted = root.clearQuery()
+                Keys.onReturnPressed: root.openFirst()
             }
 
             StyledText {
@@ -114,13 +161,6 @@ Item {
                 font.pixelSize: Theme.fontSizeMedium
                 visible: field.text === "" && !field.activeFocus
             }
-        }
-
-        // Ctrl+F or / from anywhere on the page
-        Shortcut {
-            sequences: ["Ctrl+F", "/"]
-            enabled: !field.activeFocus
-            onActivated: field.forceActiveFocus()
         }
 
         StyledText {
@@ -205,6 +245,7 @@ Item {
                 // One-shot highlight of a found row: it fades out and stops
                 Rectangle {
                     id: flash
+                    objectName: "flash"
                     radius: Theme.cornerRadius
                     color: Theme.primary
                     opacity: 0
@@ -221,7 +262,7 @@ Item {
                         target: flash
                         property: "opacity"
                         to: 0
-                        duration: SettingsData.reduceMotion ? 150 : 600
+                        duration: root.fadeDuration
                     }
                 }
             }

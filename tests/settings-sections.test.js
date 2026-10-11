@@ -25,6 +25,19 @@ const defaults = Object.fromEntries(existing.map(k => [k, qmlDefault(k)]));
 for (const k of existing)
     eq(S.SETTINGS.find(s => s.key === k).default, defaults[k], "default unchanged: " + k);
 
+// Label, level and cost live twice (table and row; the table help is a shorter search line, so it is not compared): a drift fails here
+const qmlField = (k, f) => {
+    const block = qml.split(/settingKey:/).find(x => x.trim().startsWith('"' + k + '"'));
+    const m = block && block.match(new RegExp("\\n\\s*" + f + ':\\s*"((?:[^"\\\\]|\\\\.)*)"'));
+    return m ? m[1] : undefined;
+};
+for (const k of existing) {
+    const t = S.SETTINGS.find(s => s.key === k);
+    eq(qmlField(k, "label"), t.label, "label matches the row: " + k);
+    eq(qmlField(k, "level") || undefined, t.level, "level matches the row: " + k);
+    eq(qmlField(k, "cost") || undefined, t.cost, "cost matches the row: " + k);
+}
+
 // A settingKey added to the QML without a table entry fails here
 const inQml = [...qml.matchAll(/settingKey:\s*"(\w+)"/g)].map(m => m[1]);
 eq(inQml.length > 0, true, "the QML page has setting keys");

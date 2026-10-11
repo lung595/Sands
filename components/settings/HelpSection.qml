@@ -4,6 +4,9 @@ import qs.Widgets
 
 // The "Help" section: read-only examples of what the launcher understands.
 Column {
+    // Found by search under this key, so a pick has a block to highlight
+    readonly property string settingKey: "examples"
+
     width: parent.width
     spacing: Theme.spacingM
 
