@@ -29,6 +29,7 @@ Item {
     // Ctrl+F focuses the search from anywhere on the page while it is shown; "/" does
     // too unless a text field has the focus (it would type the character). Shortcuts,
     // because no item of the page holds the focus until the field does.
+    // cursorPosition exists on TextInput, TextField and TextEdit, so it tells a text field apart without importing Controls.
     readonly property bool typing: !!Window.activeFocusItem && Window.activeFocusItem.cursorPosition !== undefined
 
     function focusSearch() {
@@ -87,7 +88,7 @@ Item {
         return findRow(content, key) || (entry && entry.anchor ? findRow(content, entry.anchor) : null);
     }
 
-    // Brings the row into the settings flickable when the page sits inside one
+    // Brings the row into the settings flickable when the page sits inside one (DMS PluginsTab scrolls its pluginFlickable)
     function reveal(row) {
         let f = root.parent;
         while (f && f.contentY === undefined)
