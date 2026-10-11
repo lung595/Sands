@@ -1,5 +1,6 @@
 .pragma library
 .import "../../TimeParser.js" as TP
+.import "PlainText.js" as Plain
 
 // Pure parts of the end-of-timer notification: what it says, the command
 // that shows it, the command that closes it, and what its output means.
@@ -13,7 +14,7 @@ function body(t, use24h) {
 // notify-send waits for the user's choice and prints the notification id,
 // then the action chosen ("stop" or "snooze")
 function showCommand(label, bodyText) {
-    return ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p", "-A", "stop=Stop", "-A", "snooze=+5 min", label + " — done", bodyText];
+    return ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p", "-A", "stop=Stop", "-A", "snooze=+5 min", Plain.plain(label) + " - done", bodyText];
 }
 
 function closeCommand(notifId) {

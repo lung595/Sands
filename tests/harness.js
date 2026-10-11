@@ -3,8 +3,8 @@
 // lines to the modules it names, and counts the checks.
 const GLib = imports.gi.GLib;
 
-const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
-const read = path => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + path)[1]);
+var dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
+var read = path => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + path)[1]);
 
 // The module at `path` (relative to the plugin root) as an object of all
 // its top-level functions and vars
