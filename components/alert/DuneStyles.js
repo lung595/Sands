@@ -19,10 +19,15 @@ function resolve(value) {
     return DEFAULT;
 }
 
+function entryOf(value) {
+    const key = resolve(value);
+    return STYLES.find(s => s.value === key);
+}
+
 function labelOf(value) {
-    return STYLES[STYLES.map(s => s.value).indexOf(resolve(value))].label;
+    return entryOf(value).label;
 }
 
 function helpOf(value) {
-    return STYLES[STYLES.map(s => s.value).indexOf(resolve(value))].help;
+    return entryOf(value).help;
 }

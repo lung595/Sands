@@ -16,7 +16,11 @@ var DURATION = { grains: 2.9, wind: 2.6, wave: 2.4 };
 // Where the crest sits across the band, and how low the dune's feet lie.
 var CREST = { grains: 0.5, wind: 0.75, wave: 0.62 };
 var FOOT = { grains: 0.55, wind: 0.3, wave: 0.35 };
-var GRAINS = { grains: 70, wind: 40, wave: 0 };
+var GRAINS = { grains: 70, wind: 40 };
+// Reach of the grain spread and of the wind front: past 1.21 / 1.23 so every
+// column is fully covered before the hard stop and the last frame is the posed dune
+var SPREAD = 1.25;
+var FRONT = 1.3;
 
 // "Flat wave" beats: share of height lost, start and length in seconds.
 var BEATS = [[0.7, 0.42, 0.20], [1.12, 0.32, 0.11], [1.44, 0.24, 0.05]];
@@ -94,9 +98,9 @@ function heights(style, t) {
         const x = (i + 0.5) / COLUMNS, p = pose(style, x);
         let h;
         if (style === "grains") {
-            h = p * clamp((outQuad(t / 2.0) * 1.1 - Math.abs(2 * x - 1)) * 4) * outQuad(t / 2.2);
+            h = p * clamp((outQuad(t / 2.0) * SPREAD - Math.abs(2 * x - 1)) * 4) * outQuad(t / 2.2);
         } else if (style === "wind") {
-            const front = outQuad(t / 1.5) * 1.2;
+            const front = outQuad(t / 1.5) * FRONT;
             h = p * clamp((front - x) * 4) + (t < 1.7 ? 0.06 * Math.exp(-Math.pow((x - front) / 0.08, 2)) : 0);
         } else {
             // Crest leads on the rise (flanks 120 ms later), then trails the body by 40 ms
@@ -108,7 +112,7 @@ function heights(style, t) {
     return out;
 }
 
-// Every grain of a run, launched at a seeded time with a seeded velocity.
+// Every grain of a run (wind grains may leave the band: the view clips), launched at a seeded time with a seeded velocity.
 // Wave puffs leave the crest; the other styles sprinkle the front.
 function plan(style, seed) {
     const r = rng(seed), list = [];
@@ -122,7 +126,7 @@ function plan(style, seed) {
             const t0 = r() * (style === "grains" ? 1.6 : 1.5);
             list.push(style === "grains"
                 ? { t0, x0: 0.5 + (r() - 0.5) * 0.02, vx: (r() - 0.5) * 0.7, vy: 0.3 + r() * 0.5, life: 0.3 + r() * 0.4 }
-                : { t0, x0: outQuad(t0 / 1.5) * 1.2 - r() * 0.2, vx: 0.15 + r() * 0.3, vy: 0.2 + r() * 0.6, life: 0.3 + r() * 0.4 });
+                : { t0, x0: outQuad(t0 / 1.5) * FRONT - r() * 0.2, vx: 0.15 + r() * 0.3, vy: 0.2 + r() * 0.6, life: 0.3 + r() * 0.4 });
         }
     }
     return list;
@@ -153,7 +157,7 @@ function posed(style) {
 function stateAt(style, n, seed, reduceMotion) {
     style = Styles.resolve(style);
     const total = steps(style, reduceMotion);
-    if (n >= total) {
+    if (!(n < total)) {
         const s = posed(style);
         s.step = total;
         s.steps = total;

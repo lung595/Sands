@@ -27,6 +27,16 @@ for (const s of styles) {
     eq([r.done, r.steps, r.step, r.grains.length], [true, 0, 0, 0], s + " Reduce motion: posed, 0 step");
     eq(JSON.stringify(r.heights), JSON.stringify(end.heights), s + " Reduce motion shows the posed dune");
     eq(M.stateAt(s, 0, 1, false).heights.every(h => h < 0.3), true, s + " starts low");
+    // No pop when `done` flips: the last running frame is the posed dune
+    const last = M.stateAt(s, n - 1, 7, false).heights;
+    eq(last.every((h, i) => Math.abs(h - end.heights[i]) < 0.03), true, s + " last running frame is the posed dune");
+    let jump = 0;
+    for (let i = 1; i < n; i++) {
+        const p = M.stateAt(s, i - 1, 7, false).heights, c = M.stateAt(s, i, 7, false).heights;
+        c.forEach((h, k) => { jump = Math.max(jump, Math.abs(h - p[k])); });
+    }
+    eq(jump < 0.3, true, s + " no column jumps more than 0.3 in one step");
+    eq(M.stateAt(s, NaN, 1, false).done, true, s + " non-finite step returns the posed state");
 }
 eq(M.steps("bogus", false), 87, "unknown style uses grains");
 eq(M.stateAt("bogus", 0, 1, false).style, "grains", "unknown style state");
