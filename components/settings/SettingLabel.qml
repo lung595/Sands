@@ -12,6 +12,7 @@ Column {
     // Battery level and cost note of a costly setting; empty level = no chip
     property string level: ""
     property string cost: ""
+    property color titleColor: Theme.surfaceText
 
     spacing: Theme.spacingXS
 
@@ -20,7 +21,7 @@ Column {
         text: root.title
         font.pixelSize: Theme.fontSizeLarge
         font.weight: Font.Medium
-        color: Theme.surfaceText
+        color: root.titleColor
         wrapMode: Text.WordWrap
         elide: Text.ElideNone
     }

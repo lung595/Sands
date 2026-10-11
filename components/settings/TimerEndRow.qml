@@ -38,6 +38,7 @@ Column {
     SettingLabel {
         width: parent.width
         title: "When a Sands timer ends"
+        titleColor: root.view.enabled ? Theme.surfaceText : Theme.surfaceVariantText
         description: "Sands always keeps its sound and its bar chip. The Alex island can show the alarm with Stop and Snooze."
     }
 
@@ -182,7 +183,15 @@ Column {
                         width: 16
                         height: 16
                         opacity: seg.checked ? 1 : 0
+                        // Grows with the fade; opacity only with Reduce motion
+                        scale: seg.checked || SettingsData.reduceMotion ? 1 : 0.6
                         Behavior on opacity {
+                            NumberAnimation {
+                                duration: root.fadeMs(seg.checked)
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                        Behavior on scale {
                             NumberAnimation {
                                 duration: root.fadeMs(seg.checked)
                                 easing.type: Easing.OutCubic
@@ -302,8 +311,26 @@ Column {
                 height: 28
                 radius: 14
                 color: root.view.enabled ? Theme.surfaceContainerHighest : "transparent"
-                border.width: root.view.enabled ? 0 : 1.5
-                border.color: Theme.outline
+
+                // Greyed: the dashed ring of the control (a Rectangle border cannot dash)
+                Shape {
+                    visible: !root.view.enabled
+                    anchors.fill: parent
+                    ShapePath {
+                        strokeColor: Theme.outline
+                        strokeWidth: 1.5
+                        strokeStyle: ShapePath.DashLine
+                        dashPattern: [5, 4]
+                        fillColor: "transparent"
+                        PathRectangle {
+                            x: 0.75
+                            y: 0.75
+                            width: seat.width - 1.5
+                            height: seat.height - 1.5
+                            radius: 14
+                        }
+                    }
+                }
 
                 Row {
                     id: seatRow
@@ -366,7 +393,7 @@ Column {
         spacing: Theme.spacingS
 
         Rectangle {
-            width: pillRow.implicitWidth + Theme.spacingM * 2
+            width: pillRow.implicitWidth + Theme.spacingS * 2
             height: 20
             radius: 10
             color: Theme.withAlpha(Theme.primary, 0.1)
@@ -376,7 +403,7 @@ Column {
             Row {
                 id: pillRow
                 anchors.centerIn: parent
-                spacing: Theme.spacingXS
+                spacing: 6
 
                 // Three level bars: the first full, the other two at 30 %
                 Row {
@@ -417,6 +444,8 @@ Column {
         height: noteBox.height + Theme.spacingS * 2
         radius: Theme.cornerRadius
         color: Theme.surfaceContainerHighest
+        border.width: 1
+        border.color: Theme.withAlpha(Theme.outline, 0.24)
 
         Item {
             id: noteBox
@@ -437,7 +466,7 @@ Column {
                     text: root.alexLoaded ? "Alex did not answer" : "Alex is not installed or is turned off"
                     font.pixelSize: Theme.fontSizeMedium
                     font.weight: Font.DemiBold
-                    color: Theme.surfaceVariantText
+                    color: Theme.surfaceText
                     wrapMode: Text.WordWrap
                 }
 
@@ -473,7 +502,7 @@ Column {
                     color: linkMouse.containsMouse ? Theme.primary : Theme.surfaceVariantText
                     Behavior on color {
                         ColorAnimation {
-                            duration: linkMouse.containsMouse ? 150 : 100
+                            duration: root.fadeMs(linkMouse.containsMouse)
                             easing.type: Easing.OutCubic
                         }
                     }
