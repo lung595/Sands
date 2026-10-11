@@ -5,6 +5,11 @@
 // happened, what to do, and the section of docs/GUIDE.md that explains it.
 // Pure so tests can check every anchor exists in the guide.
 
+// The one place that names the guide; callers add "#" + an anchor.
+var URL = "https://github.com/lung595/Sands/blob/main/docs/GUIDE.md";
+// The section behind the greyed « when a timer ends » row
+var ALEX_ANCHOR = "alex";
+
 function rangeNote() {
     return { title: "Not started", hint: "A timer lasts between 1 second and 100 hours", anchor: "syntax" };
 }

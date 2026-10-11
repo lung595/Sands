@@ -152,7 +152,7 @@ Item {
 
     // Hard limits: a script or a typo can't fill the disk or the bar.
     readonly property int maxTimers: 50
-    readonly property string guideUrl: "https://github.com/lung595/Sands/blob/main/docs/GUIDE.md"
+    readonly property string guideUrl: Guide.URL
 
     // The note the open panel shows ({ title, hint, anchor }, see Guide.js),
     // null when there is none

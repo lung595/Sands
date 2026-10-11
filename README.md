@@ -131,6 +131,7 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 | Gentle alarm (rises from 30 %) | On |
 | Final countdown ticks | Off |
 | Respect Do Not Disturb | On |
+| When a Sands timer ends: Sands only, Sands + Alex reacts, Alarm in the Alex island (greyed without Alex; the value is Alex's) | Sands + Alex reacts |
 | Launcher: automatic detection, or a prefix | Automatic detection |
 
 ## Command line and keybindings
