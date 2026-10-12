@@ -40,7 +40,7 @@ echo bobs-pc
 SH
 chmod +x "$work/bin/dms" "$work/bin/id" "$work/bin/hostname"
 
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" PATH="$work/bin:$PATH" sh "$script" 2>&1)
+out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/bin:$PATH" sh "$script" 2>&1)
 check "the plugin's report is printed" "$(echo "$out" | grep -c 'SND-E001 action=start')" 1
 check "the first call only started it: its answer is not printed" "$(echo "$out" | grep -c 'Collecting')" 0
 check "the crash folder is read: the latest one, reduced" "$(echo "$out" | grep -c 'crash at ~/.config/quickshell on host')" 1
@@ -52,7 +52,7 @@ cat >"$work/bin/dms" <<'SH'
 [ "$1" = "version" ] && { echo "dms v1.6.3"; exit 0; }
 exit 1
 SH
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" PATH="$work/bin:$PATH" sh "$script" 2>&1)
+out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/bin:$PATH" sh "$script" 2>&1)
 check "without the plugin the fallback report says so" "$(echo "$out" | grep -c 'the plugin did not answer')" 1
 check "the fallback holds the DMS version" "$(echo "$out" | grep -c 'DMS          : dms v1.6.3')" 1
 check "the fallback leaks nothing either" "$(echo "$out" | grep -ciE "bobby|bobs-pc|/$homes/")" 0
@@ -69,7 +69,7 @@ cat >"$work/odd/dms" <<'SH'
 exit 1
 SH
 chmod +x "$work/odd/hostname" "$work/odd/dms"
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" PATH="$work/odd:$work/bin:$PATH" sh "$script" 2>&1)
+out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/odd:$work/bin:$PATH" sh "$script" 2>&1)
 check "an odd host name is hidden as written" "$(echo "$out" | grep -c 'dms v1.6.3 on host, not aXb/c&d')" 1
 
 [ "$fails" -eq 0 ] && echo "diagnose.sh: all passed" || exit 1

@@ -55,7 +55,8 @@ var _RULES = [
     [/\b[A-Za-z0-9+_-]{40,}={0,2}/g, "<secret>"],
     // Links with credentials, then e-mail addresses
     [/\b([a-z][a-z0-9+.-]*:\/\/)[^\s\/@]+@/gi, "$1<secret>@"],
-    [/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "<email>"],
+    // A picture name with its scale ("icon@2x.png") is not an address
+    [/[A-Za-z0-9._%+-]+@(?!\d+x\.[A-Za-z0-9]+(?![A-Za-z0-9.-]))[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "<email>"],
     // Hardware and network addresses: Bluetooth (colon, dash and BlueZ
     // underscore forms), IPv6 then IPv4, host names of a private network
     [new RegExp("\\b(?:" + _HEX2 + "[:-]){5}" + _HEX2 + "\\b", "g"), "<mac>"],
