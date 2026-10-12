@@ -1,16 +1,16 @@
 import QtQuick
 import QtQuick.Shapes
 import qs.Common
-import qs.Widgets
+import "../"
 import "../Press.js" as Press
 
-// The "Copy report" button: its label, the check that appears once the report
-// is copied and the heap that settles at its foot. It only says it was
-// pressed; the row decides what a press does.
-Rectangle {
+// The "Copy report" button: the quiet outline button of the settings rows,
+// plus the check that appears once the report is copied and the heap that
+// settles at its foot. It only says it was pressed (`clicked`); the row
+// decides what a press does.
+OutlineButton {
     id: button
 
-    property string label: ""
     property bool copied: false
     // The label is dimmed while the report is being built or copied
     property bool collecting: false
@@ -27,22 +27,30 @@ Rectangle {
     readonly property int settleMs: 200
     readonly property int pressMs: 100
     readonly property real pressedScale: 0.97
+    // The check: its side and the width of its round stroke
+    readonly property int checkSize: 16
+    readonly property real checkStroke: 1.5
 
-    signal activated
+    // A low dune as wide as `w`: a flat foot one pixel thick, the crest a
+    // little left of the middle, one pixel under the top
+    function heapPath(w) {
+        const foot = heapHeight - 1;
+        return "M0 " + heapHeight + "V" + foot + "C" + w * 0.22 + " " + foot + " " + w * 0.3 + " 1 " + w * 0.42 + " 1S" + w * 0.66 + " " + (foot - 1) + " " + w + " " + foot + "V" + heapHeight + "Z";
+    }
 
-    objectName: "control"
     width: labelWidth
     height: Press.TARGET
-    radius: Theme.cornerRadius
-    color: copied ? Theme.withAlpha(Theme.primary, copiedTint) : (area.containsMouse ? Theme.surfaceContainerHigh : "transparent")
-    border.width: 1
+    spacing: Theme.spacingXS
+    textColor: collecting ? Theme.surfaceVariantText : Theme.surfaceText
+    cursorShape: Qt.PointingHandCursor
+    color: copied ? Theme.withAlpha(Theme.primary, copiedTint) : (hovered ? Theme.surfaceContainerHigh : "transparent")
     border.color: copied ? Theme.primary : Theme.outline
-    scale: area.pressed && !still ? pressedScale : 1
-    activeFocusOnTab: true
-    Accessible.role: Accessible.Button
-    Accessible.name: label
-    Accessible.onPressAction: button.activated()
-    Keys.onPressed: event => Press.onKey(event, () => button.activated())
+    scale: pressed && !still ? pressedScale : 1
+    Accessible.onPressAction: button.clicked()
+    // Return and Space are the outline button's; the keypad Enter presses too
+    Keys.onEnterPressed: button.clicked()
+    // A click leaves the focus on the button, as a key press finds it
+    onClicked: button.forceActiveFocus()
 
     Behavior on color {
         ColorAnimation {
@@ -91,55 +99,33 @@ Rectangle {
             strokeWidth: -1
             fillColor: Theme.primary
             PathSvg {
-                path: "M0 8V7C" + heap.width * 0.22 + " 7 " + heap.width * 0.3 + " 1 " + heap.width * 0.42 + " 1S" + heap.width * 0.66 + " 6 " + heap.width + " 7V8Z"
+                path: button.heapPath(heap.width)
             }
         }
     }
 
-    Row {
-        anchors.centerIn: parent
-        spacing: Theme.spacingXS
-
-        // 16 px check, 1.5 px round stroke, only once copied
-        Shape {
-            width: 16
-            height: 16
-            anchors.verticalCenter: parent.verticalCenter
-            visible: opacity > 0.01
-            opacity: button.copied ? 1 : 0
-            preferredRendererType: Shape.CurveRenderer
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: button.copied ? Press.FADE_IN_MS : Press.FADE_OUT_MS
-                }
-            }
-            ShapePath {
-                strokeWidth: 1.5
-                strokeColor: Theme.primary
-                fillColor: "transparent"
-                capStyle: ShapePath.RoundCap
-                joinStyle: ShapePath.RoundJoin
-                PathSvg {
-                    path: "M3 8.5L6.5 12L13 4.5"
-                }
+    // The check before the label, only once copied (drawn on a 16 px grid)
+    lead: Shape {
+        width: button.checkSize
+        height: button.checkSize
+        anchors.verticalCenter: parent.verticalCenter
+        visible: opacity > 0.01
+        opacity: button.copied ? 1 : 0
+        preferredRendererType: Shape.CurveRenderer
+        Behavior on opacity {
+            NumberAnimation {
+                duration: button.copied ? Press.FADE_IN_MS : Press.FADE_OUT_MS
             }
         }
-        StyledText {
-            anchors.verticalCenter: parent.verticalCenter
-            text: button.label
-            font.pixelSize: Theme.fontSizeMedium
-            color: button.collecting ? Theme.surfaceVariantText : Theme.surfaceText
-        }
-    }
-
-    MouseArea {
-        id: area
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: {
-            button.forceActiveFocus();
-            button.activated();
+        ShapePath {
+            strokeWidth: button.checkStroke
+            strokeColor: Theme.primary
+            fillColor: "transparent"
+            capStyle: ShapePath.RoundCap
+            joinStyle: ShapePath.RoundJoin
+            PathSvg {
+                path: "M3 8.5L6.5 12L13 4.5"
+            }
         }
     }
 }

@@ -28,14 +28,15 @@ Item {
     property string report: ""
     // Where a button press puts its report; the settings row watches its result
     readonly property alias clipboard: copier
-    // `via` is "button" or "ipc": who asked
+    // `via` is "ipc" when the report is kept for the IPC call, else "button"
     signal built(string text, string via)
 
     // "idle", "before", "waiting", "after", "probing"
     property string _phase: "idle"
-    property string _via: "button"
     // A button press waits for the report being built
     property bool _copy: false
+    // An IPC call waits for it too
+    property bool _keep: false
     property real _ticks: -1
     property real _startedAt: 0
     property real _builtAt: 0
@@ -44,10 +45,11 @@ Item {
     property int _probe: 0
     property string _plugin: ""
 
-    // False when no new collection starts. A button press while one runs for
-    // the IPC command joins it: that report is copied too, and still handed to
-    // the IPC call. A report that waits for its IPC call is dropped only by a
-    // new IPC request, never by a button press.
+    // True when the request is taken: it starts a collection, or joins the one
+    // that runs (whoever started it, the button gets that report copied and
+    // the IPC call gets it kept). False only for a press during the copy. A
+    // report that waits for its IPC call is dropped only by a new IPC request,
+    // never by a button press.
     function request(via) {
         const button = via === "button";
         if (button && copier.result === "copying")
@@ -55,15 +57,19 @@ Item {
         if (button) {
             copier.reset();
             _copy = true;
+        } else {
+            report = "";
+            _keep = true;
         }
-        if (busy)
-            return false;
-        _via = via;
+        if (!busy)
+            _start(via);
+        return true;
+    }
+
+    function _start(via) {
         Log.event("SND-I030", {
             "via": via
         });
-        if (!button)
-            report = "";
         _answers = ({});
         _cpu = null;
         manifest.path = Paths.strip(Qt.resolvedUrl("../../plugin.json"));
@@ -71,7 +77,6 @@ Item {
         _plugin = Gather.pluginVersion(manifest.text());
         _phase = "before";
         _read();
-        return true;
     }
 
     // True while an IPC report waits to be taken and is not too old. It only
@@ -167,14 +172,16 @@ Item {
         });
         _phase = "idle";
         // The settings button copies it; the IPC command comes back for it
+        const via = _keep ? "ipc" : "button";
         if (_copy)
             copier.copy(text);
-        _copy = false;
-        if (_via === "ipc") {
+        if (_keep) {
             report = text;
             _builtAt = Date.now();
         }
-        built(text, _via);
+        _copy = false;
+        _keep = false;
+        built(text, via);
     }
 
     // Opened only for the one read of the request (the path is set there)

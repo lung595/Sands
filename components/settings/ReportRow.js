@@ -11,6 +11,10 @@ var HELP = "Versions, states and error codes only. It stays on this PC until you
 var HELP_COPIED = "Report copied. Read it, then paste it in a GitHub issue.";
 // Only the fallback (dms clipboard copy) worked: the text is in the history too
 var HELP_IN_HISTORY = "Report copied, and kept in the DMS clipboard history: delete it there once pasted.";
+// The GitHub mark: what a screen reader says, and the label shown when it is
+// focused or pointed at
+var MARK_NAME = "Open a new issue for Sands on GitHub";
+var MARK_LABEL = "Open an issue on GitHub";
 
 // The guided message when no clipboard tool worked (value 10); it names the
 // command that always works and links the guide section.

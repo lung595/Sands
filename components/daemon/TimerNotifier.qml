@@ -80,18 +80,23 @@ Item {
                 }
             }
 
-            onExited: exitCode => {
-                if (exitCode !== 0)
-                    Log.event("SND-E003", {
-                        "tool": "notify_send",
-                        "code": exitCode
-                    });
-                const map = Object.assign({}, notifier._notifiers);
-                if (map[proc.timerId] && map[proc.timerId].proc === proc) {
-                    delete map[proc.timerId];
-                    notifier._notifiers = map;
+            // A function of Connections, not `onExited`: qmllint cannot name
+            // the type of that signal's second parameter
+            property Connections _ends: Connections {
+                target: proc
+                function onExited(exitCode, exitStatus) {
+                    if (exitCode !== 0)
+                        Log.event("SND-E003", {
+                            "tool": "notify_send",
+                            "code": exitCode
+                        });
+                    const map = Object.assign({}, notifier._notifiers);
+                    if (map[proc.timerId] && map[proc.timerId].proc === proc) {
+                        delete map[proc.timerId];
+                        notifier._notifiers = map;
+                    }
+                    proc.destroy();
                 }
-                proc.destroy();
             }
         }
     }

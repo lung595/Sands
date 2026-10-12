@@ -5,6 +5,8 @@ import "../.."
 // Bench scene for the real timer engine (TimerDaemon.qml), with mock
 // processes (imports/Quickshell/Io/Process.qml): no sound and no
 // notification leave the scene. It runs until stopped.
+// It no longer loads under qml-qt6 (the alert windows need a layer shell):
+// use daemon-loop.sh, which runs the whole daemon with the real Quickshell.
 // Usage: QT_QPA_PLATFORM=offscreen qml -I imports daemon.qml -- <mode> /dev/null
 //   idle   engine loaded, no timer (nothing should run)
 //   run    one 1 h timer (the ticker only)

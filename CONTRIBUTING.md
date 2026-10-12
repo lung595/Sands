@@ -47,6 +47,9 @@ The daemon is split by role, one file each, in `components/daemon/`. Each QML fi
 | `AlarmSound.qml` | Every sound: alarm, settings preview, tick (one idle `Process` each) | `Sound.js` |
 | `TimerNotifier.qml` | End notification with Stop / +5 min (one `notify-send` per ringing timer) | `Notifications.js` |
 | `TimerIpc.qml` | The `dms ipc call smartTimer …` commands | `IpcReplies.js` |
+| `ReportService.qml` | The anonymous report, built only when asked (settings button or `diagnostics` IPC call) | `diagnostics/*.js` |
+| `ReportClipboard.qml` | Copies the report: `wl-copy --sensitive`, then `dms clipboard copy`; the text goes through standard input | `diagnostics/Gather.js` |
+| `ToolProcess.qml` | A `Process` that always ends with one `finished`, even when the tool is missing or hangs | |
 | | State transitions, expiry, next wake-up, restore | `Lifecycle.js` |
 
 Logic that can be tested lives in **pure `.js` files** with no QML:
@@ -58,6 +61,9 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 - `Preview.js`: the one-line preview and the « Rings at … » line the launcher shows before Enter.
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
+- `components/Press.js`: what the controls drawn by hand share (the keys that press them, the 44 px target, the fades).
+- `diagnostics/*.js`: the anonymous report. `Gather.js` (the probes and how their answers are read), `Redact.js` (what is hidden), `Report.js` (the text), `Cpu.js`, `Log.js`, `Codes.js`, `Allow.js`. `scripts/diagnose.sh` builds the same report from a terminal when the shell does not answer; its cleaning rules mirror `Redact.js` and both sides are tested (`tests/diagnostics.test.js`, `tests/diagnose.test.sh`).
+- `components/settings/ReportRow.js`: every word and state of the "Copy report" row.
 - `components/settings/Sections.js`: the settings sections and every setting as one table (keys, help, synonyms, battery level); `components/settings/Search.js`: the settings search over it (copied from Orbit's engine, typo-tolerant, ranked). Not drawn yet.
 
 **Motion timers.** Nothing animates with QML animations while idle. The pill's single motion clock is `components/PillClock.qml`, driven by `HorizontalPill.qml`: 16 ms only for the bell swing, 33 ms for the final-countdown beat and the breathing; it runs only while ringing or beating and stops after the alarm duration. The panel's sand clock is `components/hourglass/MotionClock.qml` (33 ms once the sand is settled, stopped under Reduce motion).
@@ -86,6 +92,7 @@ Sands/
 │   ├── PillClicks.qml          # middle click and wheel on the pill
 │   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
 │   │   ├── TimerStore.qml, AlarmSound.qml, TimerNotifier.qml, TimerIpc.qml
+│   │   ├── ReportService.qml, ReportClipboard.qml, ToolProcess.qml   # the anonymous report, on demand only
 │   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js, PlainText.js   (tested)
 │   ├── alert/                  # "Rising dune" alert: DuneAlert (host), RingAlert (wiring to the engine), DuneWindows (layer window per screen), DuneBand (Loader, 30 Hz Timer, legend), GrainsScene (Last grains), WindScene (Wind dune), WaveScene (Flat wave); pure logic DuneStyles.js, DuneMotion.js, SandTint.js, AlertPolicy.js, HaloMotion.js   (logic tested by gjs, band by tests/qml-dune/run.sh)
 │   ├── TimerPanelContent.qml   # panel: state, switching between timers, wiring of the parts below
@@ -99,6 +106,8 @@ Sands/
 │   │                           #   MotionClock (the one Timer), Turn (flip, wild), SandLevel (eased level), SandStream (grains),
 │   │                           #   Glass (the glass canvas), Halos/Halo, Shadow, GotSlot (Loader)/GotLayer/GotBack/GotFront/GotPalette (Glass of Time)
 │   ├── settings/               # Sections.js (settings table, helpers), Search.js (search)   (tested)
+│   │                           #   "Copy report" row: CopyReport (row), ReportButton (an OutlineButton with its check and heap), ReportMark (GitHub link), ReportRow.js (words and states, tested)
+│   ├── FocusRing.qml, Press.js # the keyboard focus ring; keys, target size and fades of the hand-drawn controls
 │   ├── ProgressRing.qml        # the ring used in the pill and lists
 │   ├── HelpNote.qml            # the short note at the top of the panel
 │   ├── GitHubMark.qml          # GitHub logo that opens the guide section
@@ -107,6 +116,8 @@ Sands/
 ├── components/journal/         # the time journal screen: JournalView (one Loader, two looks), Strata, Threads, Swatch, ElidedName, Journal.js (pure rules, tested)
 ├── sounds/                     # the shipped rings (hourglass.ogg, silt-chime.ogg)
 ├── tools/sounds/               # renders hourglass.ogg (python3 tools/sounds/generate.py OUT), check.py inspects rings; README.md lists hashes
+├── diagnostics/                # the anonymous report as pure rules: Gather.js, Redact.js, Report.js, Cpu.js, Log.js, Codes.js, Allow.js   (tested)
+├── scripts/diagnose.sh         # the same report from a terminal, for when the shell does not answer (tested by tests/diagnose.test.sh)
 ├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
 ├── tests/
 │   ├── parser.test.js
@@ -174,6 +185,17 @@ Scenes (`shot.qml -- <scene> <out.png>`): `pill-idle`, `pill-running`, `pill-lab
 banc-ab.sh -s scripts/preview <repo> <refA> <refB> -- \
   sh -c 'cd scripts/preview && exec qml-qt6 -I imports shot.qml -- panel-hold /dev/null'
 ```
+
+The whole daemon (`TimerDaemon.qml` and every part it loads) has its own scene, run by the real Quickshell offscreen in a throw-away home, with stand-ins on `PATH` for the sound players, `notify-send`, the clipboard tools, `dms` and `niri`. It also runs an older revision, so both sides of a bench load the same scene:
+
+```sh
+sh scripts/preview/daemon-loop.sh idle      # daemon loaded, nothing asked
+sh scripts/preview/daemon-loop.sh run       # one 1 h timer
+sh scripts/preview/daemon-loop.sh report    # one anonymous report every 12 s, with the real read-only probes
+banc-ab.sh -s scripts/preview <repo> <refA> <refB> -- sh scripts/preview/daemon-loop.sh idle
+```
+
+It prints `sands-bench ready <mode>` on stderr once loaded (the start-up measure waits for it). `report.qml` is the report service alone with mock tools; `daemon.qml` (mock processes, `qml-qt6`) no longer loads since the alert windows need a layer shell.
 
 Useful cases: `panel-hold` (sand flowing), `panel-paused-hold` (frozen), `pill-done-hold` (alarm pill), `panel-4-hold`, `hourglass-running-hold`, plus `-reduce`. `outils/essai.sh Sands <commit>` opens `panel-hold` in a window (see `essai.conf`).
 

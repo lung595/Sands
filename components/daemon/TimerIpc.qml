@@ -113,13 +113,13 @@ IpcHandler {
 
     // dms ipc call smartTimer diagnostics: the first call starts the anonymous
     // report, the next one (a couple of seconds later) hands it over, once.
+    // A call made while the settings button collects joins that collection.
     // Nothing is measured unless this is called, and no argument is read.
     function diagnostics(): string {
         if (report.hasReport())
             return Gather.capped(report.takeReport());
-        if (report.busy)
-            return Replies.stillCollecting(engine.guideUrl);
+        const joined = report.busy;
         report.request("ipc");
-        return Replies.collecting(engine.guideUrl);
+        return joined ? Replies.stillCollecting(engine.guideUrl) : Replies.collecting(engine.guideUrl);
     }
 }

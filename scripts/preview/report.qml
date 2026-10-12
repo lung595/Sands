@@ -30,7 +30,8 @@ Window {
         }
         onBuilt: (text, via) => {
             win.built++;
-            console.log("report " + win.built + " built for " + via + ": " + text.length + " characters");
+            // warn, not log: console.log does not reach the terminal of a bench
+            console.warn("report " + win.built + " built for " + via + ": " + text.length + " characters");
         }
     }
 

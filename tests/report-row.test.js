@@ -20,6 +20,8 @@ eq(Row.view("idle").markActive, false, "mark rests otherwise");
 eq(Row.view("none").note.anchor, "report-a-problem", "guide anchor");
 eq(Row.view("idle").note, null, "no message at rest");
 eq(Row.GITHUB_URL, "https://github.com/lung595/Sands/issues/new/choose", "constant URL");
+eq(Row.MARK_NAME, "Open a new issue for Sands on GitHub", "what a screen reader says of the mark");
+eq(Row.MARK_LABEL, "Open an issue on GitHub", "label of the mark");
 
 let text = JSON.stringify([Row.view("idle"), Row.view("copied"), Row.view("none"), Row.view("collecting")]);
 eq(Row.view("copied", true).help, "Report copied, and kept in the DMS clipboard history: delete it there once pasted.", "the fallback copy says the history holds it");

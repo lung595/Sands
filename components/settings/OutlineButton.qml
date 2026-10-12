@@ -10,6 +10,14 @@ Rectangle {
 
     property string text: ""
     property string iconName: ""
+    // For a button that says more than its label ("Copy report"): the colour
+    // of the label, what is drawn before it and how close, the pointer
+    property color textColor: Theme.surfaceText
+    property alias lead: leadSlot.data
+    property alias spacing: content.spacing
+    property alias cursorShape: area.cursorShape
+    readonly property alias pressed: area.pressed
+    readonly property alias hovered: area.containsMouse
 
     signal clicked
 
@@ -33,6 +41,10 @@ Rectangle {
         anchors.centerIn: parent
         spacing: Theme.spacingS
 
+        Row {
+            id: leadSlot
+            anchors.verticalCenter: parent.verticalCenter
+        }
         DankIcon {
             visible: root.iconName !== ""
             anchors.verticalCenter: parent.verticalCenter
@@ -44,15 +56,17 @@ Rectangle {
             id: label
             anchors.verticalCenter: parent.verticalCenter
             text: root.text
-            color: Theme.surfaceText
+            color: root.textColor
             font.pixelSize: Theme.fontSizeMedium
             wrapMode: Text.NoWrap
         }
     }
 
     MouseArea {
+        id: area
         anchors.fill: parent
         enabled: root.enabled
+        hoverEnabled: true
         onClicked: root.clicked()
     }
 }

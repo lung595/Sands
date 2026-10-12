@@ -10,6 +10,10 @@ var FADE_IN_MS = 150;
 var FADE_OUT_MS = 100;
 // The smallest side of a control that is pressed
 var TARGET = 44;
+// The GitHub mark inside a control
+var MARK_SIZE = 18;
+// How much of the outline colour edges a floating note or label
+var EDGE_ALPHA = 0.24;
 
 // Enter, Return and Space press the focused control, as on a real button
 function activates(key) {

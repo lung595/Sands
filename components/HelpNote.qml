@@ -1,7 +1,6 @@
 import QtQuick
 import qs.Common
 import qs.Widgets
-import "settings"
 import "Press.js" as Press
 
 // Shown in the panel when something you tried cannot be done: never a
@@ -45,7 +44,7 @@ Rectangle {
     radius: Theme.cornerRadius
     color: Theme.surfaceContainerHighest
     border.width: 1
-    border.color: Theme.withAlpha(Theme.outline, 0.24)
+    border.color: Theme.withAlpha(Theme.outline, Press.EDGE_ALPHA)
 
     // Only runs while a note is shown, and waits while it is pointed at
     Timer {
@@ -105,7 +104,7 @@ Rectangle {
             }
             GitHubMark {
                 anchors.centerIn: parent
-                size: 18
+                size: Press.MARK_SIZE
                 color: link.containsMouse ? Theme.primary : Theme.surfaceVariantText
             }
             MouseArea {

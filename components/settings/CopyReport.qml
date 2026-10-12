@@ -101,7 +101,7 @@ Column {
                 radius: Theme.cornerRadius
                 color: Theme.surfaceContainerHigh
                 border.width: 1
-                border.color: Theme.withAlpha(Theme.outline, 0.24)
+                border.color: Theme.withAlpha(Theme.outline, Press.EDGE_ALPHA)
                 Behavior on opacity {
                     NumberAnimation {
                         duration: mark.labelled ? Press.FADE_IN_MS : Press.FADE_OUT_MS
@@ -112,7 +112,7 @@ Column {
                     x: root.labelPadX
                     y: root.labelPadY
                     width: parent.width - 2 * root.labelPadX
-                    text: "Open an issue on GitHub"
+                    text: Words.MARK_LABEL
                     wrapMode: Text.WordWrap
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.surfaceText
@@ -126,11 +126,11 @@ Column {
                 spacing: Theme.spacingS
 
                 ReportButton {
-                    label: root.view.button
+                    text: root.view.button
                     copied: root.copied
                     collecting: root.view.state === "collecting"
                     still: root.still
-                    onActivated: root.press()
+                    onClicked: root.press()
                 }
                 ReportMark {
                     id: mark

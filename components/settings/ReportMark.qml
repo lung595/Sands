@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Common
+import "ReportRow.js" as Words
 import "../"
 import "../Press.js" as Press
 
@@ -21,7 +22,7 @@ Item {
     height: Press.TARGET
     activeFocusOnTab: true
     Accessible.role: Accessible.Link
-    Accessible.name: "Open a new issue for Sands on GitHub"
+    Accessible.name: Words.MARK_NAME
     Accessible.onPressAction: mark.activated()
     Keys.onPressed: event => Press.onKey(event, () => mark.activated())
 
@@ -31,7 +32,7 @@ Item {
     }
     GitHubMark {
         anchors.centerIn: parent
-        size: 18
+        size: Press.MARK_SIZE
         color: mark.lit ? Theme.primary : Theme.surfaceVariantText
         Behavior on color {
             ColorAnimation {

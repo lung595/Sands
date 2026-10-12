@@ -11,8 +11,9 @@ import "components/daemon"
 // runs at rest, the text reaches the tool by standard input and never by its
 // arguments, a missing wl-copy falls back to dms, no tool at all ends in
 // "none", an IPC report is handed over once, a button press during an IPC
-// collection gets that report copied too, and a later press is copied by the
-// service without touching the report that waits. Run with tests/qml/run.sh.
+// collection gets that report copied too, a later press is copied by the
+// service without touching the report that waits, and an IPC call during a
+// button collection gets that report kept. Run with tests/qml/run.sh.
 ShellRoot {
     id: root
 
@@ -76,7 +77,7 @@ ShellRoot {
             clip.copy("FALLBACK-LINE");
         } else if (step === 6) {
             service.request("ipc");
-            check(!service.request("button") && service.busy, "a press during an IPC collection joins it");
+            check(service.request("button") && service.busy, "a press during an IPC collection joins it");
         }
     }
 
@@ -134,7 +135,13 @@ ShellRoot {
                 return;
             }
             root.check(service.takeReport() === root.ipcText && root.ipcText !== "", "take returns the IPC report");
-            root.check(service.takeReport() === "" && !service.hasReport() && !service.busy, "taken once, nothing kept after a button press");
+            if (root.copies === 2) {
+                root.check(service.takeReport() === "" && !service.hasReport() && !service.busy, "taken once, nothing kept after a button press");
+                // An IPC call that arrives while the button collects joins in
+                root.check(service.request("button") && service.busy, "a third press collects");
+                root.check(service.request("ipc") && !service.hasReport(), "an IPC call during a button collection is taken");
+                return;
+            }
             look.after = t => {
                 root.check(t.indexOf("dmsstdin:Sands diagnostic report") >= 0, "the button's report reached the tool: " + t.slice(0, 200));
                 root.finish();

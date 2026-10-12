@@ -49,9 +49,17 @@ Process {
         _phase = "running";
         launched();
     }
-    onExited: (exitCode, exitStatus) => root._end(root._timedOut ? -2 : exitCode)
     onRunningChanged: {
         if (!running && _phase === "launching")
             _end(-1);
+    }
+
+    // A function of Connections, not `onExited`: qmllint cannot name the type
+    // of that signal's second parameter
+    property Connections _ends: Connections {
+        target: root
+        function onExited(exitCode, exitStatus) {
+            root._end(root._timedOut ? -2 : exitCode);
+        }
     }
 }
