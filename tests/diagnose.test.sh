@@ -73,7 +73,9 @@ out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobb
 check "an odd host name is hidden as written" "$(echo "$out" | grep -c 'dms v1.6.3 on host, not aXb/c&d')" 1
 
 # The journal writes the short machine name while the tool gives the full one;
-# the fallback cuts it after the date, then hides both forms anywhere else
+# the fallback asks for bare messages ("-o cat"), cuts the prefix of a line
+# that still has one (English, French, Japanese date), then hides both forms
+# of the name anywhere else
 mkdir -p "$work/full"
 cat >"$work/full/hostname" <<'SH'
 #!/bin/sh
@@ -81,7 +83,12 @@ echo 'bobs-pc.example.org'
 SH
 cat >"$work/full/journalctl" <<'SH'
 #!/bin/sh
+echo "$*" >"$(dirname "$0")/journal.args"
 echo 'Oct 08 12:00:00 bobs-pc qs[12]: [sands] SND-I001 ready'
+echo 'oct. 08 12:00:03 bobs-pc qs[12]: [sands] SND-W010 tool=pw_play'
+echo '10月 08 12:00:04 bobs-pc qs[12]: [sands] SND-E003 tool=pw_play code=1'
+echo '[sands] SND-I020 surface=widget'
+echo '[sands] Bearer abcdef123 ghp_abcdefgh1234 fe80::1ff:fe23:4567:890a /root/x https://bob:pw@files.example.net/x'
 echo 'Oct 08 12:00:01 bobs-pc qs[12]: [sands] seen on bobs-pc with token=abc123 and Password: hunter2'
 echo 'Oct 08 12:00:02 bobs-pc qs[12]: [sands] icon@2x.png for bob@2x.io on /run/media/bobby/USB'
 SH
@@ -94,12 +101,32 @@ chmod +x "$work/full/hostname" "$work/full/journalctl" "$work/full/dms"
 long=$(printf '%0300d' 0 | tr 0 x)
 printf 'api_key = sk123\nbell\007here\n%s\n' "$long" >"$work/$homes/bobby/.cache/quickshell/crashes/new/log.txt"
 out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/full:$work/bin:$PATH" sh "$script" 2>&1)
-check "the journal's machine name is cut after the date" "$(echo "$out" | grep -c '^  Oct 08 12:00:00 qs\[12\]: \[sands\] SND-I001 ready$')" 1
+check "the journal is asked for the message alone" "$(grep -c -- '-o cat' "$work/full/journal.args")" 1
+check "a line that still has its prefix loses it whole" "$(echo "$out" | grep -c '^  \[sands\] SND-I001 ready$')" 1
+check "a French and a Japanese date are cut too" "$(echo "$out" | grep -cE '^  \[sands\] SND-(W010 tool=pw_play|E003 tool=pw_play code=1)$')" 2
+check "a bare message is kept as it is" "$(echo "$out" | grep -c '^  \[sands\] SND-I020 surface=widget$')" 1
+check "no local time and no program name left" "$(echo "$out" | grep -cE '12:00:0|qs\[')" 0
+check "bearer, token prefix, IPv6, root folder and link credentials are hidden as in Redact.js" "$(echo "$out" | grep -c '^  \[sands\] Bearer <secret> <secret> <ip> ~/x https://<secret>@files.example.net/x$')" 1
 check "the short and the full machine name are hidden" "$(echo "$out" | grep -ciE 'bobs-pc|example\.org')" 0
 check "a key and its value: the value is hidden" "$(echo "$out" | grep -c 'seen on host with token=<secret> and Password: <secret>')" 1
 check "a picture's scale stays, an address is hidden, a drive's folder loses the login" "$(echo "$out" | grep -c 'icon@2x.png for <email> on /run/media/<user>/USB')" 1
 check "a crash file: secret hidden, control character gone" "$(echo "$out" | grep -cE '^  (api_key = <secret>|bellhere)$')" 2
 check "a crash file: no line over 240 characters (plus the indent)" "$(echo "$out" | awk 'length($0) > 242' | wc -l)" 0
 rm -f "$work/$homes/bobby/.cache/quickshell/crashes/new/log.txt"
+
+# A machine name of two characters is hidden where it stands alone, not inside a word
+mkdir -p "$work/tiny"
+cat >"$work/tiny/hostname" <<'SH'
+#!/bin/sh
+echo pc
+SH
+cat >"$work/tiny/dms" <<'SH'
+#!/bin/sh
+[ "$1" = "version" ] && { echo "dms v1.6.3 on pc, not pcx nor a-pc"; exit 0; }
+exit 1
+SH
+chmod +x "$work/tiny/hostname" "$work/tiny/dms"
+out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/tiny:$work/bin:$PATH" sh "$script" 2>&1)
+check "a two-character host name is hidden as a whole word only" "$(echo "$out" | grep -c 'dms v1.6.3 on host, not pcx nor a-pc')" 1
 
 [ "$fails" -eq 0 ] && echo "diagnose.sh: all passed" || exit 1

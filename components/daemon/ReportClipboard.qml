@@ -1,12 +1,13 @@
 import QtQuick
 import "../../diagnostics/Gather.js" as Gather
 import "../../diagnostics/Log.js" as Log
+import "../Press.js" as Press
 
 // Puts the report on the clipboard through a program, never through
 // Quickshell's own clipboard: only wl-copy can mark the text as sensitive,
 // which keeps it out of DMS's clipboard history (D371). The text goes in by
 // standard input (nothing on the command line), and the fallback is DMS's own
-// copy. Nothing runs until copy() is called.
+// copy. Nothing runs until copy() is called; "copied" goes back to rest alone.
 Item {
     id: root
 
@@ -25,6 +26,13 @@ Item {
         inHistory = false;
         result = "copying";
         _try(0);
+    }
+
+    // Back to rest, for whoever showed the result and goes away or asks again;
+    // a copy that is running is left to end
+    function reset() {
+        if (result !== "copying")
+            result = "idle";
     }
 
     function _try(index) {
@@ -50,6 +58,13 @@ Item {
         }
         _text = "";
         result = "none";
+    }
+
+    // Runs only while "copied" is shown
+    Timer {
+        running: root.result === "copied"
+        interval: Press.PASSING_MS
+        onTriggered: root.result = "idle"
     }
 
     ToolProcess {

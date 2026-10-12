@@ -221,7 +221,7 @@ Item {
                 }
                 if (state === undefined)
                     continue;
-                row.daemon.reportClipboard.result = state === "label" ? "idle" : state;
+                row.daemon.report.clipboard.result = state === "label" ? "idle" : state;
                 if (state === "label")
                     row.markControl.forceActiveFocus();
             }

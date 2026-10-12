@@ -11,8 +11,14 @@
 // goes through the allowlist and Redact, so what comes out holds versions,
 // states and codes, and nothing that identifies a person or a machine.
 
+// The journal is read without its line prefix (Gather.PROBES, "-o cat"). These
+// two are the second wall, should a line still come with one.
 // "Oct 08 12:00:00 <host> qs[123]: " as journalctl writes it by default
 var SYSLOG_PREFIX = /^\w{3} [ \d]\d \d\d:\d\d:\d\d \S+ \S+: /;
+// The same under another language or date format ("oct. 08 ...", "10月 08 ...",
+// "2026-10-08T12:00:00+0200 ..."): whatever stands before the time, then the
+// machine name and "program[pid]: "
+var LOCAL_PREFIX = /^[^\[\]]{0,40}?\d\d:\d\d:\d\d\S{0,12}(?: [A-Z]{2,5})? \S+ \S+\[\d+\]: /;
 
 // A version or a distribution name: letters, digits and a few separators
 function _version(v) {
@@ -73,7 +79,7 @@ function build(info) {
     // The journal only carries what the plugin tagged, but the engine's own
     // errors name files and folders: cleaned like everything else. The short
     // journalctl format starts with the machine name, which no pattern could
-    // recognise, so that prefix is cut off first. A device name in an engine
+    // recognise, so that prefix is cut off first if it is there. A device name in an engine
     // line is hidden only once registered (Redact.register): the caller does so.
     var tag = "[" + Codes.LABEL + "]";
     var kept = lines.filter(function (l) {
@@ -83,6 +89,6 @@ function build(info) {
     if (!kept.length)
         out.push("  none");
     for (var k = 0; k < kept.length; k++)
-        out.push("  " + Redact.text(kept[k].replace(SYSLOG_PREFIX, "")));
+        out.push("  " + Redact.text(kept[k].replace(SYSLOG_PREFIX, "").replace(LOCAL_PREFIX, "")));
     return out.join("\n") + "\n";
 }

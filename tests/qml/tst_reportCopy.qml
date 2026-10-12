@@ -3,21 +3,24 @@ import Quickshell
 import Quickshell.Io
 import "components/daemon"
 
-// needs: components/daemon/ReportService.qml components/daemon/ReportClipboard.qml components/daemon/ToolProcess.qml diagnostics/Cpu.js diagnostics/Gather.js diagnostics/Log.js diagnostics/Redact.js diagnostics/Report.js diagnostics/Allow.js diagnostics/Codes.js plugin.json
+// needs: components/daemon/ReportService.qml components/daemon/ReportClipboard.qml components/daemon/ToolProcess.qml diagnostics/Cpu.js diagnostics/Gather.js diagnostics/Log.js diagnostics/Redact.js diagnostics/Report.js diagnostics/Allow.js diagnostics/Codes.js components/Press.js plugin.json
 // stubs: qs
 // layout: tree
 // fakebin
 // Offscreen test of the report path with fake wl-copy and dms on PATH: nothing
 // runs at rest, the text reaches the tool by standard input and never by its
 // arguments, a missing wl-copy falls back to dms, no tool at all ends in
-// "none", an IPC report is handed over once, and a button press is copied by
-// the service itself. Run with tests/qml/run.sh.
+// "none", an IPC report is handed over once, a button press during an IPC
+// collection gets that report copied too, and a later press is copied by the
+// service without touching the report that waits. Run with tests/qml/run.sh.
 ShellRoot {
     id: root
 
     readonly property string tmp: Quickshell.env("QML_TMP")
     property int step: 0
     property bool failed: false
+    property int copies: 0
+    property string ipcText: ""
 
     function check(ok, what) {
         if (!ok) {
@@ -73,6 +76,7 @@ ShellRoot {
             clip.copy("FALLBACK-LINE");
         } else if (step === 6) {
             service.request("ipc");
+            check(!service.request("button") && service.busy, "a press during an IPC collection joins it");
         }
     }
 
@@ -109,23 +113,28 @@ ShellRoot {
         function onBuilt(text, via) {
             if (via === "button")
                 return;
+            root.ipcText = text;
             root.check(via === "ipc" && text.length > 0, "built for ipc");
-            root.check(service.hasReport(), "report waits for the IPC call");
-            const first = service.takeReport();
-            root.check(first === text, "take returns the report");
-            root.check(service.takeReport() === "" && !service.hasReport(), "taken once");
-            // A button press: the service copies its report itself and keeps none
-            service.request("button");
+            root.check(service.hasReport() && service.hasReport(), "report waits for the IPC call, asking twice changes nothing");
+            root.check(!service.request("button"), "a press while the copy runs starts nothing");
         }
     }
 
     Connections {
         target: service.clipboard
         function onResultChanged() {
-            if (service.clipboard.result === "copying")
+            if (service.clipboard.result === "copying" || service.clipboard.result === "idle")
                 return;
+            root.copies++;
             root.check(service.clipboard.result === "copied" && service.clipboard.inHistory, "the button's report is copied by the fallback and flagged");
-            root.check(!service.busy && !service.hasReport(), "nothing kept after a button press");
+            if (root.copies === 1) {
+                // The press made during the IPC collection got that report; a
+                // new press builds its own and leaves the waiting one alone
+                root.check(service.request("button") && service.hasReport(), "a new press keeps the waiting IPC report");
+                return;
+            }
+            root.check(service.takeReport() === root.ipcText && root.ipcText !== "", "take returns the IPC report");
+            root.check(service.takeReport() === "" && !service.hasReport() && !service.busy, "taken once, nothing kept after a button press");
             look.after = t => {
                 root.check(t.indexOf("dmsstdin:Sands diagnostic report") >= 0, "the button's report reached the tool: " + t.slice(0, 200));
                 root.finish();

@@ -16,8 +16,13 @@ Rectangle {
     property bool collecting: false
     // Reduce motion: no scale, the heap appears at its full height
     property bool still: false
-    property int fadeIn: 150
-    property int fadeOut: 100
+    // Wide enough for its longest label ("Collecting...")
+    readonly property int labelWidth: 112
+    // How much of the primary colour fills it once copied
+    readonly property real copiedTint: 0.14
+    // The heap: its height, and the share of it shown when it starts to rise
+    readonly property int heapHeight: 8
+    readonly property real heapStart: 0.3
     // The heap and its fade take a little longer to settle than a plain fade
     readonly property int settleMs: 200
     readonly property int pressMs: 100
@@ -26,10 +31,10 @@ Rectangle {
     signal activated
 
     objectName: "control"
-    width: 112
-    height: 44
+    width: labelWidth
+    height: Press.TARGET
     radius: Theme.cornerRadius
-    color: copied ? Theme.withAlpha(Theme.primary, 0.14) : (area.containsMouse ? Theme.surfaceContainerHigh : "transparent")
+    color: copied ? Theme.withAlpha(Theme.primary, copiedTint) : (area.containsMouse ? Theme.surfaceContainerHigh : "transparent")
     border.width: 1
     border.color: copied ? Theme.primary : Theme.outline
     scale: area.pressed && !still ? pressedScale : 1
@@ -41,7 +46,7 @@ Rectangle {
 
     Behavior on color {
         ColorAnimation {
-            duration: button.fadeIn
+            duration: Press.FADE_IN_MS
         }
     }
     Behavior on scale {
@@ -60,17 +65,17 @@ Rectangle {
     Shape {
         id: heap
         width: parent.width - 2
-        height: 8
+        height: button.heapHeight
         x: 1
         y: parent.height - height - 1
         visible: opacity > 0.01
         opacity: button.copied ? 1 : 0
         transform: Scale {
             origin.y: heap.height
-            yScale: button.still || button.copied ? 1 : 0.3
+            yScale: button.still || button.copied ? 1 : button.heapStart
             Behavior on yScale {
                 NumberAnimation {
-                    duration: button.copied ? button.settleMs : button.fadeOut
+                    duration: button.copied ? button.settleMs : Press.FADE_OUT_MS
                     easing.type: Easing.OutCubic
                 }
             }
@@ -78,7 +83,7 @@ Rectangle {
         preferredRendererType: Shape.CurveRenderer
         Behavior on opacity {
             NumberAnimation {
-                duration: button.copied ? button.settleMs : button.fadeOut
+                duration: button.copied ? button.settleMs : Press.FADE_OUT_MS
                 easing.type: Easing.OutCubic
             }
         }
@@ -105,7 +110,7 @@ Rectangle {
             preferredRendererType: Shape.CurveRenderer
             Behavior on opacity {
                 NumberAnimation {
-                    duration: button.copied ? button.fadeIn : button.fadeOut
+                    duration: button.copied ? Press.FADE_IN_MS : Press.FADE_OUT_MS
                 }
             }
             ShapePath {

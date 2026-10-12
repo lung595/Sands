@@ -10,8 +10,6 @@ Item {
 
     // Drawn in the primary colour (the report has just been copied)
     property bool active: false
-    property int fadeIn: 150
-    property int fadeOut: 100
     // Focused or pointed at: the row shows the label of the mark
     readonly property bool labelled: activeFocus || area.containsMouse
     readonly property bool lit: active || labelled
@@ -19,8 +17,8 @@ Item {
     signal activated
 
     objectName: "control"
-    width: 44
-    height: 44
+    width: Press.TARGET
+    height: Press.TARGET
     activeFocusOnTab: true
     Accessible.role: Accessible.Link
     Accessible.name: "Open a new issue for Sands on GitHub"
@@ -37,7 +35,7 @@ Item {
         color: mark.lit ? Theme.primary : Theme.surfaceVariantText
         Behavior on color {
             ColorAnimation {
-                duration: mark.lit ? mark.fadeIn : mark.fadeOut
+                duration: mark.lit ? Press.FADE_IN_MS : Press.FADE_OUT_MS
             }
         }
     }

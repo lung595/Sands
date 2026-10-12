@@ -156,9 +156,8 @@ Item {
     // Hard limits: a script or a typo can't fill the disk or the bar.
     readonly property int maxTimers: 50
     readonly property string guideUrl: Guide.URL
-    // The settings page presses and observes these two
+    // The settings page presses and observes it (and its `clipboard`)
     readonly property alias report: reportService
-    readonly property alias reportClipboard: reportService.clipboard
 
     // The note the open panel shows ({ title, hint, anchor }, see Guide.js),
     // null when there is none

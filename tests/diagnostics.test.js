@@ -182,7 +182,13 @@ const report = Report.build({
         "WARN qml: [sands] SND-W010 tool=pw_play",
         "ERROR qml: QML Sands at file://" + HOME + "/.config/DankMaterialShell/plugins/smartTimer/A.qml[4:1]: Bob's pasta " + MAC + " " + IP4,
         "INFO qml: something unrelated of another plugin 192.168.7.23",
-        "Oct 10 12:00:00 laptop-jdoe qs[123]: [sands] SND-W011 reason=bad_input"
+        "Oct 10 12:00:00 laptop-jdoe qs[123]: [sands] SND-W011 reason=bad_input",
+        // The same prefix as a French and a Japanese session write it, and an ISO date
+        "oct. 10 12:00:01 laptop-jdoe qs[123]: [sands] SND-I020 surface=widget",
+        "10月 10 12:00:02 laptop-jdoe qs[123]: [sands] SND-E003 tool=pw_play code=1",
+        "2026-10-10T12:00:03+0200 laptop-jdoe qs[123]: [sands] SND-I030 via=ipc",
+        // What "-o cat" gives: the message alone
+        "[sands] SND-I030 via=button"
     ]
 });
 const lines = report.split("\n");
@@ -200,12 +206,17 @@ eq("the report's header holds the versions, surfaces, settings, state and CPU", 
     "Last events (2 of 200 kept, oldest first, UTC):"
 ]);
 eq("only the plugin's own journal lines are kept, cleaned", lines.slice(13), [
-    "Journal lines (anonymized, 3 kept, last 50 at most):",
+    "Journal lines (anonymized, 7 kept, last 50 at most):",
     "  WARN qml: [sands] SND-W010 tool=pw_play",
     "  ERROR qml: QML Sands at file://~/.config/DankMaterialShell/plugins/smartTimer/A.qml[4:1]: label#1 <mac> <ip>",
     "  [sands] SND-W011 reason=bad_input",
+    "  [sands] SND-I020 surface=widget",
+    "  [sands] SND-E003 tool=pw_play code=1",
+    "  [sands] SND-I030 via=ipc",
+    "  [sands] SND-I030 via=button",
     ""
 ]);
+eq("no journal prefix survives a date that is not English: no local time, no program", lines.slice(13).filter(l => /12:00:0|qs\[|月|oct\./.test(l)), []);
 const leaks = ["Bob", "pasta", "jdoe", "AA:BB", "192.168", "\x2fhome/", "Music", "alarm", "bobtimer", "laptop", "hostname"].filter(w => report.indexOf(w) >= 0);
 eq("no label, trigger, sound path, address, login or host anywhere in the report", leaks, []);
 
@@ -243,6 +254,7 @@ eq("every code with every hostile value gives a plain line", dirty, []);
 eq("versions come out of each tool's own line", [Gather.parse("dms", "dms v1.6.3\n"), Gather.parse("niri", "niri 26.04 (8ed0da4)"), Gather.parse("quickshell", "Quickshell 0.3.1 (revision , distributed by Someone)")], ["1.6.3", "26.04", "0.3.1"]);
 eq("a tool that said nothing usable gives an empty version", [Gather.parse("dms", ""), Gather.parse("niri", "error: \x2fhome/bob/x not found"), Gather.parse("dms", null)], ["", "", ""]);
 eq("the distribution is the pretty name of os-release", Gather.parse("distro", 'NAME="Fedora Linux"\nPRETTY_NAME="Fedora Linux 44 (Workstation Edition)"\nID=fedora\n'), "Fedora Linux 44 (Workstation Edition)");
+eq("the journal is asked for the message alone, without date, host or program", Gather.PROBES.filter(p => p.key === "journal")[0].command.slice(-2), ["-o", "cat"]);
 eq("the journal is kept as non-empty lines", Gather.parse("journal", "a\n\nb\n"), ["a", "b"]);
 eq("the plugin version is read from plugin.json, or empty", [Gather.pluginVersion('{"version":"1.5.1"}'), Gather.pluginVersion("not json"), Gather.pluginVersion('{"version":3}')], ["1.5.1", "", ""]);
 eq("only declared settings are read, an unknown value is skipped", Gather.settingsOf(k => k === "notify" ? true : k === "volume" ? 80 : k === "customSound" ? "x" : undefined), { "volume": 80, "notify": true });

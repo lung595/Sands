@@ -8,7 +8,9 @@
 // in a tool's output cannot get through.
 
 // Argument lists, never a shell string (value 11). The journal is read for
-// the DMS unit only; the report keeps what the plugin tagged in it.
+// the DMS unit only, as bare messages ("-o cat": no date, machine name or
+// program in front, whatever the language of the session); the report keeps
+// what the plugin tagged in it.
 var PROBES = [
     { "key": "dms", "command": ["dms", "version"] },
     { "key": "quickshell", "command": ["quickshell", "--version"] },
@@ -16,7 +18,7 @@ var PROBES = [
     // QML cannot tell its own Qt version; the package manager can (Fedora)
     { "key": "qt", "command": ["rpm", "-q", "--qf", "%{VERSION}", "qt6-qtbase"] },
     { "key": "distro", "command": ["cat", "--", "/etc/os-release"] },
-    { "key": "journal", "command": ["journalctl", "--user", "-u", "dms", "-n", "300", "--no-pager"] }
+    { "key": "journal", "command": ["journalctl", "--user", "-u", "dms", "-n", "300", "--no-pager", "-o", "cat"] }
 ];
 
 // Tried in this order. The first marks the text as sensitive so DMS's

@@ -24,13 +24,16 @@ QtObject {
     property bool building: false
     readonly property QtObject report: QtObject {
         readonly property bool busy: fake.building
+        readonly property QtObject clipboard: QtObject {
+            property string result: "idle"
+            function reset() {
+                result = "idle";
+            }
+        }
         function request(via) {
-            fake.reportClipboard.result = fake.copyOutcome;
+            clipboard.result = fake.copyOutcome;
             return true;
         }
-    }
-    readonly property QtObject reportClipboard: QtObject {
-        property string result: "idle"
     }
 
     readonly property var sorted: {

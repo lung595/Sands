@@ -24,7 +24,7 @@ Item {
 
     readonly property bool busy: _phase !== "idle"
     // The finished report of an IPC call, kept until takeReport() hands it over
-    // (a button press copies it at once and keeps nothing)
+    // (a button press copies its report at once and keeps nothing)
     property string report: ""
     // Where a button press puts its report; the settings row watches its result
     readonly property alias clipboard: copier
@@ -34,6 +34,8 @@ Item {
     // "idle", "before", "waiting", "after", "probing"
     property string _phase: "idle"
     property string _via: "button"
+    // A button press waits for the report being built
+    property bool _copy: false
     property real _ticks: -1
     property real _startedAt: 0
     property real _builtAt: 0
@@ -42,14 +44,26 @@ Item {
     property int _probe: 0
     property string _plugin: ""
 
+    // False when no new collection starts. A button press while one runs for
+    // the IPC command joins it: that report is copied too, and still handed to
+    // the IPC call. A report that waits for its IPC call is dropped only by a
+    // new IPC request, never by a button press.
     function request(via) {
+        const button = via === "button";
+        if (button && copier.result === "copying")
+            return false;
+        if (button) {
+            copier.reset();
+            _copy = true;
+        }
         if (busy)
             return false;
         _via = via;
         Log.event("SND-I030", {
             "via": via
         });
-        report = "";
+        if (!button)
+            report = "";
         _answers = ({});
         _cpu = null;
         manifest.path = Paths.strip(Qt.resolvedUrl("../../plugin.json"));
@@ -60,17 +74,16 @@ Item {
         return true;
     }
 
-    // True while an IPC report waits to be taken; an old one is dropped, so a
-    // later call never gets a stale answer
+    // True while an IPC report waits to be taken and is not too old. It only
+    // answers: nothing changes.
     function hasReport() {
-        if (report && Date.now() - _builtAt > Gather.REPORT_KEEP_MS)
-            report = "";
-        return report !== "";
+        return report !== "" && Date.now() - _builtAt <= Gather.REPORT_KEEP_MS;
     }
 
-    // The finished report, once: it is not kept longer than needed
+    // The waiting report, once, or nothing when it is too old (a later call
+    // never gets a stale answer); either way it is not kept
     function takeReport() {
-        const text = report;
+        const text = hasReport() ? report : "";
         report = "";
         return text;
     }
@@ -140,7 +153,7 @@ Item {
             },
             "surfaces": {
                 "daemon": true,
-                "settings": _via === "button"
+                "settings": _copy
             },
             "settings": Gather.settingsOf(key => engine.setting(key, undefined)),
             "facts": {
@@ -153,10 +166,11 @@ Item {
             "journal": a.journal
         });
         _phase = "idle";
-        // The settings button copies it; the IPC command hands it over itself
-        if (_via === "button") {
+        // The settings button copies it; the IPC command comes back for it
+        if (_copy)
             copier.copy(text);
-        } else {
+        _copy = false;
+        if (_via === "ipc") {
             report = text;
             _builtAt = Date.now();
         }

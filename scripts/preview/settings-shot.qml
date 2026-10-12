@@ -53,7 +53,7 @@ Window {
     Component.onCompleted: {
         const report = Qt.application.arguments.find(a => a.indexOf("report=") === 0);
         if (report)
-            Qt.callLater(() => page.page.daemon.reportClipboard.result = report.slice(7));
+            Qt.callLater(() => page.page.daemon.report.clipboard.result = report.slice(7));
         const section = Qt.application.arguments.find(a => a.indexOf("section=") === 0);
         if (section)
             openSection(page, section.slice(8));

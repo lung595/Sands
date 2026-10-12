@@ -40,7 +40,7 @@ Item {
 
         function init() {
             root.opened = [];
-            daemon.reportClipboard.result = "idle";
+            daemon.report.clipboard.result = "idle";
         }
 
         function test_neverAtLoad() {
@@ -64,7 +64,7 @@ Item {
         function test_copyingDoesNotOpenAndUrlHasNoReport() {
             const button = marks(row, [])[0];
             mouseClick(button);
-            compare(daemon.reportClipboard.result, "copied");
+            compare(daemon.report.clipboard.result, "copied");
             compare(root.opened.length, 0);
             mouseClick(marks(row, [])[1]);
             compare(root.opened.length, 1);

@@ -9,8 +9,8 @@ import "../Press.js" as Press
 // before), copies it with wl-copy --sensitive and says where to paste it. The
 // GitHub mark beside the button opens the new-issue page on click only; the
 // report is never put in the address and Sands never goes online (D450, D453).
-// The daemon owns the work (`daemon.report`, `daemon.reportClipboard`); this
-// row only presses and observes.
+// The daemon owns the work and its states (`daemon.report` and its
+// `clipboard`); this row only presses and observes.
 Column {
     id: root
 
@@ -19,14 +19,12 @@ Column {
     readonly property string settingKey: "report"
 
     readonly property var service: daemon ? daemon.report : null
-    readonly property var copier: daemon ? daemon.reportClipboard : null
+    readonly property var copier: service ? service.clipboard : null
     readonly property var view: Words.view(Words.phaseOf(service ? service.busy : false, copier ? copier.result : "idle"), copier ? copier.inHistory === true : false)
     // The mark, for the tests that focus it
     readonly property Item markControl: mark
     readonly property bool copied: view.state === "copied"
-    // One-shot fades: 150 ms in, 100 ms out; Reduce motion keeps only opacity
-    readonly property int fadeIn: 150
-    readonly property int fadeOut: 100
+    // Reduce motion keeps only the fades
     readonly property bool still: SettingsData.reduceMotion
     // The button and the mark side by side, and the least room the text needs
     // beside them before it takes a line of its own
@@ -41,11 +39,11 @@ Column {
     // The address was opened (click or key press); the test reads this
     signal issuesOpened
 
+    // The service decides: a press during a collection joins it, a press
+    // during the copy is one too many
     function press() {
-        if (!service || !copier || view.state === "collecting")
-            return;
-        copier.result = "idle";
-        service.request("button");
+        if (service)
+            service.request("button");
     }
 
     function openIssues() {
@@ -106,7 +104,7 @@ Column {
                 border.color: Theme.withAlpha(Theme.outline, 0.24)
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: mark.labelled ? root.fadeIn : root.fadeOut
+                        duration: mark.labelled ? Press.FADE_IN_MS : Press.FADE_OUT_MS
                     }
                 }
                 StyledText {
@@ -132,15 +130,11 @@ Column {
                     copied: root.copied
                     collecting: root.view.state === "collecting"
                     still: root.still
-                    fadeIn: root.fadeIn
-                    fadeOut: root.fadeOut
                     onActivated: root.press()
                 }
                 ReportMark {
                     id: mark
                     active: root.view.markActive
-                    fadeIn: root.fadeIn
-                    fadeOut: root.fadeOut
                     onActivated: root.openIssues()
                 }
             }
@@ -151,21 +145,13 @@ Column {
     HelpNote {
         daemon: root.daemon
         info: root.view.note
-        fill: true
-        sticky: true
+        pinned: true
         maxWidth: root.width
     }
 
     // Nothing stays "Copied" or "none" after the section is gone
     Component.onDestruction: {
         if (copier)
-            copier.result = "idle";
-    }
-
-    // Back to rest alone; runs only while "Copied" is shown
-    Timer {
-        running: root.copied
-        interval: Press.PASSING_MS
-        onTriggered: root.copier.result = "idle"
+            copier.reset();
     }
 }

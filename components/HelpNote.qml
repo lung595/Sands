@@ -18,19 +18,18 @@ Rectangle {
     property var info: daemon ? daemon.note : null
     // Wider text wraps instead of leaving the panel
     property real maxWidth: 320
-    // Takes the whole maxWidth instead of fitting its text
-    property bool fill: false
-    // Stays until its owner clears it: the hint may hold a command to type
-    property bool sticky: false
-    // The only door to the browser; a test swaps it so nothing really opens
-    property var openUrl: url => Qt.openUrlExternally(url)
-    // The guide address was opened (click or key press)
-    signal guideOpened
+    // In a settings row: takes the whole maxWidth and stays until its owner
+    // clears it (the hint may hold a command to type)
+    property bool pinned: false
+    // Room around the text, the side of the guide link, what is left for the text
+    readonly property int padX: 12
+    readonly property int padY: 8
+    readonly property int linkSize: 28
+    readonly property real textRoom: maxWidth - 2 * padX - row.spacing - linkSize
 
     function openGuide() {
-        openUrl(daemon.guideUrl + "#" + (info ? info.anchor : ""));
-        guideOpened();
-        if (!sticky)
+        Qt.openUrlExternally(daemon.guideUrl + "#" + (info ? info.anchor : ""));
+        if (!pinned)
             daemon.note = null;
     }
 
@@ -38,11 +37,11 @@ Rectangle {
     opacity: info ? 1 : 0
     Behavior on opacity {
         NumberAnimation {
-            duration: SettingsData.reduceMotion ? 0 : 150
+            duration: SettingsData.reduceMotion ? 0 : Press.FADE_IN_MS
         }
     }
-    width: fill ? maxWidth : row.width + 24
-    height: row.implicitHeight + 16
+    width: pinned ? maxWidth : row.width + 2 * padX
+    height: row.implicitHeight + 2 * padY
     radius: Theme.cornerRadius
     color: Theme.surfaceContainerHighest
     border.width: 1
@@ -50,7 +49,7 @@ Rectangle {
 
     // Only runs while a note is shown, and waits while it is pointed at
     Timer {
-        running: !!note.info && !note.sticky && !hover.hovered
+        running: !!note.info && !note.pinned && !hover.hovered
         interval: Press.PASSING_MS
         onTriggered: note.daemon.note = null
     }
@@ -60,12 +59,12 @@ Rectangle {
 
     Row {
         id: row
-        x: 12
-        y: 8
-        spacing: 12
+        x: note.padX
+        y: note.padY
+        spacing: note.padX
         Column {
             // As wide as the longest line, up to what the panel leaves
-            width: note.fill ? note.maxWidth - 24 - 12 - 28 : Math.min(Math.max(title.implicitWidth, hint.implicitWidth), note.maxWidth - 24 - 12 - 28)
+            width: note.pinned ? note.textRoom : Math.min(Math.max(title.implicitWidth, hint.implicitWidth), note.textRoom)
             anchors.verticalCenter: parent.verticalCenter
             spacing: 1
             StyledText {
@@ -90,15 +89,15 @@ Rectangle {
         Item {
             id: guideLink
             objectName: "control"
-            width: 28
-            height: 28
+            width: note.linkSize
+            height: note.linkSize
             anchors.verticalCenter: parent.verticalCenter
             activeFocusOnTab: true
             Accessible.role: Accessible.Link
             Accessible.name: note.info && note.info.link ? note.info.link : "Open the guide"
             Accessible.onPressAction: note.openGuide()
             Keys.onPressed: event => Press.onKey(event, () => note.openGuide())
-            // Flush with the 28 px link: it has no room for the usual inset
+            // Flush with the link: it has no room for the usual inset
             FocusRing {
                 anchors.margins: 0
                 border.color: Theme.primary
