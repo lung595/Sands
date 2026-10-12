@@ -84,6 +84,8 @@ eq("a plain time is not an address", Redact.text("12:03:41 ready"), "12:03:41 re
 eq("a version is not an address", Redact.text("Qt 6.11.2, niri 25.08.1"), "Qt 6.11.2, niri 25.08.1");
 eq("a picture name with its scale is not an address", Redact.text("loaded icon@2x.png and logo@3x.webp"), "loaded icon@2x.png and logo@3x.webp");
 eq("an address that only looks like a scale is still hidden", Redact.text("write to bob@2x.example.org"), "write to <email>");
+eq("only a picture extension spares a scale: an address on a short domain is hidden", [Redact.text("mail bob@2x.io now"), Redact.text("mail bob@3x.dev"), Redact.text("icon@2x.PNG")], ["mail <email> now", "mail <email>", "icon@2x.PNG"]);
+eq("the account name of a removable drive's folder is hidden", [Redact.text("open \x2frun/media/bobby/USB/a.mp3"), Redact.text("\x2fmedia/bobby/disk: gone")], ["open \x2frun/media/<user>/USB/a.mp3", "\x2fmedia/<user>/disk: gone"]);
 eq("six hex words are not an address", Redact.text("dead beef cafe face fade babe"), "dead beef cafe face fade babe");
 eq("a 12 digit number is not an address", Redact.text("uptime 123456789012 ms"), "uptime 123456789012 ms");
 eq("a name of one digit is refused, so no digit of the report is hidden", [Redact.register("sound", "5"), Redact.text("timers=5 volume=50")], ["", "timers=5 volume=50"]);
@@ -245,6 +247,8 @@ eq("the journal is kept as non-empty lines", Gather.parse("journal", "a\n\nb\n")
 eq("the plugin version is read from plugin.json, or empty", [Gather.pluginVersion('{"version":"1.5.1"}'), Gather.pluginVersion("not json"), Gather.pluginVersion('{"version":3}')], ["1.5.1", "", ""]);
 eq("only declared settings are read, an unknown value is skipped", Gather.settingsOf(k => k === "notify" ? true : k === "volume" ? 80 : k === "customSound" ? "x" : undefined), { "volume": 80, "notify": true });
 eq("a copy tool that is not installed is told from one that refused", [Gather.missing(-1), Gather.missing(1)], [true, false]);
+eq("a tool stopped for taking too long was there: it is not called missing", Gather.missing(-2), false);
+eq("the waits of a report are named and short", [Gather.CPU_WINDOW_MS, Gather.TOOL_LIMIT_MS, Gather.REPORT_KEEP_MS], [1000, 4000, 60000]);
 eq("every probe is an argument list that starts with a program", Gather.PROBES.every(p => Array.isArray(p.command) && /^[a-z]+$/.test(p.command[0])), true);
 eq("a long report is cut for the IPC answer", [Gather.capped("x".repeat(30000)).length, Gather.capped("short")], [Gather.MAX_REPORT, "short"]);
 

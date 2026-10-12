@@ -254,7 +254,7 @@ If Alex is not installed or is turned off, the row is greyed with nothing select
 
 **Settings -> Help -> Copy report** builds an anonymous report (versions, a few settings, counts, the shell's CPU over one second, the last events) and copies it to the clipboard, ready to paste into a GitHub issue. The GitHub mark beside the button opens a new issue for Sands in your browser; it is a plain link, nothing is prefilled and the report is never put in the address.
 
-From a terminal: `dms ipc call smartTimer diagnostics`, or `sh scripts/diagnose.sh`, which also reads the latest Quickshell crash folder with your login removed. If neither `wl-copy` nor `dms clipboard copy` exists, the row says so and tells you what to install. What the report holds is listed in [DEBUGGING.md](DEBUGGING.md).
+From a terminal: `dms ipc call smartTimer diagnostics`, or `sh scripts/diagnose.sh`, which also reads the latest Quickshell crash folder with your login removed. If neither `wl-copy` nor `dms clipboard copy` exists, the row says so and tells you what to install. When the copy went through `dms clipboard copy` (no `wl-copy`, or one that does not know `--sensitive`, see `wl-copy --help`), the report stays in the DMS clipboard history: the row says so, delete it there once pasted. What the report holds is listed in [DEBUGGING.md](DEBUGGING.md).
 
 ## Privacy
 

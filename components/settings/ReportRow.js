@@ -9,6 +9,8 @@ var GITHUB_URL = "https://github.com/lung595/Sands/issues/new/choose";
 var TITLE = "Anonymous report";
 var HELP = "Versions, states and error codes only. It stays on this PC until you paste it.";
 var HELP_COPIED = "Report copied. Read it, then paste it in a GitHub issue.";
+// Only the fallback (dms clipboard copy) worked: the text is in the history too
+var HELP_IN_HISTORY = "Report copied, and kept in the DMS clipboard history: delete it there once pasted.";
 
 // The guided message when no clipboard tool worked (value 10); it names the
 // command that always works and links the guide section.
@@ -19,13 +21,15 @@ var NO_TOOL = {
     "link": "Open the guide: Report a problem"
 };
 
-// phase: "idle", "collecting" (building or copying), "copied" or "none"
-function view(phase) {
+// phase: "idle", "collecting" (building or copying), "copied" or "none";
+// inHistory: the copy went through the tool that cannot keep it out of the
+// clipboard history, which the row must say
+function view(phase, inHistory) {
     var copied = phase === "copied";
     return {
         "state": phase === "collecting" || copied || phase === "none" ? phase : "rest",
         "button": phase === "collecting" ? "Collecting…" : (copied ? "Copied" : "Copy report"),
-        "help": copied ? HELP_COPIED : HELP,
+        "help": copied ? (inHistory === true ? HELP_IN_HISTORY : HELP_COPIED) : HELP,
         "note": phase === "none" ? NO_TOOL : null,
         "markActive": copied
     };

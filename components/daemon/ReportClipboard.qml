@@ -54,6 +54,7 @@ Item {
 
     ToolProcess {
         id: run
+        limitMs: Gather.TOOL_LIMIT_MS
         // Closing standard input ends the copy; wl-copy then serves the text
         // from the background and this process returns
         onLaunched: {

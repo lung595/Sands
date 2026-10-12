@@ -158,7 +158,7 @@ Item {
     readonly property string guideUrl: Guide.URL
     // The settings page presses and observes these two
     readonly property alias report: reportService
-    readonly property alias reportClipboard: reportCopier
+    readonly property alias reportClipboard: reportService.clipboard
 
     // The note the open panel shows ({ title, hint, anchor }, see Guide.js),
     // null when there is none
@@ -431,15 +431,6 @@ Item {
     ReportService {
         id: reportService
         engine: root
-        // The settings button copies it; the IPC command hands it over itself
-        onBuilt: (text, via) => {
-            if (via === "button")
-                reportCopier.copy(text);
-        }
-    }
-
-    ReportClipboard {
-        id: reportCopier
     }
 
     TimerIpc {

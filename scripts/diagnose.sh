@@ -28,23 +28,41 @@ replace_fixed() {
         }'
 }
 
+# Picture extensions whose scale mark ("icon@2x.png") is not an address. Same
+# list as the e-mail rule of diagnostics/Redact.js: change both together.
+pictures='png|jpe?g|webp|svg|gif|avif|bmp|ico'
+
 # The reduction, as a filter. The plugin's own report is already clean; this
-# is the second wall for what only the shell or the journal knows.
+# is the second wall for what only the shell or the journal knows. The rules
+# follow diagnostics/Redact.js; sed has no lookahead, so a picture's scale mark
+# is set aside under a placeholder while the e-mail rule runs. The host name is
+# hidden in its full and its short form (the journal writes the short one).
 reduce() {
     user=$(id -un 2>/dev/null || echo "")
     host=$(hostname 2>/dev/null || echo "")
+    [ -n "$host" ] || host=$(uname -n 2>/dev/null || echo "")
     replace_fixed "${HOME:-}" "~" |
         sed -E \
+            -e 's#(token|secret|passw(or)?d|passwd|pwd|auth[-_]?key|api[-_]?key|credential)s?([[:space:]]*[=:][[:space:]]*)[^[:space:]]+#\1\3<secret>#gI' \
             -e 's#(/var)?/(home)/[^/ :"]+#~#g' \
             -e 's#/run/user/[0-9]+#/run/user/<uid>#g' \
-            -e 's#^([A-Z][a-z]{2} [ 0-9][0-9] [0-9:]{8}) [^ ]+ #\1 #' \
+            -e 's#(/(run/)?media/)[^/ :"]+#\1<user>#g' \
             -e 's#([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}#<mac>#g' \
             -e 's#([0-9A-Fa-f]{2}_){5}[0-9A-Fa-f]{2}#<mac>#g' \
             -e 's#([0-9]{1,3}\.){3}[0-9]{1,3}#<ip>#g' \
             -e 's#[A-Za-z0-9+_-]{40,}#<secret>#g' \
-            -e 's#[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}#<email>#g' |
+            -e "s#@([0-9]+x\.($pictures))([^A-Za-z0-9.-]|\$)#<scale-mark>\1\3#gI" \
+            -e 's#[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}#<email>#g' \
+            -e 's#<scale-mark>#@#g' |
         replace_fixed "$user" "user" |
-        replace_fixed "$host" "host"
+        replace_fixed "$host" "host" |
+        replace_fixed "${host%%.*}" "host"
+}
+
+# What a file nobody wrote for a report may hold: control characters go (tab
+# kept) and a line is cut at 240 characters, as Redact.js does
+plain() {
+    tr -d '\000-\010\013-\037\177' | cut -c1-240
 }
 
 # The plugin's own report: the first call starts it, the second hands it over
@@ -69,7 +87,9 @@ report_from_shell() {
 }
 
 # Without the shell or the plugin: versions and the lines Sands left in the
-# DMS journal, which is all that survives a restart
+# DMS journal, which is all that survives a restart. The machine name that
+# journalctl writes after the date is cut here, while the line still starts
+# with it (same date format as SYSLOG_PREFIX in diagnostics/Report.js).
 report_without_shell() {
     echo "Sands diagnostic report (anonymous, from the command line: the plugin did not answer)"
     echo "Created      : $(date -u '+%Y-%m-%d %H:%M:%S') UTC"
@@ -80,7 +100,8 @@ report_without_shell() {
     echo "Journal lines (last 50 at most):"
     lines=$(journalctl --user -u dms -n 300 --no-pager 2>/dev/null | grep -F '[sands]' | tail -n 50)
     if [ -n "$lines" ]; then
-        printf '%s\n' "$lines" | sed 's/^/  /'
+        printf '%s\n' "$lines" | plain |
+            sed -E -e 's#^([A-Z][a-z]{2} [ 0-9][0-9] [0-9:]{8}) [^ ]+ #\1 #' -e 's/^/  /'
     else
         echo "  none"
     fi
@@ -94,11 +115,11 @@ crash() {
     latest=$(ls -1t "$dir" 2>/dev/null | head -n 1)
     [ -n "$latest" ] || return 0
     echo "Latest Quickshell crash folder (file names and sizes, then the start of its text):"
-    ls -l "$dir/$latest" 2>/dev/null | tail -n +2 | awk '{print "  " $5 "  " $9}'
+    ls -l "$dir/$latest" 2>/dev/null | tail -n +2 | awk '{print "  " $5 "  " $9}' | plain
     for f in "$dir/$latest"/*.txt "$dir/$latest/metadata"; do
         [ -f "$f" ] || continue
-        echo "  --- $(basename "$f")"
-        head -n 40 "$f" | sed 's/^/  /'
+        echo "  --- $(basename "$f" | plain)"
+        head -n 40 "$f" | plain | sed 's/^/  /'
     done
 }
 

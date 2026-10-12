@@ -30,6 +30,14 @@ var COPY_TOOLS = [
 // The longest report the IPC call hands back (a person reads it)
 var MAX_REPORT = 20000;
 
+// The time between the two CPU readings: a rate needs a window
+var CPU_WINDOW_MS = 1000;
+// A probe or a copy tool that has not ended by then is stopped: one stuck
+// program must not keep the report "collecting" for good
+var TOOL_LIMIT_MS = 4000;
+// An IPC report nobody came back for is dropped after this long
+var REPORT_KEEP_MS = 60000;
+
 // "1.6.3" out of "dms v1.6.3", "26.04" out of "niri 26.04 (8ed0da4)"...
 function _number(text) {
     var m = /\bv?(\d+(?:\.\d+){0,3}(?:[-+~][A-Za-z0-9.]+)?)/.exec(typeof text === "string" ? text : "");
@@ -75,9 +83,10 @@ function settingsOf(read) {
 }
 
 // A copy tool that could not be started (not installed) ends with -1, which
-// is what ToolProcess reports; any other failure means it ran and refused.
+// is what ToolProcess reports; any other failure means it ran and refused, or
+// was stopped for taking too long (-2).
 function missing(code) {
-    return code < 0;
+    return code === -1;
 }
 
 // The report as the IPC call hands it back, capped

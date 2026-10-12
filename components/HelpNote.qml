@@ -1,6 +1,8 @@
 import QtQuick
 import qs.Common
 import qs.Widgets
+import "settings"
+import "Press.js" as Press
 
 // Shown in the panel when something you tried cannot be done: never a
 // silent refusal. One short line says what happened, a second what to do,
@@ -49,7 +51,7 @@ Rectangle {
     // Only runs while a note is shown, and waits while it is pointed at
     Timer {
         running: !!note.info && !note.sticky && !hover.hovered
-        interval: 4000
+        interval: Press.PASSING_MS
         onTriggered: note.daemon.note = null
     }
     HoverHandler {
@@ -95,17 +97,10 @@ Rectangle {
             Accessible.role: Accessible.Link
             Accessible.name: note.info && note.info.link ? note.info.link : "Open the guide"
             Accessible.onPressAction: note.openGuide()
-            Keys.onPressed: event => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                    note.openGuide();
-                    event.accepted = true;
-                }
-            }
-            Rectangle {
-                anchors.fill: parent
-                radius: Theme.cornerRadius
-                color: "transparent"
-                border.width: 2
+            Keys.onPressed: event => Press.onKey(event, () => note.openGuide())
+            // Flush with the 28 px link: it has no room for the usual inset
+            FocusRing {
+                anchors.margins: 0
                 border.color: Theme.primary
                 visible: guideLink.activeFocus
             }

@@ -55,8 +55,10 @@ var _RULES = [
     [/\b[A-Za-z0-9+_-]{40,}={0,2}/g, "<secret>"],
     // Links with credentials, then e-mail addresses
     [/\b([a-z][a-z0-9+.-]*:\/\/)[^\s\/@]+@/gi, "$1<secret>@"],
-    // A picture name with its scale ("icon@2x.png") is not an address
-    [/[A-Za-z0-9._%+-]+@(?!\d+x\.[A-Za-z0-9]+(?![A-Za-z0-9.-]))[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "<email>"],
+    // A picture name with its scale ("icon@2x.png") is not an address; only
+    // picture extensions are spared, so "bob@2x.io" is still hidden. The same
+    // rule is written for sed in scripts/diagnose.sh: change both together.
+    [/[A-Za-z0-9._%+-]+@(?!\d+x\.(?:png|jpe?g|webp|svg|gif|avif|bmp|ico)(?![A-Za-z0-9.-]))[A-Za-z0-9.-]+\.[A-Za-z]{2,}/gi, "<email>"],
     // Hardware and network addresses: Bluetooth (colon, dash and BlueZ
     // underscore forms), IPv6 then IPv4, host names of a private network
     [new RegExp("\\b(?:" + _HEX2 + "[:-]){5}" + _HEX2 + "\\b", "g"), "<mac>"],
@@ -71,6 +73,8 @@ var _RULES = [
     [/(?:\/var)?\/home\/[^\/\s:'"]+/g, "~"],
     [/\/Users\/[^\/\s:'"]+/g, "~"],
     [/\/root\b/g, "~"],
+    // Removable drives are mounted under a folder named after the account
+    [/(\/(?:run\/)?media\/)[^\/\s:'"]+/g, "$1<user>"],
     [/\/run\/user\/\d+/g, "/run/user/<uid>"]
 ];
 

@@ -72,4 +72,34 @@ chmod +x "$work/odd/hostname" "$work/odd/dms"
 out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/odd:$work/bin:$PATH" sh "$script" 2>&1)
 check "an odd host name is hidden as written" "$(echo "$out" | grep -c 'dms v1.6.3 on host, not aXb/c&d')" 1
 
+# The journal writes the short machine name while the tool gives the full one;
+# the fallback cuts it after the date, then hides both forms anywhere else
+mkdir -p "$work/full"
+cat >"$work/full/hostname" <<'SH'
+#!/bin/sh
+echo 'bobs-pc.example.org'
+SH
+cat >"$work/full/journalctl" <<'SH'
+#!/bin/sh
+echo 'Oct 08 12:00:00 bobs-pc qs[12]: [sands] SND-I001 ready'
+echo 'Oct 08 12:00:01 bobs-pc qs[12]: [sands] seen on bobs-pc with token=abc123 and Password: hunter2'
+echo 'Oct 08 12:00:02 bobs-pc qs[12]: [sands] icon@2x.png for bob@2x.io on /run/media/bobby/USB'
+SH
+cat >"$work/full/dms" <<'SH'
+#!/bin/sh
+[ "$1" = "version" ] && { echo "dms v1.6.3"; exit 0; }
+exit 1
+SH
+chmod +x "$work/full/hostname" "$work/full/journalctl" "$work/full/dms"
+long=$(printf '%0300d' 0 | tr 0 x)
+printf 'api_key = sk123\nbell\007here\n%s\n' "$long" >"$work/$homes/bobby/.cache/quickshell/crashes/new/log.txt"
+out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/full:$work/bin:$PATH" sh "$script" 2>&1)
+check "the journal's machine name is cut after the date" "$(echo "$out" | grep -c '^  Oct 08 12:00:00 qs\[12\]: \[sands\] SND-I001 ready$')" 1
+check "the short and the full machine name are hidden" "$(echo "$out" | grep -ciE 'bobs-pc|example\.org')" 0
+check "a key and its value: the value is hidden" "$(echo "$out" | grep -c 'seen on host with token=<secret> and Password: <secret>')" 1
+check "a picture's scale stays, an address is hidden, a drive's folder loses the login" "$(echo "$out" | grep -c 'icon@2x.png for <email> on /run/media/<user>/USB')" 1
+check "a crash file: secret hidden, control character gone" "$(echo "$out" | grep -cE '^  (api_key = <secret>|bellhere)$')" 2
+check "a crash file: no line over 240 characters (plus the indent)" "$(echo "$out" | awk 'length($0) > 242' | wc -l)" 0
+rm -f "$work/$homes/bobby/.cache/quickshell/crashes/new/log.txt"
+
 [ "$fails" -eq 0 ] && echo "diagnose.sh: all passed" || exit 1

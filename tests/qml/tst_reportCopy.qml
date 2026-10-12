@@ -10,7 +10,8 @@ import "components/daemon"
 // Offscreen test of the report path with fake wl-copy and dms on PATH: nothing
 // runs at rest, the text reaches the tool by standard input and never by its
 // arguments, a missing wl-copy falls back to dms, no tool at all ends in
-// "none", and an IPC report is handed over once. Run with tests/qml/run.sh.
+// "none", an IPC report is handed over once, and a button press is copied by
+// the service itself. Run with tests/qml/run.sh.
 ShellRoot {
     id: root
 
@@ -106,12 +107,30 @@ ShellRoot {
     Connections {
         target: service
         function onBuilt(text, via) {
+            if (via === "button")
+                return;
             root.check(via === "ipc" && text.length > 0, "built for ipc");
             root.check(service.hasReport(), "report waits for the IPC call");
             const first = service.takeReport();
             root.check(first === text, "take returns the report");
             root.check(service.takeReport() === "" && !service.hasReport(), "taken once");
-            root.finish();
+            // A button press: the service copies its report itself and keeps none
+            service.request("button");
+        }
+    }
+
+    Connections {
+        target: service.clipboard
+        function onResultChanged() {
+            if (service.clipboard.result === "copying")
+                return;
+            root.check(service.clipboard.result === "copied" && service.clipboard.inHistory, "the button's report is copied by the fallback and flagged");
+            root.check(!service.busy && !service.hasReport(), "nothing kept after a button press");
+            look.after = t => {
+                root.check(t.indexOf("dmsstdin:Sands diagnostic report") >= 0, "the button's report reached the tool: " + t.slice(0, 200));
+                root.finish();
+            };
+            look.running = true;
         }
     }
 

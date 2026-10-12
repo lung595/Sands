@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import qs.Common
 import "../../diagnostics/Cpu.js" as Cpu
@@ -12,7 +13,9 @@ import "../../diagnostics/Report.js" as Report
 // request reads the shell's CPU ticks, waits one second, reads them again (the
 // only way to get a rate), then runs the few short tools of Gather.PROBES one
 // after the other and assembles the text with Report.build. The settings
-// button and the IPC command share this one component.
+// button and the IPC command share this one component. No step can keep it
+// busy for good: a reading that fails counts as "not measured", a tool that
+// hangs is stopped after Gather.TOOL_LIMIT_MS.
 Item {
     id: root
 
@@ -23,6 +26,8 @@ Item {
     // The finished report of an IPC call, kept until takeReport() hands it over
     // (a button press copies it at once and keeps nothing)
     property string report: ""
+    // Where a button press puts its report; the settings row watches its result
+    readonly property alias clipboard: copier
     // `via` is "button" or "ipc": who asked
     signal built(string text, string via)
 
@@ -55,10 +60,10 @@ Item {
         return true;
     }
 
-    // True while an IPC report waits to be taken; one older than a minute is
-    // dropped, so a later call never gets a stale answer
+    // True while an IPC report waits to be taken; an old one is dropped, so a
+    // later call never gets a stale answer
     function hasReport() {
-        if (report && Date.now() - _builtAt > 60000)
+        if (report && Date.now() - _builtAt > Gather.REPORT_KEEP_MS)
             report = "";
         return report !== "";
     }
@@ -79,20 +84,18 @@ Item {
             stat.path = "/proc/self/stat";
     }
 
-    function _ticksNow() {
-        return Cpu.ticksOf(stat.text());
-    }
-
-    function _loaded() {
+    // `ok` is false when the file could not be read: the reading is then -1
+    function _loaded(ok) {
+        const ticks = ok ? Cpu.ticksOf(stat.text()) : -1;
         if (_phase === "before") {
-            _ticks = _ticksNow();
+            _ticks = ticks;
             _startedAt = Date.now();
             _phase = "waiting";
             window.restart();
         } else if (_phase === "after") {
             const ms = Date.now() - _startedAt;
             _cpu = {
-                "percent": Cpu.percent(_ticks, _ticksNow(), ms),
+                "percent": Cpu.percent(_ticks, ticks, ms),
                 "windowMs": ms
             };
             _probe = 0;
@@ -109,11 +112,20 @@ Item {
         probe.launch(Gather.PROBES[_probe].command);
     }
 
-    function _finish() {
-        // The custom sound's file name could appear in an engine line: hidden
-        // before any line is cleaned
+    // The names only this session knows, hidden before any line is cleaned:
+    // the custom sound's file name and the login (a line of another program in
+    // the journal can hold it outside the home folder)
+    function _registerNames() {
         const custom = String(engine.setting("customSound", "") || "");
         Redact.register("sound", custom.slice(custom.lastIndexOf("/") + 1));
+        const login = String(Quickshell.env("USER") || "");
+        // Shorter, it would hide ordinary words (same floor as diagnose.sh)
+        if (login.length >= 3)
+            Redact.register("user", login);
+    }
+
+    function _finish() {
+        _registerNames();
         const timers = engine.timers;
         const a = _answers;
         const text = Report.build({
@@ -140,11 +152,14 @@ Item {
             "cpu": _cpu,
             "journal": a.journal
         });
-        if (_via !== "button") {
+        _phase = "idle";
+        // The settings button copies it; the IPC command hands it over itself
+        if (_via === "button") {
+            copier.copy(text);
+        } else {
             report = text;
             _builtAt = Date.now();
         }
-        _phase = "idle";
         built(text, _via);
     }
 
@@ -152,7 +167,8 @@ Item {
     FileView {
         id: stat
         printErrors: false
-        onLoaded: root._loaded()
+        onLoaded: root._loaded(true)
+        onLoadFailed: root._loaded(false)
     }
 
     // Read synchronously, once per request
@@ -164,7 +180,7 @@ Item {
 
     Timer {
         id: window
-        interval: 1000
+        interval: Gather.CPU_WINDOW_MS
         onTriggered: {
             root._phase = "after";
             root._read();
@@ -173,18 +189,24 @@ Item {
 
     ToolProcess {
         id: probe
+        limitMs: Gather.TOOL_LIMIT_MS
         stdout: StdioCollector {
             id: answer
         }
         // A tool that is not installed (rpm off Fedora, niri under another
-        // compositor) answers nothing: the report says "unknown" for it
+        // compositor) or that was stopped for hanging answers nothing: the
+        // report says "unknown" for it
         onFinished: code => {
             const spec = Gather.PROBES[root._probe];
             const answers = root._answers;
-            answers[spec.key] = Gather.parse(spec.key, code === -1 ? "" : answer.text);
+            answers[spec.key] = Gather.parse(spec.key, code < 0 ? "" : answer.text);
             root._answers = answers;
             root._probe++;
             root._next();
         }
+    }
+
+    ReportClipboard {
+        id: copier
     }
 }
