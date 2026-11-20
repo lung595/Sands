@@ -60,7 +60,7 @@ eq(S.visibleSections().map(s => s.id), ["start", "timers", "appearance", "alerts
 // Helpers
 eq(S.sectionOf("volume"), "alerts", "section of a key");
 eq(S.sectionOf("nope"), "", "unknown key has no section");
-eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger", "endActions"], "settings of a section, pending held back");
+eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger"], "settings of a section, pending held back");
 eq([S.previousSection("start"), S.nextSection("start")], ["start", "timers"], "start of the list");
 eq([S.previousSection("timers"), S.nextSection("timers")], ["start", "appearance"], "second section");
 eq([S.previousSection("help"), S.nextSection("help")], ["advanced", "help"], "end of the list");

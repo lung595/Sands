@@ -152,7 +152,9 @@ check("ring: saved Bread runs, 1 h", bread && bread.label === "Bread" && bread.s
 check("ring: saved Soup is paused with its time left", soup && soup.label === "Soup" && soup.state === "paused" && soup.remaining <= 600000 && soup.remaining > 599000 && soup.hue === 3, soup);
 check("ring: saved exactly four timers, next id 5", sTimers.length === 4 && state.nextId === 5, { n: sTimers.length, nextId: state.nextId });
 check("ring: recents keep the four durations", same((state.recents || []).map(r => [r.ms, r.label, r.uses]).sort((a, b) => a[0] - b[0]), [[2000, "Tea", 1], [8000, "Rice", 1], [600000, "Soup", 1], [3600000, "Bread", 1]]), state.recents);
-check("ring: the old end modes are dropped once, the rest kept", same(first(ring, "settings"), { settings: { smartTimer: { hourglassStyle: "classic" }, other: { endMode: "keep" } }, saves: 1 }), first(ring, "settings"));
+check("ring: the old end modes and end actions are dropped once, the rest kept", same(first(ring, "settings"), { settings: { smartTimer: { hourglassStyle: "classic" }, other: { endMode: "keep" } }, saves: 1 }), first(ring, "settings"));
+check("ring: one toast, the end actions are gone", same(first(ring, "toasts"), [{ message: "End actions removed", level: 0 }]), first(ring, "toasts"));
+check("ring: the removal is noted once in the plugin state", same(ring.filter(l => l.what === "save" && l.value.key === "endActionsRetired").map(l => l.value.value), [true]), ring.filter(l => l.what === "save" && l.value.key === "endActionsRetired"));
 check("ring: launcher works without a prefix (noTrigger saved)", ring.some(l => l.what === "data" && l.value.key === "noTrigger" && l.value.value === true));
 
 const journal = tryRead("ring.history");
@@ -204,6 +206,8 @@ check("restore: no sound after the last stop", bPlays.every(c => c.at <= stopAll
 check("restore: nothing else runs", others(backCalls, ["pw-play", "notify-send", "gdbus"]).length === 0, others(backCalls, ["pw-play", "notify-send", "gdbus"]));
 check("restore: clean settings are not written again", same(first(back, "settings"), { settings: { smartTimer: { hourglassStyle: "classic" } }, saves: 0 }), first(back, "settings"));
 check("restore: no other plugin is told", back.every(l => l.what !== "global"));
+check("restore: no toast, the end actions were told once already", same(first(back, "toasts"), []), first(back, "toasts"));
+check("restore: the flag is not written again", back.every(l => !(l.what === "save" && l.value.key === "endActionsRetired")));
 
 const left = bFinal.timers;
 const egg = byId(left, 5);
@@ -213,6 +217,7 @@ check("restore: silent and not ringing after the stops", bFinal.ringing === fals
 check("restore: no dune after the last stop", bFinal.alert === false && bFinal.dune === null, [bFinal.alert, bFinal.dune]);
 const bState = savedState(back);
 check("restore: saved state follows (next id 6)", same(bState.timers, left) && bState.nextId === 6, bState);
+check("restore: Rice's old end action is gone everywhere", restored.timers.concat(bFinal.timers, bState.timers || []).every(t => !("actionId" in t)), restored.timers);
 
 // What the journal does today: only a ring seen by a running daemon is kept,
 // so neither the restore nor the stops add a line (Rice ended while off)

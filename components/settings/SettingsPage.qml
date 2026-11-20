@@ -274,7 +274,6 @@ Item {
                     TimersSection {
                         id: timersSection
                         visible: root.section === "timers"
-                        daemon: root.daemon
                     }
                     AppearanceSection {
                         id: appearanceSection

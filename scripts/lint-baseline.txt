@@ -107,8 +107,6 @@ components/journal/Threads.qml	unqualified	Unqualified access	root
 components/journal/Threads.qml	unqualified	Unqualified access	root
 components/journal/Threads.qml	unqualified	Unqualified access	root
 components/journal/Threads.qml	unqualified	Unqualified access	root
-components/settings/ActionRow.qml	unqualified	Unqualified access	root
-components/settings/ActionRow.qml	unqualified	Unqualified access	root
 components/settings/AlertsSection.qml	missing-property	Member "value" not found on type "StringSetting"	value
 components/settings/AlertsSection.qml	missing-property	Member "value" not found on type "StringSetting"	value
 components/settings/BatteryPill.qml	unqualified	Unqualified access	root
@@ -120,29 +118,6 @@ components/settings/CardChoice.qml	unqualified	Unqualified access	root
 components/settings/CardChoice.qml	unqualified	Unqualified access	root
 components/settings/CardChoice.qml	unqualified	Unqualified access	root
 components/settings/CardChoice.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SectionRail.qml	unqualified	Unqualified access	root

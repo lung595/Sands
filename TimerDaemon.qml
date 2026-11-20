@@ -10,6 +10,7 @@ import "components/daemon"
 import "components/daemon/History.js" as History
 import "components/daemon/Lifecycle.js" as Lifecycle
 import "components/daemon/Notifications.js" as Notifications
+import "components/daemon/Retired.js" as Retired
 import "components/daemon/Snooze.js" as Snooze
 
 // Timer engine, instantiated once. The bar and the launcher
@@ -550,7 +551,8 @@ Item {
         if (!pluginService)
             return;
         store.ensureLauncherDefault();
-        store.dropRetiredSettings();
+        if (store.dropRetiredSettings() && typeof ToastService !== "undefined")
+            ToastService.showToast(Retired.toastText(Qt.locale().name), ToastService.levelInfo);
 
         const saved = store.read();
         const t0 = Date.now();

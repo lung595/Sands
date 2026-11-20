@@ -55,8 +55,7 @@ Item {
         }
 
         // Settings rows that carry a key of the table, shown or hidden: a row built late
-        // would be missing. The stores of the end actions carry a key of their own that
-        // is not a row of the table (ObjectStore), so they are not counted.
+        // would be missing. A key that is not a row of the table is not counted.
         function builtRows(item) {
             let n = 0;
             for (const c of item.children) {

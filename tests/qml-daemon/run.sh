@@ -5,12 +5,14 @@
 # and stand-ins first on PATH for every program the daemon may run. Each one
 # records its arguments, so check.js can assert what the end of a timer did.
 #   1. ring:    a 2 s timer rings: sound, dune, notification, saved state,
-#               journal; the old end-mode settings are dropped at start
+#               journal; the old end-mode and end-action settings are
+#               dropped at start, with one toast for the end actions
 #   (an 8 s timer then ends between the two runs, while no shell runs)
 #   2. restore: a new daemon from that saved state: the timers come back, both
 #               ended ones ring and are notified again; each stop closes its
 #               notification, the last one (the dune's click) silences the
-#               alarm and takes the dune down
+#               alarm and takes the dune down; Rice's old end action is
+#               dropped and nothing is told again
 #   3. mute:    a muted timer rings without sound (dune and notification only),
 #               rename drops emoji, a stopped timer comes back within 5 s and
 #               not after, pause all / resume all, one list change per action
@@ -62,7 +64,8 @@ cat > "$dir/bin/gdbus" <<'FAKE'
 for last; do :; done
 touch "$E2E_DIR/log/closed-$last"
 FAKE
-for tool in paplay wl-copy niri dms; do
+# systemctl and playerctl: an old end action must never run
+for tool in paplay wl-copy niri dms systemctl playerctl; do
     printf '#!/bin/sh\n"$E2E_DIR/bin/record" %s "$@"\n' "$tool" > "$dir/bin/$tool"
 done
 chmod +x "$dir/bin"/*
@@ -72,7 +75,7 @@ phase() {
     (cd "$dir/tree" && env -u WAYLAND_DISPLAY -u NIRI_SOCKET -u DBUS_SESSION_BUS_ADDRESS -u JOURNAL_STREAM \
         HOME="$dir/user" XDG_CONFIG_HOME="$dir/user/config" XDG_DATA_HOME="$dir/user/data" \
         XDG_STATE_HOME="$dir/user/state" XDG_RUNTIME_DIR="$dir/run" \
-        PATH="$dir/bin:$PATH" QT_QPA_PLATFORM=offscreen E2E_DIR="$dir" \
+        PATH="$dir/bin:$PATH" QT_QPA_PLATFORM=offscreen E2E_DIR="$dir" LC_ALL=en_US.UTF-8 \
         SANDS_E2E_PHASE="$1" SANDS_E2E_STATE="$2" \
         timeout 25 quickshell -p shell.qml > "$dir/log/$1.out" 2>&1)
     sed -n 's/.*sands-e2e //p' "$dir/log/$1.out" > "$dir/log/$1.lines"

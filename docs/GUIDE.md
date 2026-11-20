@@ -196,21 +196,9 @@ The page has a left rail of sections (Timers, Appearance, Alerts & sounds, Advan
 | Final countdown ticks | A soft tick on each of the last 10 seconds | Off |
 | Respect Do Not Disturb | No sound; the pill still pulses | On |
 | Automatic detection / Prefix | Answer any duration in the launcher, or only after your prefix | Automatic detection |
-| End actions | One row per action: Power off, Sleep, Stop the music and your own commands, each with its launcher words: see [End actions and their words](#end-actions-and-their-words) | One word each, no own command |
 | Erase history | Deletes the journal and the favourites at once: see [Erasing the history](#erasing-the-history) | Button |
 
 DMS's *Reduce motion* is respected: no floating, no spin or flip animation.
-
-### End actions and their words
-
-In **Timers**, each end action has a row: Power off, Sleep, Stop the music, then your own commands. Type one of its words after a timer to start it when the timer ends, for example `45m film off`. Any word works, even a made-up one.
-
-> **Not yet:** the rows save your commands and words, but nothing runs them when a timer ends until the end action runner lands (a separate story). Until then a word after a duration does nothing.
-
-- **Add a word**: type it in the small field and press Enter. It is lower-cased and spaces are removed. A row holds at most 8 words of 24 characters; click a chip to remove its word. **Reset the words** puts every action back to its default word.
-- A word is refused, with the reason beside the field, when it is empty, too long, has characters other than letters, digits, `-` and `_`, starts with a digit, reads as a number or a unit of time (`30`, `min`), or already belongs to another action. Nothing is saved in that case.
-- **Add a command** asks for a name (up to 40 characters) and the command: a program name or an absolute path, then its arguments separated by spaces (at most 16 of 200 characters). There is no quoting and no shell: the text is split on spaces and run as a program with its arguments. A program starting with `-`, or with a control character, is refused. You can keep 16 commands. Edit the name or the command in place and press Enter to save; **Remove** deletes the command and its words.
-- A command runs without any question asked. Power off and Sleep always ask first.
 
 ### Erasing the history
 

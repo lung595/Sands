@@ -23,21 +23,29 @@ QtObject {
     }
 
     // Settings an older Sands saved and this one no longer reads (the end
-    // mode): dropped once, without a word, so the default applies. DMS has no
-    // call to remove a plugin setting, so this writes the settings as
+    // mode, the end actions): dropped once, so the default applies. DMS has
+    // no call to remove a plugin setting, so this writes the settings as
     // setPluginSetting does; nothing is written when there is nothing to drop.
+    // True when the removal of the end actions must be told: only to whoever
+    // had some, and only once ever (a flag in the plugin state, set at the
+    // first start of 1.7.0 whatever the settings held).
     function dropRetiredSettings() {
         const all = SettingsData.pluginSettings || {};
         const r = Retired.sweep(all[pluginId]);
-        if (r.removed.length === 0)
-            return;
-        const updated = JSON.parse(JSON.stringify(all));
-        updated[pluginId] = r.settings;
-        SettingsData.pluginSettings = updated;
-        SettingsData.savePluginSettings();
+        if (r.removed.length > 0) {
+            const updated = JSON.parse(JSON.stringify(all));
+            updated[pluginId] = r.settings;
+            SettingsData.pluginSettings = updated;
+            SettingsData.savePluginSettings();
+        }
+        const done = pluginService.loadPluginState(pluginId, Retired.NOTICE_KEY, false) === true;
+        if (!done)
+            pluginService.savePluginState(pluginId, Retired.NOTICE_KEY, true);
+        return Retired.notice(r.hadEndActions, done);
     }
 
-    // { timers, nextId, recents } as saved, unprocessed
+    // { timers, nextId, recents } as saved, unprocessed but for the end
+    // action an older timer may carry (dropped: it ends as any other)
     function read() {
         const timers = pluginService.loadPluginState(pluginId, "timers", []);
         if (!Array.isArray(timers))
@@ -45,7 +53,7 @@ QtObject {
                 "reason": "bad_data"
             });
         return {
-            timers: timers,
+            timers: Retired.stripTimers(timers),
             nextId: pluginService.loadPluginState(pluginId, "nextId", 1),
             recents: pluginService.loadPluginState(pluginId, "recents", []) || []
         };
