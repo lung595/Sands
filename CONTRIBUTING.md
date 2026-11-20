@@ -18,7 +18,7 @@ Everything needed to work on Sands or take over the project.
 1. Clone the repository into the DMS plugin folder and enable it in **Settings → Plugins**:
 
    ```sh
-   git clone https://github.com/lung595/Sands ~/.config/DankMaterialShell/plugins/Sands
+   git clone https://github.com/lung595/Sands ~/.config/dms/plugins/smartTimer
    ```
 
 2. Add the **Sands** widget to the bar to see the pill and the panel.
@@ -62,14 +62,14 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
   - A null intent or target means "not a command": fall back to `TP.parse`, so « pause café 15 min » or « pasta 12 » still start a timer. On Enter, call the daemon with `target.id`: `adjust(id, delta)`, `pause(id)`, `resume(id)`, `rename(id, newName)`, and for a snooze `adjust(id, minutes * 60000)` as `TimerIpc.snooze` does.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
 - `components/daemon/*.js`: the rules of the daemon's parts (see the table above). They import `TimeParser.js` and `Timers.js` where needed.
-- `components/alert/*.js`: the visual alert of a finished timer, `AlertPolicy.js` (which alert and when) and `HaloMotion.js` (the Edge halo steps), both tested and not wired yet.
+- `components/alert/*.js`: the visual alert of a finished timer, `AlertPolicy.js` (which alert and when, read by `DuneAlert.qml` and the settings), `HaloMotion.js` (the Edge halo steps), `DuneMotion.js` and `DuneStyles.js` (the Rising dune), `SandTint.js` (the sand colours).
 - `Preview.js`: the one-line preview and the « Rings at … » line the launcher shows before Enter.
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
 - `components/Press.js`: what the controls drawn by hand share (the keys that press them, the 44 px target, the fades).
 - `diagnostics/*.js`: the anonymous report. `Gather.js` (the probes and how their answers are read), `Redact.js` (what is hidden), `Report.js` (the text), `Cpu.js`, `Log.js`, `Codes.js`, `Allow.js`. `scripts/diagnose.sh` builds the same report from a terminal when the shell does not answer; its cleaning rules mirror `Redact.js` and both sides are tested (`tests/diagnostics.test.js`, `tests/diagnose.test.sh`).
 - `components/settings/ReportRow.js`: every word and state of the "Copy report" row.
-- `components/settings/Sections.js`: the settings sections and every setting as one table (keys, help, synonyms, battery level); `components/settings/Search.js`: the settings search over it (copied from Orbit's engine, typo-tolerant, ranked). Not drawn yet.
+- `components/settings/Sections.js`: the settings sections and every setting as one table (keys, help, synonyms, battery level); `components/settings/Search.js`: the settings search over it (copied from Orbit's engine, typo-tolerant, ranked), both used by `SettingsPage.qml`.
 
 **Motion timers.** Nothing animates with QML animations while idle. The pill's single motion clock is `components/PillClock.qml`, driven by `HorizontalPill.qml`: 16 ms only for the bell swing, 33 ms for the final-countdown beat and the breathing; it runs only while ringing or beating and stops after the alarm duration. The panel's sand clock is `components/hourglass/MotionClock.qml` (33 ms once the sand is settled, stopped under Reduce motion).
 
@@ -177,7 +177,8 @@ The warnings that were already there are listed in `scripts/lint-baseline.txt` (
 `scripts/preview/` renders the real `TimerWidget.qml` (pill and panel), `TimerPanelContent.qml` and `Hourglass.qml` with a made-up daemon (`mock/FakeDaemon.qml`), made-up timers and stand-ins for the DMS modules (`imports/qs/*`). Nothing of the live shell is read or touched, and the plugin never loads anything from this folder. It needs `qml-qt6` (Qt 6) and the DMS install for the Material Symbols font.
 
 ```sh
-scripts/preview/shots.sh /tmp/sands-shots              # every scene of manifest.txt, as PNGs
+scripts/preview/shots.sh                               # every scene of manifest.txt, as PNGs in out/ (ignored by git)
+scripts/preview/shots.sh /tmp/sands-shots              # the same, in another folder
 scripts/preview/shots.sh /tmp/sands-shots panel pill-4 # only some of them
 scripts/preview/cmp.sh /tmp/sands-shots                # compare with scripts/preview/reference/
 TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher.qml   # launcher: prints each query's lines as text

@@ -35,14 +35,14 @@ dms plugins install smartTimer
 <summary>Manual install</summary>
 
 ```sh
-git clone https://github.com/lung595/Sands ~/.config/DankMaterialShell/plugins/Sands
+git clone https://github.com/lung595/Sands ~/.config/dms/plugins/smartTimer
 ```
 
 Then click **Settings → Plugins → *Scan for plugins***.
 </details>
 
 > [!NOTE]
-> The plugin id is `smartTimer` (install command, IPC, settings); the display name is **Sands**.
+> The plugin id is `smartTimer` (install command, plugin folder, IPC, settings); the display name is **Sands**.
 
 ### 2. Enable
 
