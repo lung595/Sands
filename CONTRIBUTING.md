@@ -248,7 +248,7 @@ Measure before and after a change, in % of one CPU core for the whole shell (240
 
 - **Language**: code, comments and docs in English. The UI is in English and French: every shown sentence is a key of `Strings.js`, in both tables (`tests/strings.test.js` fails otherwise), never a string built by concatenation. The launcher accepts English and French input.
 - **Comments**: each file starts with a short comment saying what it is and why.
-- **Privacy**: no network access and no telemetry, ever. Nothing written to disk except timers and settings through DMS.
+- **Privacy**: no network access and no telemetry, ever. Nothing written to disk except timers and settings through DMS, and the private history file. A new program started by the code goes in the *Privacy* list of README and GUIDE, the same in both: `tests/docs-privacy.test.js` fails otherwise.
 - **Colors**: always from the DMS theme, never hard-coded.
 - **Docs**: user-facing changes go in `docs/GUIDE.md` (and the README if they change installation or the basics), plus an entry in `CHANGELOG.md`.
 

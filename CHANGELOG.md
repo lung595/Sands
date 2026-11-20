@@ -45,6 +45,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - The formatting functions (`formatClock`, `formatHuman`, `formatRelative`, `formatTimeOfDay`, `isTomorrow`, `widthTemplate`) moved from `TimeParser.js` to `TimeFormat.js`, which also gets `use24h(setting)` for the DMS 12/24 h choice; `TimeParser.js` re-exports them for now, so nothing changes for its callers. `Plans.js` uses the parser's `normalize` instead of its own copy. Covered by `tests/time-format.test.js`.
 - The offscreen renders are no longer in git: `out/` is ignored, and `scripts/preview/shots.sh` writes there by default from any folder. Covered by `tests/preview-out.test.sh`.
 - Taking time off a timer stops at 0:10 instead of being refused below one second: « pasta −5 » with 3 min left gives 0:10, and the −1 min button and the panel wheel work until 0:10.
+- Docs: README and GUIDE share one *Privacy* list naming every program Sands starts, checked against the code by `tests/docs-privacy.test.js`; the launcher *Timers* row, its settings and its DMS requirement are documented.
 
 ## 1.6.0 - 2026-10-11
 
@@ -53,14 +54,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - `dms ipc call smartTimer snooze <minutes>` (NAK-495): restarts the first ringing timer for 1 to 120 minutes (0: 5 minutes, like the notification button; out-of-range values are clamped). Always answers JSON, `{"snoozed":false,...}` when nothing rings, with no state change. `Snooze.forIpc`, covered by `tests/snooze.test.js`.
 - One "timer finished" event for Alex at the ring (`AlexBridge.js`, NAK-494): published once per ended timer through `PluginService.setGlobalVar` (key `timerFinished`, fields `kind: "timerFinished"`, id, label capped at 60 characters, end time) and only when Alex is loaded; without Alex nothing is called and nothing changes. Sands keeps showing its own alarm, sound and bar pill. Several timers ending in the same tick write the key once each (a late reader sees the last). Covered by `tests/alex-bridge.test.js`.
 - Pure parser for focus-cycle and chained-timer phrases (`Plans.js`, NAK-398). Not wired to any view yet; covered by `tests/plans.test.js`.
-- Pure logic for the end-of-timer actions and the free launcher words (`EndActions.js`, `LauncherWords.js`, NAK-399). Not wired to any view yet; covered by `tests/end-actions.test.js` and `tests/launcher-words.test.js`.
-- Pure logic for the time journal and the favourites (`History.js`, NAK-400). Not wired to any view yet; covered by `tests/history.test.js`.
-- History file store (`components/daemon/HistoryStore.qml`, NAK-432): one private file (0600 in a 0700 folder), written only when a timer ends, erasable, removable at uninstall. Not wired yet; covered by the offscreen test `tests/qml/run.sh`.
+- Pure logic for the end-of-timer actions and the free launcher words (`EndActions.js`, `LauncherWords.js`, NAK-399). Never wired, removed in the next version; covered by `tests/end-actions.test.js` and `tests/launcher-words.test.js`.
+- Pure logic for the time journal and the favourites (`History.js`, NAK-400). Not wired to any view in this version; covered by `tests/history.test.js`.
+- History file store (`components/daemon/HistoryStore.qml`, NAK-432): one private file (0600 in a 0700 folder), written only when a timer ends, erasable, removable at uninstall. Not wired in this version; covered by the offscreen test `tests/qml/run.sh`.
 - Pure logic for known durations: the built-in table and the user's own durations (`KnownDurations.js`, NAK-429). Not wired to any view yet; covered by `tests/known-durations.test.js`.
-- Pure logic for the notice before the end and the snooze choices (`components/daemon/Notice.js`, `components/daemon/Snooze.js`, NAK-430). Not wired to any view yet; covered by `tests/notice.test.js` and `tests/snooze.test.js`.
+- Pure logic for the notice before the end and the snooze choices (`components/daemon/Notice.js`, `components/daemon/Snooze.js`, NAK-430). Not wired to any view in this version; covered by `tests/notice.test.js` and `tests/snooze.test.js`.
 - `dms ipc call smartTimer status` prints the timers as JSON for scripts (remaining seconds, phase), built on call only (`components/daemon/Status.js`, NAK-431). Covered by `tests/status.test.js` and `tests/daemon-surface.test.js`.
-- Anonymous diagnostics module: an in-memory log of codes and an allowlisted report, with no name, path or command line, written to nothing on disk (`diagnostics/`, NAK-471). Not wired to any view yet; covered by `tests/diagnostics.test.js`.
-- Pure sections table and search index for the settings page (`components/settings/Sections.js` and `Search.js`, NAK-506). Not wired to any view yet; covered by `tests/settings-sections.test.js` and `tests/settings-search.test.js`.
+- Anonymous diagnostics module: an in-memory log of codes and an allowlisted report, with no name, path or command line, written to nothing on disk (`diagnostics/`, NAK-471). Not wired to any view in this version; covered by `tests/diagnostics.test.js`.
+- Pure sections table and search index for the settings page (`components/settings/Sections.js` and `Search.js`, NAK-506). Not wired to any view in this version; covered by `tests/settings-sections.test.js` and `tests/settings-search.test.js`.
 - Design mockup and spec of the "Copy report" row in the settings Help section, with a GitHub mark that opens a new issue (`docs/design/copy-report.md` and `docs/design/copy-report/`, NAK-535). Design only: no code change.
 - Design mockup of the "when a timer ends" row in Sands settings: three choices, greyed without Alex, narrow form (`docs/design/alex-row/index.html`, NAK-545). Design only: no code change.
 

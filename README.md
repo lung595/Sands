@@ -98,6 +98,21 @@ The pill only shows while you have a timer (running, paused or ringing), so an e
 
 A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). Unit typos are tolerated, names never. Type `timer` alone to get your most used timers; `timer stop` cancels one from the keyboard. All phrases: [Natural phrases](docs/GUIDE.md#natural-phrases).
 
+### Timers in the launcher
+
+Open the launcher (Spotlight, Super+Space, or the island launcher): your timers sit on top as a row of cards.
+
+| Card | Shows | Keys |
+| --- | --- | --- |
+| Running or paused | Hourglass, name, time left, end time | <kbd>Enter</kbd> or click: expand (pause, restart, stop, ±1 / +5 min, rename, mute) |
+| Ringing | Empty glass, time past the end, stop button | <kbd>Enter</kbd>: stop · click: expand (snooze) |
+| Favourite | Full glass, name, duration | <kbd>Enter</kbd> or click: start it |
+| +N | Timers that do not fit | <kbd>Enter</kbd>: open the next one |
+
+<kbd>←</kbd> <kbd>→</kbd> move between cards, <kbd>Esc</kbd> folds the open card, then closes the launcher. Four cards at most; favourites fill the free places. Settings: **Launcher** section (Timers in the launcher, While searching, Favourites in the row, Animate the sand).
+
+The row needs a DMS with *live launcher sections*: a DMS release that includes them (proposed upstream, not merged yet), or the local `dms-launcher-patch` tool, see [The Timers row](docs/GUIDE.md#the-timers-row). Without it, nothing changes: the launcher works as before.
+
 ### Gestures
 
 | On the pill | Action |
@@ -187,7 +202,18 @@ bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 
 ## Privacy
 
-No network access, no telemetry. Only short-lived local tools run (`pw-play` to ring, `notify-send` for the notification; for the report, only when you ask: `dms`, `quickshell`, `niri`, `rpm`, `cat`, `journalctl` to read versions and error codes, and `wl-copy` or `dms clipboard copy` to copy it). Your running and recent timers are saved by DMS, on this machine only. When a timer rings, Sands also keeps its name and times in its own private history file, `~/.local/state/sands/history.json` (readable by you only, 12 months at most, never read or written while idle); **Erase history** in the settings deletes it at once; uninstalling the plugin removes it with its folder. Sands publishes nothing to other plugins. See the [user guide](docs/GUIDE.md#privacy).
+- **No network access, no telemetry.** The guide and GitHub links open in your browser only when you click them.
+- **Tools Sands runs**, short-lived and local, each with a fixed list of arguments:
+  - to ring: `pw-play`, with `paplay` and `aplay` as fallbacks;
+  - for the notification: `notify-send`, and `gdbus` to close it;
+  - for the history file: `sh` with `cat`, `mkdir`, `chmod`, `mv`, `rm` and `rmdir`;
+  - while the settings page is open: `sh` with `find` and `sort`, to list the system sounds;
+  - for the report, only when you ask: `dms`, `quickshell`, `niri`, `rpm`, `cat` and `journalctl` to read versions and error codes, then `wl-copy` or `dms clipboard copy` to copy it.
+- **Written to disk** by DMS, on this machine only: your running timers (end times and labels), your recent timers and your settings.
+- **Private history**: when a timer rings, its name and times are kept in `~/.local/state/sands/history.json`, readable by you only (mode 0600 in a 0700 folder), 12 months at most. It is written at the ring only, never while a timer runs or at rest. **Erase history** in the settings deletes it at once; uninstalling Sands removes the file and its folder.
+- **Nothing shared**: Sands publishes nothing to other plugins.
+
+In detail: [Privacy](docs/GUIDE.md#privacy) in the user guide.
 
 The anonymous report ([Report a problem](docs/GUIDE.md#report-a-problem)) is built only when you ask, lives in memory, and is copied with `wl-copy --sensitive` (or `dms clipboard copy`). `--sensitive` asks clipboard managers not to keep it, and needs a wl-clipboard that knows the option (see `wl-copy --help`). The `dms clipboard copy` fallback leaves the report in the DMS clipboard history: the row says so, delete it there once pasted. The GitHub mark beside the button opens the new-issue page on click only, with a constant address and nothing prefilled.
 
