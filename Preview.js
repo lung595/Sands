@@ -1,10 +1,11 @@
 .pragma library
 .import "TimeParser.js" as TP
-.import "Timers.js" as Timers
+.import "Strings.js" as Strings
 
 // What the launcher shows for a parsed result: one line saying exactly what
 // Enter will create, so the user can trust the natural-language input.
-// Pure functions, tested by tests/preview.test.js.
+// Pure functions, tested by tests/preview.test.js. `lang` is the interface
+// language or locale name (Strings.langOf); English when it is left out.
 
 // The parser keeps the label as typed (« pasta »); it is shown, and stored
 // on the timer, with a capital so the preview matches what Enter creates.
@@ -12,29 +13,30 @@ function title(label) {
     return label ? label.charAt(0).toUpperCase() + label.slice(1) : "";
 }
 
-// When the result ends or rings, and the « tomorrow » suffix if it is not today.
-function _ends(r, now, use24) {
+// When the result ends or rings, with « tomorrow » if it is not today.
+function _ends(r, now, use24, lang) {
     var when = r.at || now + r.ms;
-    return { time: TP.formatTimeOfDay(when, use24), tomorrow: TP.isTomorrow(when, now) ? " tomorrow" : "" };
+    var time = TP.formatTimeOfDay(when, use24);
+    return TP.isTomorrow(when, now) ? Strings.tr("preview.tomorrow", lang, time) : time;
 }
 
 // « Pasta · 12 min · ends 12:42 », « Wake up · at 07:00 tomorrow »
-function previewLine(r, now, use24) {
-    var e = _ends(r, now, use24);
+function previewLine(r, now, use24, lang) {
+    var ends = _ends(r, now, use24, lang);
     // A label-less result falls back to « Timer » / « Alarm », like everywhere else.
-    var name = title(Timers.displayLabel({ label: r.label, kind: r.kind }));
+    var name = title(r.label || Strings.tr(r.kind === "at" ? "name.alarm" : "name.timer", lang));
     if (r.kind === "at")
-        return name + " · at " + e.time + e.tomorrow;
+        return Strings.tr("preview.at", lang, name, ends);
     var times = r.count > 1 ? r.count + " × " : "";
-    return name + " · " + times + TP.formatHuman(r.ms) + " · ends " + e.time + e.tomorrow;
+    return Strings.tr("preview.duration", lang, name, times + TP.formatHuman(r.ms), ends);
 }
 
 // Second line, under the preview: when it will ring, relative to now.
-function ringsLine(r, now, use24) {
+function ringsLine(r, now, use24, lang) {
     if (r.kind === "at")
-        return "Rings in " + TP.formatRelative(r.ms);
-    var e = _ends(r, now, use24);
-    return "Rings at " + e.time + e.tomorrow + (r.capped ? " · at most 20 at once" : "");
+        return Strings.tr("preview.ringsIn", lang, TP.formatRelative(r.ms));
+    var line = Strings.tr("preview.ringsAt", lang, _ends(r, now, use24, lang));
+    return r.capped ? line + " · " + Strings.tr("preview.capped", lang, TP.MAX_COUNT) : line;
 }
 
 // Short note the parser may attach to an empty result as « results.hint »

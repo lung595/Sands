@@ -8,7 +8,7 @@ Everything Sands can do, in detail. To install it and add the widget, see the [R
 - [The bar pill](#the-bar-pill)
 - [The hourglass panel](#the-hourglass-panel)
 - [The time journal](#the-time-journal)
-- [The launcher](#the-launcher)
+- [The launcher](#the-launcher) · [The Timers row](#the-timers-row)
 - [Syntax](#syntax) · [Natural phrases](#natural-phrases) · [What the launcher shows](#what-the-launcher-shows)
 - [Snoozing from a keybind](#snoozing-from-a-keybind)
 - [Reading the timers from a script](#reading-the-timers-from-a-script)
@@ -108,6 +108,27 @@ No prefix needed: Sands only answers when what you type looks like a duration, a
 
 **Cancel from the keyboard**: type `timer stop` (or `stop timer`, `cancel timer`). With one timer, <kbd>Enter</kbd> cancels it; with several, you pick which one, or *Cancel all*. Anything else you type with `stop` in it is left alone.
 
+### The Timers row
+
+In Spotlight (Super+Space) and in the island launcher, your timers sit on top of the results as one row of cards, under a *Timers* header with the `timer` icon. Not in the app drawer.
+
+| Card | Shows | <kbd>Enter</kbd> | Click |
+| --- | --- | --- | --- |
+| Running | Sand falling, name, time left, the end time beside an alarm icon | Expand | Expand |
+| Paused | Frozen sand, a pause icon | Expand | Expand |
+| Ringing | Empty top bulb, time past the end in red, a stop button | Stop | Expand |
+| Favourite | Full glass, name, duration, dimmed | Start it | Start it |
+| +N | How many timers are hidden | Expand the 5th | Expand the 5th |
+
+- **Order**: ringing, then running (nearest end first), then paused, then favourites. Four places; timers come first and favourites fill the free ones (three at most). The order only changes when a timer appears, ends or changes state, never under the pointer.
+- **Expanded card**: a large hourglass, the end time, the duration, the notice and the sound (the sound icon mutes or unmutes that timer), then round buttons pause / resume, restart (the glass turns over), stop, and chips −1 / +1 / +5 min. Click the name (or <kbd>F2</kbd>) to rename it. *Other timers* below scroll sideways; a click opens one. A ringing card shows stop, the snooze choices and restart.
+- **Keys**: <kbd>←</kbd> <kbd>→</kbd> between cards, <kbd>↓</kbd> leaves the row, <kbd>Tab</kbd> walks the controls of the open card, <kbd>Space</kbd> pauses, <kbd>Esc</kbd> folds the card, then closes the launcher. With nothing typed, a ringing card is selected first; once you type, the selection goes back to the first result (`fir` + <kbd>Enter</kbd> still opens Firefox).
+- **Stop and undo**: no question asked; the card says *Stopped · Undo* for 5 seconds, and <kbd>Enter</kbd> brings the timer back. Opening the launcher never silences the alarm.
+- **Motion**: every glass of the row flows while the launcher is open and stops when it closes. DMS's *Reduce motion*, or *Animate the sand* off, freezes them.
+- **Settings**, section **Launcher**: *Timers in the launcher* (the row itself), *While searching* (the row stays above the results while you type), *Favourites in the row*, *Animate the sand*. All on by default.
+
+**What it needs.** The row uses *live launcher sections*, a DMS feature proposed upstream and not in a DMS release yet. Until a release includes it, `dms-launcher-patch` applies it to the installed DMS: a root install script, run once with `sudo`, checks the DMS version, applies the patch (or does nothing if it is already there, or stops cleanly if it does not fit), keeps a backup, and installs a dnf hook that applies it again after each DMS update. Without the feature, Sands works exactly as before and the row simply does not appear.
+
 ## Syntax
 
 Type in English or French, words or digits, in any order:
@@ -187,7 +208,7 @@ Nothing starts before <kbd>Enter</kbd>. Everything is read on your machine; Sand
 
 ## Settings
 
-The page has a left rail of sections (Timers, Appearance, Alerts & sounds, Advanced, Help) and a search bar on top; one section is shown at a time. Type a few letters of a name, a help line or a synonym (French works, small typos are forgiven): **Enter** opens the first result, jumps to its section and the setting fades in once. **Esc** clears the search, **Ctrl+F** or **/** focuses it. A setting with a real battery cost carries a chip (*High*, *Some* or *Light on battery*) and a one-line note. Nothing is built until the page opens; then every section is built once and only the current one is shown.
+The page has a left rail of sections (Timers, Launcher, Appearance, Alerts & sounds, Advanced, Help) and a search bar on top; one section is shown at a time. Type a few letters of a name, a help line or a synonym (French works, small typos are forgiven): **Enter** opens the first result, jumps to its section and the setting fades in once. **Esc** clears the search, **Ctrl+F** or **/** focuses it. A setting with a real battery cost carries a chip (*High*, *Some* or *Light on battery*) and a one-line note. Nothing is built until the page opens; then every section is built once and only the current one is shown.
 
 | Setting | Description | Default |
 | --- | --- | --- |
@@ -200,6 +221,10 @@ The page has a left rail of sections (Timers, Appearance, Alerts & sounds, Advan
 | Final countdown ticks | A soft tick on each of the last 10 seconds | Off |
 | Respect Do Not Disturb | No sound; the pill still pulses | On |
 | Automatic detection / Prefix | Answer any duration in the launcher, or only after your prefix | Automatic detection |
+| Timers in the launcher | The [Timers row](#the-timers-row) on top of Spotlight and the island launcher | On |
+| While searching | The row stays above the results while you type | On |
+| Favourites in the row | Your most started timers fill the free places | On |
+| Animate the sand | The sand of the row falls while the launcher is open | On |
 | Erase history | Deletes the journal and the favourites at once: see [Erasing the history](#erasing-the-history) | Button |
 
 DMS's *Reduce motion* is respected: no floating, no spin or flip animation.
@@ -242,11 +267,16 @@ From a terminal: `dms ipc call smartTimer diagnostics`, or `sh scripts/diagnose.
 
 ## Privacy
 
-- **No network access, no telemetry.** The guide links in messages open in your browser only when you click them.
-- **Short-lived local tools only**: `pw-play` (or `paplay`) to ring, `notify-send` / `gdbus` for the notification, and a one-off `find` over the system sound folders while the settings page is open.
-- **Written to disk**, through DMS's plugin state: your running timers (end times and labels) and your recent timers.
-- **Private history**: when a timer rings, its name and times are kept in `~/.local/state/sands/history.json`, readable by you only (mode 0600 in a 0700 folder), 12 months at most. It is written at the ring only, never while a timer runs or at rest, and uninstalling Sands removes the file and its folder. Nothing else is written.
-- **Settings** are stored by DMS with your other plugin settings.
+- **No network access, no telemetry.** The guide and GitHub links open in your browser only when you click them.
+- **Tools Sands runs**, short-lived and local, each with a fixed list of arguments:
+  - to ring: `pw-play`, with `paplay` and `aplay` as fallbacks;
+  - for the notification: `notify-send`, and `gdbus` to close it;
+  - for the history file: `sh` with `cat`, `mkdir`, `chmod`, `mv`, `rm` and `rmdir`;
+  - while the settings page is open: `sh` with `find` and `sort`, to list the system sounds;
+  - for the report, only when you ask: `dms`, `quickshell`, `niri`, `rpm`, `cat` and `journalctl` to read versions and error codes, then `wl-copy` or `dms clipboard copy` to copy it.
+- **Written to disk** by DMS, on this machine only: your running timers (end times and labels), your recent timers and your settings.
+- **Private history**: when a timer rings, its name and times are kept in `~/.local/state/sands/history.json`, readable by you only (mode 0600 in a 0700 folder), 12 months at most. It is written at the ring only, never while a timer runs or at rest. **Erase history** in the settings deletes it at once; uninstalling Sands removes the file and its folder.
+- **Nothing shared**: Sands publishes nothing to other plugins.
 
 ## Performance
 

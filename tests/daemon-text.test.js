@@ -46,6 +46,20 @@ eq(N.parseLine("snooze"), { action: "snooze" }, "the snooze button");
 eq(N.parseLine("anything else"), null, "other output is ignored");
 eq(N.parseLine("1 2"), null, "not an id");
 
+// French when a language is passed (last argument), English otherwise
+eq(R.started({ started: 2, count: 4, kind: "duration", label: "", ms: 3600000 }, null, 50, G, true, "fr"), "Démarré : 2 sur 4 × Minuteur - 1 h (50 au plus à la fois : " + G + "#syntax)", "partly, French");
+eq(R.started({ started: 1, count: 1, kind: "at", label: "", at: at }, null, 50, G, true, "fr_FR"), "Démarré : Alarme - à 14:05", "an alarm, French");
+eq(R.started({ started: 0, count: 1 }, { hint: "x", anchor: "syntax" }, 50, G, true, "fr"), "Pas démarré : x. " + G + "#syntax", "refused, French");
+eq(R.tooLong(G, "fr"), "Pas démarré : moins de 200 caractères, comme « 12 min pâtes » : " + G + "#syntax", "too long, French");
+eq(R.undone("fr"), "Minuteur rétabli", "undo, French");
+eq(R.list([], 0, "fr"), "Aucun minuteur", "empty list, French");
+eq(R.list([{ state: "paused", label: "", kind: "at", remaining: 5000 }], 0, "fr"), "Alarme\t0:05 (en pause)", "list, French");
+eq(N.body({ kind: "duration", total: 300000 }, true, "fr"), "Temps écoulé : 5 min", "notification body, French");
+eq(N.body({ kind: "at", endAt: at }, true, "fr"), "Il est 14:05", "alarm body, French");
+const showFr = N.showCommand("thé", "x", "fr");
+eq(showFr.filter(a => /^(stop|snooze)=/.test(a)), ["stop=Arrêter", "snooze=+5 min"], "French buttons keep their ids");
+eq(showFr.slice(-2)[0], "thé - terminé", "French title");
+
 // A dash typed in a label is shown as a hyphen
 eq(R.started({ started: 1, count: 1, kind: "duration", label: "a\u2014b \u2013 c", ms: 60000 }, null, 50, G, true), "Started: a - b - c - 1 min", "dashes in a label, reply");
 eq(N.showCommand("a\u2014b", "x").slice(-2)[0], "a - b - done", "dashes in a label, title");

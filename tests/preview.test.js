@@ -1,17 +1,8 @@
 // Preview.js tests — run with: gjs tests/preview.test.js (from the plugin root)
 // The one-line preview the launcher shows before Enter.
-const GLib = imports.gi.GLib;
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
 const { load } = imports.harness;
-
-const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/preview.test.js", GLib.get_current_dir())));
-const read = f => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + f)[1]);
-// Preview.js imports TimeParser.js and Timers.js through the QML « .import »;
-// here they are loaded the way the other tests load them and handed in.
-const TP = load("TimeParser.js");
-const TM = load("Timers.js");
-const src = read("Preview.js").split("\n").filter(l => !/^\.(pragma|import)/.test(l)).join("\n");
-const P = new Function("TP", "Timers", src + "; return { title, previewLine, ringsLine, hintOf };")(TP, TM);
+const P = load("Preview.js");
 
 let failures = 0, count = 0;
 function eq(got, expected, what) {
@@ -42,6 +33,14 @@ eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: P.title("pasta"), coun
 eq(P.ringsLine({ kind: "duration", ms: 12 * MIN, label: "", count: 1 }, now, true), "Rings at 12:42", "rings at");
 eq(P.ringsLine({ kind: "duration", ms: 12 * MIN, count: 25, capped: true }, now, true), "Rings at 12:42 · at most 20 at once", "capped count");
 eq(P.ringsLine({ kind: "at", at: at(18, 0), ms: at(18, 0) - now }, now, true), "Rings in 5 h 30", "rings in");
+
+// French when the interface language is French (a locale name works too)
+eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: "pâtes", count: 1 }, now, true, "fr"), "Pâtes · 12 min · finit à 12:42", "French duration");
+eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: "", count: 2 }, now, true, "fr_FR"), "Minuteur · 2 × 12 min · finit à 12:42", "French label-less duration");
+eq(P.previewLine({ kind: "at", at: at(7, 0, 1), ms: at(7, 0, 1) - now, label: "" }, now, true, "fr"), "Alarme · à 07:00 demain", "French alarm tomorrow");
+eq(P.ringsLine({ kind: "duration", ms: 12 * MIN, count: 25, capped: true }, now, true, "fr"), "Sonne à 12:42 · 20 au plus à la fois", "French capped count");
+eq(P.ringsLine({ kind: "at", at: at(18, 0), ms: at(18, 0) - now }, now, true, "fr"), "Sonne dans 5 h 30", "French rings in");
+eq(P.ringsLine({ kind: "duration", ms: 12 * MIN, count: 1 }, now, true, "de_DE"), "Rings at 12:42", "another language falls back to English");
 
 eq(P.hintOf(Object.assign([], { hint: "Unknown word" })), "Unknown word", "parser hint");
 eq(P.hintOf([]), "", "no hint");

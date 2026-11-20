@@ -59,20 +59,10 @@ var RE_DAY_WORD = new RegExp("(?:^|[^a-z])(?:midi|noon|minuit|midnight|" +
 var RE_LEAD = /^(?:(?:for|pour|de|during|pendant|in|dans|timer|minuteur)(?=\s|$)\s*|d['’]\s*)+/i;
 var RE_TRAIL = /(?:\s+(?:for|pour|de|d['’]|during|pendant|in|dans))+$/i;
 
-// Lowercase, no accents; one character in, one character out, so positions
-// stay aligned with the original text the labels are cut from
-function normalize(text) {
-    var out = "";
-    for (var i = 0; i < text.length; i++) {
-        var c = text.charAt(i).toLowerCase();
-        if (c.length !== 1)
-            c = text.charAt(i);
-        if (c === "’" || c === "‘" || c === "`")
-            c = "'";
-        out += c.normalize ? c.normalize("NFD").charAt(0) : c;
-    }
-    return out;
-}
+// The parser's normalize (lowercase, no accents, straight apostrophes; one
+// character in, one out, so positions stay aligned with the original text
+// the labels are cut from): one implementation for both parsers
+var normalize = TimeParser.normalize;
 
 // Milliseconds of one DUR match whose groups start at `at`, or NaN
 function durationMs(m, at) {
