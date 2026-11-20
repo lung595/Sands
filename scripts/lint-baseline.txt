@@ -1,0 +1,231 @@
+# qmllint warnings already there (scripts/lint.sh --update): file, rule, message, code
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+TimerWidget.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
+components/OtherTimers.qml	unqualified	Unqualified access	root
+components/OtherTimers.qml	unqualified	Unqualified access	root
+components/OtherTimers.qml	unqualified	Unqualified access	root
+components/PanelClock.qml	unqualified	Unqualified access	root
+components/PanelClock.qml	unqualified	Unqualified access	root
+components/PanelGlass.qml	unqualified	Unqualified access	glass
+components/PanelGlass.qml	unqualified	Unqualified access	glass
+components/PanelGlass.qml	unqualified	Unqualified access	root
+components/PanelGlass.qml	unqualified	Unqualified access	root
+components/PanelGlass.qml	unqualified	Unqualified access	root
+components/PanelGlass.qml	unqualified	Unqualified access	root
+components/PanelGlass.qml	unqualified	Unqualified access	root
+components/PanelGlass.qml	unqualified	Unqualified access	root
+components/TimerDots.qml	unqualified	Unqualified access	root
+components/TimerDots.qml	unqualified	Unqualified access	root
+components/TimerDots.qml	unqualified	Unqualified access	root
+components/TimerDots.qml	unqualified	Unqualified access	root
+components/TimerDots.qml	unqualified	Unqualified access	root
+components/TimerDots.qml	unqualified	Unqualified access	root
+components/TimerDots.qml	unqualified	Unqualified access	root
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/TimerPanelContent.qml	unqualified	Unqualified access	pop
+components/alert/DuneBand.qml	incompatible-type	Cannot assign binding of type QObject to QQuickItem	sceneLoader.item
+components/alert/DuneBand.qml	missing-property	Member "reach" not found on type "QObject"	reach
+components/alert/DuneWindows.qml	uncreatable-type	Type PanelWindow is not creatable.	PanelWindow
+components/alert/DuneWindows.qml	unqualified	Unqualified access	CompositorService
+components/alert/HaloWindow.qml	uncreatable-type	Type PanelWindow is not creatable.	PanelWindow
+components/alert/RingAlert.qml	unqualified	Unqualified access	AudioService
+components/alert/RingAlert.qml	unqualified	Unqualified access	AudioService
+components/alert/RingAlert.qml	unqualified	Unqualified access	AudioService
+components/alert/RingAlert.qml	unqualified	Unqualified access	CompositorService
+components/alert/RingAlert.qml	unqualified	Unqualified access	CompositorService
+components/alert/RingAlert.qml	unqualified	Unqualified access	CompositorService
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	root
+components/alert/RingAlert.qml	unqualified	Unqualified access	root
+components/alert/RingAlert.qml	unqualified	Unqualified access	root
+components/alert/RingAlert.qml	unqualified	Unqualified access	root
+components/alert/RingAlert.qml	unqualified	Unqualified access	root
+components/alert/RingAlert.qml	unqualified	Unqualified access	root
+components/daemon/AlarmSound.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
+components/daemon/AlarmSound.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
+components/daemon/HistoryStore.qml	missing-property	Member "_maybeFinish" not found on type "Process"	_maybeFinish
+components/daemon/HistoryStore.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
+components/daemon/TimerIpc.qml	unqualified	Unqualified access	CompositorService
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Glasses.qml	unqualified	Unqualified access	root
+components/favourites/Rows.qml	unqualified	Unqualified access	root
+components/favourites/Rows.qml	unqualified	Unqualified access	root
+components/favourites/Rows.qml	unqualified	Unqualified access	root
+components/favourites/Rows.qml	unqualified	Unqualified access	root
+components/favourites/Rows.qml	unqualified	Unqualified access	root
+components/favourites/Rows.qml	unqualified	Unqualified access	root
+components/journal/ElidedName.qml	unqualified	Unqualified access	root
+components/journal/ElidedName.qml	unqualified	Unqualified access	root
+components/journal/JournalView.qml	unqualified	Unqualified access	root
+components/journal/JournalView.qml	unqualified	Unqualified access	root
+components/journal/JournalView.qml	unqualified	Unqualified access	root
+components/journal/JournalView.qml	unqualified	Unqualified access	root
+components/journal/Strata.qml	unqualified	Unqualified access	index
+components/journal/Strata.qml	unqualified	Unqualified access	modelData
+components/journal/Strata.qml	unqualified	Unqualified access	modelData
+components/journal/Strata.qml	unqualified	Unqualified access	root
+components/journal/Threads.qml	unqualified	Unqualified access	root
+components/journal/Threads.qml	unqualified	Unqualified access	root
+components/journal/Threads.qml	unqualified	Unqualified access	root
+components/journal/Threads.qml	unqualified	Unqualified access	root
+components/settings/ActionRow.qml	unqualified	Unqualified access	root
+components/settings/ActionRow.qml	unqualified	Unqualified access	root
+components/settings/AlertsSection.qml	missing-property	Member "value" not found on type "StringSetting"	value
+components/settings/AlertsSection.qml	missing-property	Member "value" not found on type "StringSetting"	value
+components/settings/AlexMode.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
+components/settings/BatteryPill.qml	unqualified	Unqualified access	root
+components/settings/CardChoice.qml	unqualified	Unqualified access	cards
+components/settings/CardChoice.qml	unqualified	Unqualified access	cards
+components/settings/CardChoice.qml	unqualified	Unqualified access	cards
+components/settings/CardChoice.qml	unqualified	Unqualified access	cards
+components/settings/CardChoice.qml	unqualified	Unqualified access	root
+components/settings/CardChoice.qml	unqualified	Unqualified access	root
+components/settings/CardChoice.qml	unqualified	Unqualified access	root
+components/settings/CardChoice.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
+components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SettingsPage.qml	missing-property	Member "contentItem" not found on type "QQuickItem"	contentItem
+components/settings/SettingsPage.qml	missing-property	Member "contentY" not found on type "QQuickItem"	contentY
+components/settings/SettingsPage.qml	missing-property	Member "contentY" not found on type "QQuickItem"	contentY
+components/settings/SettingsPage.qml	missing-property	Member "contentY" not found on type "QQuickItem"	contentY
+components/settings/SettingsPage.qml	missing-property	Member "cursorPosition" not found on type "QQuickItem"	cursorPosition
+components/settings/SettingsPage.qml	unqualified	Unqualified access	root
+components/settings/StartSection.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	measureRep
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	measureRep
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	measureRep
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	segRep
+components/settings/TimerEndRow.qml	unqualified	Unqualified access	segments
+tests/qml-dune/tst_duneBand.qml	missing-property	Member "reach" not found on type "QQuickItem"	reach
+tests/qml-dune/tst_duneBand.qml	missing-property	Member "reach" not found on type "QQuickItem"	reach
+tests/qml-dune/tst_duneBand.qml	missing-property	Member "reach" not found on type "QQuickItem"	reach
+tests/qml-dune/tst_duneBand.qml	missing-property	Member "source" not found on type "QQuickItem"	source
+tests/qml-page/tst_copyReportMark.qml	missing-property	Member "clipboard" not found on type "QObject"	clipboard
+tests/qml-page/tst_copyReportMark.qml	missing-property	Member "clipboard" not found on type "QObject"	clipboard
+tests/qml/tst_alertScreens.qml	import	File or directory you are trying to import does not exist: tests/qml/AlertPolicy.js.	import
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	Policy
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	Policy
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	Policy
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	Policy
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	Policy
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	Policy
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	Policy
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	check
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	failed
+tests/qml/tst_alertScreens.qml	unqualified	Unqualified access	failed
+tests/qml/tst_haloAlert.qml	import	DuneAlert was not found. Did you add all imports and dependencies?	DuneAlert
+tests/qml/tst_haloAlert.qml	import	File or directory you are trying to import does not exist: tests/qml/components/alert.	import
+tests/qml/tst_historyStore.qml	import	HistoryStore was not found. Did you add all imports and dependencies?	HistoryStore
+tests/qml/tst_historyStore.qml	incompatible-type	Cannot assign binding of type HistoryStore to QObject	store
+tests/qml/tst_historyStore.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
+tests/qml/tst_historyStore.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
+tests/qml/tst_historySweep.qml	import	HistorySweep was not found. Did you add all imports and dependencies?	HistorySweep
+tests/qml/tst_historySweep.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
+tests/qml/tst_noticeRunner.qml	import	NoticeRunner was not found. Did you add all imports and dependencies?	NoticeRunner
+tests/qml/tst_reportCopy.qml	import	File or directory you are trying to import does not exist: tests/qml/components/daemon.	import
+tests/qml/tst_reportCopy.qml	import	ReportClipboard was not found. Did you add all imports and dependencies?	ReportClipboard
+tests/qml/tst_reportCopy.qml	import	ReportService was not found. Did you add all imports and dependencies?	ReportService
+tests/qml/tst_reportCopy.qml	incompatible-type	Cannot assign binding of type ReportClipboard to QObject	clip
+tests/qml/tst_reportCopy.qml	incompatible-type	Cannot assign binding of type ReportService to QObject	service
+tests/qml/tst_reportCopy.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited

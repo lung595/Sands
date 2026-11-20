@@ -24,7 +24,7 @@ Everything needed to work on Sands or take over the project.
 2. Add the **Sands** widget to the bar to see the pill and the panel.
 3. DMS reloads QML on save, but Qt keeps `components/` and `.js` files cached in the running shell: **run `dms restart`** after changing them.
 
-Tools: `gjs` (tests).
+Tools: `gjs` (tests), `qmllint` from Qt 6 and `python3` (lint).
 
 ## Architecture
 
@@ -118,6 +118,7 @@ Sands/
 ├── tools/sounds/               # renders hourglass.ogg (python3 tools/sounds/generate.py OUT), check.py inspects rings; README.md lists hashes
 ├── diagnostics/                # the anonymous report as pure rules: Gather.js, Redact.js, Report.js, Cpu.js, Log.js, Codes.js, Allow.js   (tested)
 ├── scripts/diagnose.sh         # the same report from a terminal, for when the shell does not answer (tested by tests/diagnose.test.sh)
+├── scripts/lint.sh             # qmllint against scripts/lint-baseline.txt, rule levels in .qmllint.ini (tested by tests/lint.test.sh)
 ├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
 ├── tests/
 │   ├── parser.test.js
@@ -162,6 +163,15 @@ Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qm
 Settings overlap (offscreen, needs `qml-qt6`): `cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml` loads the settings page at 228, 360 and 404 px and exits 1 on any overlap, elided text or text off the page. `scripts/preview/before-after.sh <commit> <out.html>` builds the before/after page (dark and light, two widths, four made-up stores; stores live in `scripts/preview/mock/Presets.js`).
 
 Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
+
+### Lint
+
+```sh
+sh scripts/lint.sh            # qmllint over every QML file (not scripts/preview/), about 2 s
+sh scripts/lint.sh --update   # after fixing warnings, or when one is accepted on purpose
+```
+
+The warnings that were already there are listed in `scripts/lint-baseline.txt` (file, rule, message, code; no line number, so moving code does not touch it). Only a new one fails (exit 1, printed with its line); a fixed one is only reported. The DMS modules come from the stand-ins in `scripts/preview/imports`, Quickshell from its install, the rule levels from `.qmllint.ini`. Never refresh the baseline to hide a new warning: fix it. `sh tests/lint.test.sh` tests the script.
 
 ## Offscreen previews and bench
 
