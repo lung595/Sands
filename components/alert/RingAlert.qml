@@ -92,18 +92,21 @@ Item {
             hasOutput: AudioService.sink !== null && AudioService.sink !== undefined
         })
 
+    // The alert rises at each new ring (a second timer ending during the
+    // first one raises it again, with the latest name); the end of every
+    // ring takes it down.
     Connections {
         target: root.engine
+        function onRang(ids) {
+            root._seed = (Date.now() % 65535) + 1;
+            // A second timer ending during the ring keeps the screens of the first
+            if (!alert.showing || alert.testing)
+                root._aim();
+            alert.ring(true);
+        }
         function onRingingChanged() {
-            if (root.engine.ringing) {
-                root._seed = (Date.now() % 65535) + 1;
-                // A second timer ending during the ring keeps the screens of the first
-                if (!alert.showing || alert.testing)
-                    root._aim();
-                alert.ring();
-            } else {
+            if (!root.engine.ringing)
                 alert.dismiss();
-            }
         }
     }
 

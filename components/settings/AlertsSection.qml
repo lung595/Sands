@@ -6,6 +6,7 @@ import qs.Modules.Plugins
 import "../../Guide.js" as Guide
 import "../alert/AlertPolicy.js" as AlertPolicy
 import "../alert/DuneStyles.js" as DuneStyles
+import "../daemon/Lifecycle.js" as Lifecycle
 import "../"
 
 // The "Alerts & sounds" section: what is drawn and what rings when a timer
@@ -196,6 +197,19 @@ Column {
         minimum: 10
         maximum: 300
         unit: "s"
+    }
+
+    // Choices 0 (never), 1, 5, 15, 60: a list of the exact choices, so what
+    // is shown is always what is used
+    ChoiceRow {
+        settingKey: "wakeRingMinutes"
+        label: "Ring after sleep"
+        description: "A timer that finished during sleep rings if it is less than this old"
+        defaultValue: "5"
+        options: Lifecycle.WAKE_CHOICES.map(m => ({
+                    label: m === 0 ? "Never" : m + " min",
+                    value: String(m)
+                }))
     }
 
     SwitchRow {

@@ -17,6 +17,12 @@ function showCommand(label, bodyText) {
     return ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p", "-A", "stop=Stop", "-A", "snooze=+5 min", Plain.plain(label) + " - done", bodyText];
 }
 
+// A timer that ended long ago, while the machine slept or the shell was off:
+// a plain note, no buttons, nobody waits for an answer ("Pasta finished at 02:14")
+function staleCommand(label, finishedAt, use24h) {
+    return ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", Plain.plain(label) + " finished at " + TP.formatTimeOfDay(finishedAt, use24h)];
+}
+
 function closeCommand(notifId) {
     return CLOSE_COMMAND_HEAD.concat([String(notifId)]);
 }

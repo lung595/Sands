@@ -121,12 +121,16 @@ const endAt = tea.endAt;
 check("ring: Tea ends 2 s after its start", near(endAt, begin + 2000, 20) && tea.total === 2000, tea);
 check("ring: Tea rings on time, finishedAt = endAt", tea.state === "ringing" && tea.finishedAt === endAt && tea.remaining === 0 && rang.value.at >= endAt && rang.value.at - endAt < 1000, { at: rang.value.at, tea: tea });
 check("ring: only Tea rings", rang.value.timers.filter(t => t.state === "ringing").length === 1, rang.value.timers);
+const rangs = ring.filter(l => l.what === "rang").map(l => l.value);
+check("ring: one rang signal, for Tea alone", rangs.length === 1 && same(rangs[0].ids, [1]), rangs);
 
 // The dune: { name, reason } of the scene on screen, null at rest
 const DUNE = name => ({ name: name, reason: "Click to stop" });
 const started = first(ring, "started");
 check("ring: no dune before the end", started && started.alert === false && started.dune === null, started && [started.alert, started.dune]);
-check("ring: the dune rises at the ring, named Tea", rang.value.alert === true && same(rang.value.dune, DUNE("Tea")), [rang.value.alert, rang.value.dune]);
+// The dune rises on `rang`, right after the list changed
+const rose = ring.find(l => l.what === "rang");
+check("ring: the dune rises at the ring, named Tea", rose !== undefined && rose.value.alert === true && same(rose.value.dune, DUNE("Tea")) && rose.value.at - rang.value.at < 100, rose && [rose.value.alert, rose.value.dune]);
 
 const notes = ringCalls.filter(c => c.tool === "notify-send");
 check("ring: one notification, exact argv", notes.length === 1 && same(notes[0].args, TEA_NOTE), notes);
@@ -182,11 +186,24 @@ if (!restored || !stopTea || !stopAll || !bFinal)
 check("restore: Rice ended while no shell ran", rice.endAt < restored.at, { endAt: rice.endAt, restoredAt: restored.at });
 const rRice = byId(restored.timers, 2);
 check("restore: Rice comes back ringing since its end", rRice && rRice.state === "ringing" && rRice.finishedAt === rice.endAt && rRice.remaining === 0 && same(Object.assign({}, rRice, { state: "running", finishedAt: 0, remaining: 8000 }), rice), rRice);
-check("restore: Tea, Bread and Soup come back as saved", same(restored.timers.filter(t => t.id !== 2), sTimers.filter(t => t.id !== 2)), restored.timers);
+check("restore: Tea, Bread and Soup come back as saved", same(restored.timers.filter(t => t.id !== 2 && t.id !== 0), sTimers.filter(t => t.id !== 2)), restored.timers);
 check("restore: the daemon rings", restored.ringing === true);
-check("restore: the dune comes back, named after the last to end (Rice)", restored.alert === true && same(restored.dune, DUNE("Rice")), [restored.alert, restored.dune]);
+const bRangs = back.filter(l => l.what === "rang").map(l => l.value);
+check("restore: one rang for Tea and Rice, latest last, not for Pasta", bRangs.length === 1 && same(bRangs[0].ids, [1, 2]), bRangs.map(r => r.ids));
+check("restore: the dune comes back, named after the last to end (Rice)", bRangs.length === 1 && bRangs[0].alert === true && same(bRangs[0].dune, DUNE("Rice")) && bRangs[0].at - restored.at < 500, bRangs[0] && [bRangs[0].alert, bRangs[0].dune]);
+// Pasta ended 8 h before: over the 5 min of the sleep rule
+const pastaEnd = first(back, "pasta");
+const rPasta = byId(restored.timers, 0);
+check("restore: Pasta, ended 8 h ago, stays in the list as done", typeof pastaEnd === "number" && rPasta && rPasta.state === "ringing" && rPasta.finishedAt === pastaEnd, rPasta);
+// The ended ones are saved as ringing at once: a second restart (before any
+// other change) neither journals nor announces them again
+const firstSave = back.find(l => l.what === "save" && l.value.key === "timers");
+const fsList = firstSave ? firstSave.value.value : [];
+check("restore: saved at once with Rice and Pasta ringing", firstSave !== undefined && byId(fsList, 2) && byId(fsList, 2).state === "ringing" && byId(fsList, 0) && byId(fsList, 0).state === "ringing", firstSave && [fsList.map(t => [t.id, t.state])]);
 
-const bNotes = backCalls.filter(c => c.tool === "notify-send").sort((a, b) => a.args[11] < b.args[11] ? 1 : -1);
+const staleNotes = backCalls.filter(c => c.tool === "notify-send" && c.args.indexOf("-p") < 0);
+check("restore: Pasta gets one quiet note, its end time, no button", staleNotes.length === 1 && same(staleNotes[0].args.slice(0, 4), ["-a", "Sands", "-i", "alarm-symbolic"]) && staleNotes[0].args.length === 5 && /^Pasta finished at \d{1,2}:\d{2}( [AP]M)?$/.test(staleNotes[0].args[4]), staleNotes.map(c => c.args));
+const bNotes = backCalls.filter(c => c.tool === "notify-send" && c.args.indexOf("-p") >= 0).sort((a, b) => a.args[11] < b.args[11] ? 1 : -1);
 check("restore: Tea and Rice are notified again, exact argv", bNotes.length === 2 && same(bNotes.map(c => c.args), [TEA_NOTE, RICE_NOTE]) && bNotes.every(c => c.at < stopTea.at), bNotes);
 const bPlays = backCalls.filter(c => c.tool === "pw-play");
 check("restore: the alarm starts again from 30 %", bPlays.length >= 1 && rampOk(bPlays) && bPlays[0].at - restored.at < 1000, bPlays.map(c => [c.at - restored.at].concat(c.args)));
@@ -219,10 +236,15 @@ const bState = savedState(back);
 check("restore: saved state follows (next id 6)", same(bState.timers, left) && bState.nextId === 6, bState);
 check("restore: Rice's old end action is gone everywhere", restored.timers.concat(bFinal.timers, bState.timers || []).every(t => !("actionId" in t)), restored.timers);
 
-// What the journal does today: only a ring seen by a running daemon is kept,
-// so neither the restore nor the stops add a line (Rice ended while off)
-check("restore: restore and stops add nothing to the journal", tryRead("restore.history") === journal, tryRead("restore.history"));
-check("restore: the week is unchanged", same(first(back, "week"), week), first(back, "week"));
+// Every timer that ended gets its journal line once: Rice and Pasta ended
+// while no shell ran, Tea's line is not written again, the stops add nothing
+let bRecords = null;
+try {
+    bRecords = JSON.parse(tryRead("restore.history")).records;
+} catch (e) {}
+const lineOf = (name, end, ms) => ({ name: name, start: end - ms, end: end });
+check("restore: the journal gains Rice and Pasta, once each", same((bRecords || []).slice().sort((a, b) => a.end - b.end), [lineOf("Pasta", pastaEnd, 600000), { name: "Tea", start: endAt - 2000, end: endAt }, lineOf("Rice", rice.endAt, 8000)]), bRecords);
+check("restore: the week shows Rice too", (first(back, "week") || []).some(w => w.name === "Rice" && w.ms === 8000) && (first(back, "week") || []).some(w => w.name === "Tea"), first(back, "week"));
 
 // ---------------------------------------------------------------- mute run
 const mute = lines("mute");
@@ -254,7 +276,8 @@ check("mute: Soup stopped, waiting for an undo", mStopSoup.done === true && !byI
 const mint = byId(mRang.value.timers, MINT);
 check("mute: Mint rings on time", mint && mint.state === "ringing" && mint.muted === true && mRang.value.at - mint.endAt < 1000 && near(mint.endAt, mBegin + 2000, 30), mRang.value);
 check("mute: no sound for a muted ring", mRang.value.soundActive === false && mPause.soundActive === false, [mRang.value.soundActive, mPause.soundActive]);
-check("mute: the dune still rises, named Mint", mRang.value.alert === true && same(mRang.value.dune, { name: "Mint", reason: "Sound is muted" }), [mRang.value.alert, mRang.value.dune]);
+const mRose = first(mute, "rang");
+check("mute: the dune still rises, named Mint", mRose !== undefined && same(mRose.ids, [MINT]) && mRose.alert === true && same(mRose.dune, { name: "Mint", reason: "Sound is muted" }), mRose && [mRose.alert, mRose.dune]);
 const mNotes = muteCalls.filter(c => c.tool === "notify-send");
 check("mute: the notification still comes", mNotes.length === 1 && same(mNotes[0].args, notifyArgs("Mint", "2 s elapsed")), mNotes.map(c => c.args));
 check("mute: no player ever runs", muteCalls.every(c => c.tool !== "pw-play" && c.tool !== "paplay"), muteCalls.map(c => c.tool));

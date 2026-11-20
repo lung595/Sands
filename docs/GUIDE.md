@@ -195,6 +195,7 @@ The page has a left rail of sections (Timers, Appearance, Alerts & sounds, Advan
 | Sound | One of the two rings that come with Sands, any installed sound theme file, or your own file: see [Sound](#sound) | Hourglass |
 | Volume | | 80 % |
 | Alarm duration | The sound stops by itself; the pill keeps pulsing | 60 s |
+| Ring after sleep | A timer that ended while the computer slept or the shell was off rings if it ended less than this long ago (0 = never, 1, 5, 15 or 60 min). Older: no sound, no dune, only a notification such as "Pasta finished at 02:14" and its journal line; it stays in the list as done | 5 min |
 | Notification when done | With *Stop* and *+5 min* | On |
 | Gentle alarm | Starts at 30 %, rises to full volume | On |
 | Final countdown ticks | A soft tick on each of the last 10 seconds | Off |

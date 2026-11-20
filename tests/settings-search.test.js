@@ -8,15 +8,18 @@ const keys = q => Se.find(q).map(r => r.key);
 const first = q => keys(q)[0];
 
 // Every visible setting is found by its English name, a French synonym and one typo
-const french = { launcherSection: "lanceur", launcherSectionDuringSearch: "pendant", launcherSectionFavourites: "favoris", launcherAnimate: "animer", noTrigger: "détection", trigger: "déclencheur", hourglassStyle: "sablier", sound: "sonnerie", customSound: "fichier", volume: "niveau", rampUp: "progressif", ringDuration: "durée", tick: "compte à rebours", notify: "notifier", respectDnd: "silence", examples: "exemple", eraseHistory: "effacer", alertKind: "alerte", duneStyle: "vague", duneOverFullscreen: "plein écran", alertWhen: "toujours", testAlarm: "tester", alertScreen: "écran", report: "rapport", gettingStarted: "tutoriel" };
+const french = { wakeRingMinutes: "veille", launcherSection: "lanceur", launcherSectionDuringSearch: "pendant", launcherSectionFavourites: "favoris", launcherAnimate: "animer", noTrigger: "détection", trigger: "déclencheur", hourglassStyle: "sablier", sound: "sonnerie", customSound: "fichier", volume: "niveau", rampUp: "progressif", ringDuration: "durée", tick: "compte à rebours", notify: "notifier", respectDnd: "silence", examples: "exemple", eraseHistory: "effacer", alertKind: "alerte", duneStyle: "vague", duneOverFullscreen: "plein écran", alertWhen: "toujours", testAlarm: "tester", alertScreen: "écran", report: "rapport", gettingStarted: "tutoriel" };
 // One typo each (a letter swapped, dropped or added) in a word of the label or a synonym
-const typo = { launcherSection: "launchr", launcherSectionDuringSearch: "serching", launcherSectionFavourites: "favourits", launcherAnimate: "animte", noTrigger: "detectoin", trigger: "triger", hourglassStyle: "hourglas", sound: "sonud", customSound: "custm", volume: "volmue", rampUp: "progresif", ringDuration: "duraton", tick: "countdwn", notify: "notificaton", respectDnd: "respct", examples: "exampls", eraseHistory: "histry", alertKind: "visaul", duneStyle: "grians", duneOverFullscreen: "fulscreen", alertWhen: "alwayz", testAlarm: "alamr", alertScreen: "monitr", report: "diagnostc", gettingStarted: "tutorail" };
+const typo = { wakeRingMinutes: "suspnd", launcherSection: "launchr", launcherSectionDuringSearch: "serching", launcherSectionFavourites: "favourits", launcherAnimate: "animte", noTrigger: "detectoin", trigger: "triger", hourglassStyle: "hourglas", sound: "sonud", customSound: "custm", volume: "volmue", rampUp: "progresif", ringDuration: "duraton", tick: "countdwn", notify: "notificaton", respectDnd: "respct", examples: "exampls", eraseHistory: "histry", alertKind: "visaul", duneStyle: "grians", duneOverFullscreen: "fulscreen", alertWhen: "alwayz", testAlarm: "alamr", alertScreen: "monitr", report: "diagnostc", gettingStarted: "tutorail" };
 for (const s of Sec.visibleSettings()) {
     eq(keys(s.label).includes(s.key), true, "English name finds " + s.key);
     eq(keys(french[s.key]).includes(s.key), true, "French synonym finds " + s.key);
     eq(keys(typo[s.key]).includes(s.key), true, "one typo finds " + s.key);
 }
 eq(first("hourglas"), "hourglassStyle", "prefix");
+// The "finished during sleep" row, found in both languages
+eq(first("veille"), "wakeRingMinutes", "veille finds the sleep row");
+eq(first("sleep"), "wakeRingMinutes", "sleep finds the sleep row");
 eq(first("hourglasss"), "hourglassStyle", "one typo (letter too many)");
 eq(first("volune"), "volume", "one typo (wrong letter, 6 letters)");
 eq(first("notificaton"), "notify", "one typo (letter missing)");

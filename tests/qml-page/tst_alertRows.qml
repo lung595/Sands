@@ -5,7 +5,8 @@ import "../../components/settings"
 
 // The visual alert rows of "Alerts & sounds" with real clicks: the three kind
 // cards, the screen list ("Show on"), the dune style cards (each of the three styles can be picked), the
-// full-screen switch, the moment, and "Test the alarm", which asks the daemon.
+// full-screen switch, the moment, "Test the alarm", which asks the daemon, and
+// the "Ring after sleep" choices.
 // Run: tests/qml-page/run.sh
 Item {
     id: root
@@ -201,6 +202,23 @@ Item {
             verify(card("duneStyle", "grains").selected);
             for (const k of ["alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "testAlarm"])
                 verify(row(k).visible && row(k).height > 0, k + " is shown");
+        }
+
+        // "Ring after sleep": exactly the choices Never, 1, 5, 15 and 60 min,
+        // default 5; what the list shows is what is saved (and used)
+        function test_sleepChoicesSaveWhatTheyShow() {
+            const s = row("wakeRingMinutes");
+            verify(s !== null && s.visible, "the sleep row is shown");
+            compare(s.defaultValue, "5");
+            const d = dropdown("wakeRingMinutes");
+            compare(d.options, ["Never", "1 min", "5 min", "15 min", "60 min"]);
+            compare(d.currentValue, "5 min");
+            const seen = [];
+            for (const label of ["15 min", "Never", "1 min", "60 min", "5 min"]) {
+                d.valueChanged(label);
+                seen.push([host.saved.wakeRingMinutes, d.currentValue]);
+            }
+            compare(seen, [["15", "15 min"], ["0", "Never"], ["1", "1 min"], ["60", "60 min"], ["5", "5 min"]]);
         }
 
         function test_kindCardsSaveUnderTheDaemonKey() {

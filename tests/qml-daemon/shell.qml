@@ -11,7 +11,8 @@ import qs.Services
 //   ring     empty state; Tea 2 s, Rice 8 s, Bread 1 h, Soup 10 min paused;
 //            waits for Tea to ring, lets the alarm play, reads the week, quits
 //            (Rice still runs: it ends while no shell is running)
-//   restore  the state saved by "ring" (SANDS_E2E_STATE), after Rice's end;
+//   restore  the state saved by "ring" (SANDS_E2E_STATE), after Rice's end,
+//            plus Pasta (id 0), a 10 min timer that ended 8 h ago;
 //            reports what came back, starts Egg, stops Tea, then the rest of
 //            the ring through the dune's click (its stopRequested), reads the
 //            week, quits
@@ -99,10 +100,23 @@ ShellRoot {
         }
         function loadPluginState(id, key, fallback) {
             const value = key in scene.saved ? scene.saved[key] : fallback;
-            if (key === "timers" && scene.phase === "restore" && Array.isArray(value))
+            if (key === "timers" && scene.phase === "restore" && Array.isArray(value)) {
+                const pastaEnd = Date.now() - 8 * 3600000;
+                scene.say("pasta", pastaEnd);
                 return value.map(t => t.label === "Rice" ? Object.assign({
                         actionId: "poweroff"
-                    }, t) : t);
+                    }, t) : t).concat([{
+                        id: 0,
+                        label: "Pasta",
+                        kind: "duration",
+                        total: 600000,
+                        endAt: pastaEnd,
+                        remaining: 600000,
+                        state: "running",
+                        finishedAt: 0,
+                        hue: 4
+                    }]);
+            }
             return value;
         }
         function savePluginState(id, key, value) {
@@ -132,6 +146,12 @@ ShellRoot {
                 afterRing.start();
             if (scene.phase === "mute" && scene.daemon.ringing)
                 afterMute.start();
+        }
+        // The timers that have just started ringing, each time
+        function onRang(ids) {
+            scene.say("rang", Object.assign({
+                ids: ids
+            }, scene.snapshot()));
         }
         // The launcher's cue: once per change of the list, never per second
         function onTimersChanged() {

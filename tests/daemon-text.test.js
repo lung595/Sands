@@ -78,4 +78,9 @@ eq(R.collecting("G"), "Collecting (about 2 s): run the same command again. G#rep
 eq(R.stillCollecting("G"), "Still collecting, ask again in a moment. G#report-a-problem", "reply: still collecting");
 eq(JSON.parse(R.notRinging()), { snoozed: false, reason: "nothing is ringing" }, "reply: not ringing is JSON");
 
+// A timer that ended during sleep, long ago: a plain note, no button, no wait
+const nightEnd = new Date(2026, 10, 20, 2, 14).getTime();
+eq(N.staleCommand("Pasta", nightEnd, true), ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "Pasta finished at 02:14"], "stale note, 24 h");
+eq(N.staleCommand("Pasta", nightEnd, true).indexOf("-p"), -1, "it waits for nothing");
+
 done();

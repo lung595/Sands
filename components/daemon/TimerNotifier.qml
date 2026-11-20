@@ -40,6 +40,11 @@ Item {
         proc.running = true;
     }
 
+    // A note that waits for nothing (Notifications.staleCommand): no process kept
+    function tell(command) {
+        Quickshell.execDetached(command);
+    }
+
     // Closes the notifications of timers that are no longer ringing.
     function sync(list) {
         for (const key in _notifiers) {

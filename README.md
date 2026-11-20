@@ -134,6 +134,7 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 | Sound: Hourglass, Silt Chime, a system sound or your own file | Hourglass |
 | Volume | 80 % |
 | Alarm duration | 60 s |
+| Ring after sleep: a timer that ended during sleep rings if it is less than 0 (never), 1, 5, 15 or 60 min old | 5 min |
 | Notification when done (*Stop*, *+5 min*) | On |
 | Gentle alarm (rises from 30 %) | On |
 | Final countdown ticks | Off |

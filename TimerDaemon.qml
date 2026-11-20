@@ -77,6 +77,11 @@ Item {
     signal timerStarted(int id)
     // Emitted once per timer when "2 min left" arrives (see NoticeRunner)
     signal noticeDue(int id)
+    // Emitted once per clock step (or at startup) with the ids of the timers
+    // that have just started ringing, latest last: the visual alert rises
+    // again for each one. A timer that ended too long ago (see settle) is
+    // not in it.
+    signal rang(var ids)
     // Opens/closes the panel on the active screen (keyboard shortcut, IPC).
     signal panelRequested(string screenName)
 
@@ -417,20 +422,43 @@ Item {
     function _tick() {
         const t0 = Date.now();
         now = t0;
-        const before = timers;
-        const r = Lifecycle.expire(before, t0);
+        // Much later than planned: the machine slept, the ones that ended
+        // meanwhile follow the "finished during sleep" rule
+        const woke = _due > 0 && t0 - _due > Lifecycle.WAKE_GAP_MS;
+        const r = Lifecycle.settle(timers, t0, woke ? wakeThresholdMs() : Infinity);
         // Subtle ticking during the last 10 seconds (optional), never for a muted timer
-        if (!r.fired && setting("tick", false) && !alarm.muted() && Lifecycle.inFinalSeconds(r.list.filter(t => !t.muted), t0))
+        if (r.fired.length === 0 && setting("tick", false) && !alarm.muted() && Lifecycle.inFinalSeconds(r.list.filter(t => !t.muted), t0))
             alarm.playTick();
-        if (r.fired) {
-            const newly = r.list.filter(t => t.state === "ringing" && !notifier.has(t.id));
+        if (r.fired.length > 0) {
             _commit(r.list);
-            // A muted timer rings without sound (expire keeps the others as they were)
-            if (Lifecycle.audible(r.list.filter((t, i) => t !== before[i])))
-                alarm.startRinging();
-            newly.forEach(t => _notify(t));
-            newly.forEach(t => _keep(t));
+            _announce(r.fired, []);
         }
+    }
+
+    // "Ring a timer that finished during sleep if it is less than N min old"
+    function wakeThresholdMs() {
+        return Lifecycle.wakeMinutes(setting("wakeRingMinutes", Lifecycle.WAKE_DEFAULT)) * 60000;
+    }
+
+    // What follows a ring: only the timers in `fired` (just ended) and `again`
+    // (ids still ringing from before a restart), never the ones already
+    // handled. A fresh one sounds (unless muted), is notified and raises the
+    // dune; a stale one gets a quiet note. Each one in `fired` gets its
+    // journal line, once.
+    function _announce(fired, again) {
+        const fresh = fired.filter(f => !f.stale).map(f => f.id).concat(again);
+        const rung = timers.filter(t => fresh.indexOf(t.id) >= 0 && t.state === "ringing");
+        // A muted timer rings without sound
+        if (Lifecycle.audible(rung))
+            alarm.startRinging();
+        rung.forEach(t => _notify(t));
+        fired.forEach(f => _keep(f.timer));
+        fired.filter(f => f.stale).forEach(f => {
+            if (setting("notify", true))
+                notifier.tell(Notifications.staleCommand(displayLabel(f.timer), f.timer.finishedAt, use24h()));
+        });
+        if (rung.length > 0)
+            rang(Lifecycle.sortTimers(rung).map(t => t.id));
     }
 
     // A timer that rings is kept in the private history; stopping or removing
@@ -465,14 +493,20 @@ Item {
     // Wake-up aligned on the next change of the displayed second (≈ once
     // per second), and no wake-up at all when everything is paused.
     function _schedule() {
-        const next = Lifecycle.nextDelay(timers, Date.now());
+        const t0 = Date.now();
+        const next = Lifecycle.nextDelay(timers, t0);
         if (next < 0) {
             ticker.stop();
+            _due = 0;
             return;
         }
         ticker.interval = Math.max(8, next + 4);
+        _due = t0 + ticker.interval;
         ticker.restart();
     }
+
+    // When the planned tick should come (epoch ms), 0 when none is planned
+    property real _due: 0
 
     // Forgets the stopped timers once their undo time is over
     Timer {
@@ -567,16 +601,19 @@ Item {
 
         const saved = store.read();
         const t0 = Date.now();
-        const state = Lifecycle.restore(saved.timers, saved.nextId, t0);
+        const state = Lifecycle.restore(saved.timers, saved.nextId, t0, wakeThresholdMs());
         _nextId = state.nextId;
         recents = Timers.rankRecents(saved.recents, t0);
         store.loaded = true;
         timers = state.list;
         now = t0;
+        // Saved as ringing at once: a second restart must not journal or
+        // announce them again
+        if (state.fired.length > 0)
+            store.saveTimers(state.list, _nextId);
         _schedule();
-        if (state.ringNow)
-            alarm.startRinging();
-        state.recent.forEach(t => _notify(t));
+        // Once every part is ready and the views can listen (rang)
+        Qt.callLater(() => root._announce(state.fired, state.again));
     }
 
     Component.onDestruction: {

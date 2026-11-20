@@ -10,8 +10,8 @@
 // `muted` (absent = false) rings that timer without sound: dune and
 // notification only.
 
-// A ringing alarm that finished more than this long ago (shell off) is not
-// announced again at startup
+// A timer already ringing when the shell stopped is announced again at
+// startup only if it finished less than this long ago
 var STALE_MS = 60000;
 // The optional tick sounds during this last stretch of a running timer
 var TICK_WINDOW_MS = 10050;
@@ -161,13 +161,15 @@ function restart(t, now) {
 }
 
 // The list at `now`: running timers whose end passed are ringing. Always a
-// new array; untouched timers are the same objects. `fired` tells if any rang.
+// new array; untouched timers are the same objects. `fired` holds the ids of
+// the timers that rang just now, the only ones the journal and the
+// notification have to handle.
 function expire(timers, now) {
-    let fired = false;
+    const fired = [];
     const list = timers.map(t => {
         if (t.state !== "running" || t.endAt > now)
             return t;
-        fired = true;
+        fired.push(t.id);
         return Object.assign({}, t, {
             state: "ringing",
             finishedAt: t.endAt,
@@ -175,6 +177,40 @@ function expire(timers, now) {
         });
     });
     return { list: list, fired: fired };
+}
+
+// "Ring a timer that finished during sleep if it is less than N min old":
+// the choices of the slider, 0 = never
+var WAKE_CHOICES = [0, 1, 5, 15, 60];
+var WAKE_DEFAULT = 5;
+// A tick this much later than planned means the machine slept (or the clock
+// jumped): the timers that ended meanwhile go through `settle`
+var WAKE_GAP_MS = 5000;
+
+// The saved slider value brought to the nearest choice (default when unreadable)
+function wakeMinutes(v) {
+    const n = Number(v);
+    if (v === null || v === undefined || v === "" || !isFinite(n))
+        return WAKE_DEFAULT;
+    return WAKE_CHOICES.reduce((best, c) => Math.abs(c - n) < Math.abs(best - n) ? c : best, WAKE_CHOICES[0]);
+}
+
+// One rule for the timers that ended while nobody watched (shell off, machine
+// asleep): `expire`, then each one that ended `thresholdMs` ago or more is
+// stale: it stays in the list as ringing (Done), but gets only a quiet note
+// and its journal line, no sound, no dune. { list, fired: [{ id, stale, timer }] }, `timer` being the
+// ringing copy. Infinity as threshold: nothing is stale (a normal tick).
+function settle(list, now, thresholdMs) {
+    const r = expire(list, now);
+    const fired = r.list.filter(t => r.fired.indexOf(t.id) >= 0).map(t => ({
+        id: t.id,
+        stale: now - t.finishedAt >= thresholdMs,
+        timer: t
+    }));
+    return {
+        list: r.list,
+        fired: fired
+    };
 }
 
 // True when a running timer is in its last seconds (the optional tick)
@@ -202,29 +238,22 @@ function nextDelay(timers, now) {
     return next;
 }
 
-// What was saved, brought up to `now`: { list, nextId, ringNow, recent }.
-// Timers that ended while the shell was off are ringing; `ringNow` says one
-// that is not muted ended less than STALE_MS ago (the alarm should sound), and `recent` lists
-// the ringing timers worth a notification.
-function restore(saved, savedNextId, now) {
+// What was saved, brought up to `now` through `settle`:
+// { list, nextId, fired, again }. `fired` as settle gives it (the timers that
+// ended while the shell was off); `again` holds the ids of the timers that
+// were already ringing when the shell stopped, less than STALE_MS ago (a
+// restart during a ring): they ring on, without a new journal line.
+function restore(saved, savedNextId, now, thresholdMs) {
     let nextId = savedNextId;
-    let ringNow = false;
-    const list = (Array.isArray(saved) ? saved : []).filter(t => t && t.id !== undefined).map(t => {
-        const copy = Object.assign({}, t);
-        if (copy.state === "running" && copy.endAt <= now) {
-            copy.state = "ringing";
-            copy.finishedAt = copy.endAt;
-            copy.remaining = 0;
-            if (now - copy.endAt < STALE_MS && !copy.muted)
-                ringNow = true;
-        }
-        nextId = Math.max(nextId, copy.id + 1);
-        return copy;
+    const clean = (Array.isArray(saved) ? saved : []).filter(t => t && t.id !== undefined).map(t => {
+        nextId = Math.max(nextId, t.id + 1);
+        return Object.assign({}, t);
     });
+    const r = settle(clean, now, thresholdMs === undefined ? WAKE_DEFAULT * 60000 : thresholdMs);
     return {
-        list: list,
+        list: r.list,
         nextId: nextId,
-        ringNow: ringNow,
-        recent: list.filter(t => t.state === "ringing" && now - t.finishedAt < STALE_MS)
+        fired: r.fired,
+        again: clean.filter(t => t.state === "ringing" && now - t.finishedAt < STALE_MS).map(t => t.id)
     };
 }

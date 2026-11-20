@@ -11,7 +11,7 @@ const qml = ["Timers", "Launcher", "Appearance", "Alerts"].map(n => new TextDeco
 const keys = S.SETTINGS.map(s => s.key);
 
 // Every key of the settings page is in the table, once, with its default
-const existing = ["trigger", "noTrigger", "launcherSection", "launcherSectionDuringSearch", "launcherSectionFavourites", "launcherAnimate", "hourglassStyle", "alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "sound", "customSound", "volume", "rampUp", "ringDuration", "tick", "notify", "respectDnd"];
+const existing = ["trigger", "noTrigger", "launcherSection", "launcherSectionDuringSearch", "launcherSectionFavourites", "launcherAnimate", "hourglassStyle", "alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "sound", "customSound", "volume", "rampUp", "ringDuration", "wakeRingMinutes", "tick", "notify", "respectDnd"];
 for (const k of existing)
     eq(keys.filter(x => x === k).length, 1, "key present once: " + k);
 eq(new Set(keys).size, keys.length, "no key is listed twice");

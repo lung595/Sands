@@ -56,6 +56,7 @@ var SETTINGS = {
     "duneOverFullscreen": "bool",
     "alertWhen": ["muted", "always"],
     "ringDuration": "int",
+    "wakeRingMinutes": ["0", "1", "5", "15", "60"],
     "notify": "bool",
     "rampUp": "bool",
     "tick": "bool",

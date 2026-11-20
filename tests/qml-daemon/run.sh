@@ -4,12 +4,14 @@
 # stand-ins of the DMS modules, a throw-away home, no Wayland, no session bus,
 # and stand-ins first on PATH for every program the daemon may run. Each one
 # records its arguments, so check.js can assert what the end of a timer did.
-#   1. ring:    a 2 s timer rings: sound, dune, notification, saved state,
-#               journal; the old end-mode and end-action settings are
+#   1. ring:    a 2 s timer rings: `rang`, sound, dune, notification, saved
+#               state, journal; the old end-mode and end-action settings are
 #               dropped at start, with one toast for the end actions
 #   (an 8 s timer then ends between the two runs, while no shell runs)
-#   2. restore: a new daemon from that saved state: the timers come back, both
-#               ended ones ring and are notified again; each stop closes its
+#   2. restore: a new daemon from that saved state, plus Pasta, ended 8 h ago:
+#               the timers come back, both fresh ended ones ring (one `rang`
+#               for both) and are notified again, Pasta only gets a quiet
+#               note and its journal line, no sound, no dune; each stop closes its
 #               notification, the last one (the dune's click) silences the
 #               alarm and takes the dune down; Rice's old end action is
 #               dropped and nothing is told again
@@ -51,6 +53,8 @@ printf '#!/bin/sh\n"$E2E_DIR/bin/record" pw-play "$@"\nexec sleep 1\n' > "$dir/b
 cat > "$dir/bin/notify-send" <<'FAKE'
 #!/bin/sh
 "$E2E_DIR/bin/record" notify-send "$@"
+# A note without -p (a timer ended long ago) waits for nothing
+case " $* " in *" -p "*) ;; *) exit 0 ;; esac
 n=41
 [ "$SANDS_E2E_PHASE" = restore ] && n=42
 case "$*" in *"Rice - done"*) n=43 ;; esac

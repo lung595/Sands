@@ -68,14 +68,17 @@ Item {
         _testing = false;
     }
 
-    // Called at the ring point
-    function ring() {
-        // A real alert replaces a test that is still playing
-        if (_testing)
+    // Called at the ring point. `again`: an alert already on screen rises
+    // once more (a new timer rang during the ring)
+    function ring(again) {
+        const show = _scene && AlertPolicy.shouldShow(kind, when, soundState, fullscreen, showOverFullscreen);
+        // A real alert replaces a test that is still playing; a new timer
+        // replaces the alert on screen only when its own alert is shown
+        if (_testing || (again === true && loader.active && show))
             _loaderOff();
         if (loader.active)
             return;
-        if (_scene && AlertPolicy.shouldShow(kind, when, soundState, fullscreen, showOverFullscreen))
+        if (show)
             loader.active = true;
     }
 

@@ -9,7 +9,8 @@ import "components/alert"
 // Offscreen test of the alert host and the Edge halo: the Loader stays inactive
 // for "none", for a moment that does not apply and for full screen; the halo
 // plays its steps, its Timer stops by itself and the Loader is inactive again
-// after dismissal; test() and a real alert never disturb each other. Run with
+// after dismissal; a new timer raises it again; test() and a real alert
+// never disturb each other. Run with
 // tests/qml/run.sh; any failure prints FAIL.
 ShellRoot {
     id: root
@@ -119,6 +120,30 @@ ShellRoot {
             setup("halo", "always", {}, true, true);
             host.ring();
             check(host.showing, "full screen shows when allowed");
+            host.dismiss();
+            return true;
+        }, function () {
+            if (host.showing)
+                return false;
+            // A second timer ringing during the alert raises it again (rang),
+            // a plain ring() leaves it as it is
+            setup("halo", "always", {
+                volume: 0.8
+            }, false, false);
+            host.ring();
+            const before = host.scene;
+            host.ring();
+            check(host.scene === before, "a ring during the alert keeps it");
+            host.ring(true);
+            check(host.showing && host.scene !== null && host.scene !== before, "a new timer raises the alert again");
+            // Moment "muted": the next timer can be heard, so its own alert is
+            // not shown; the one on screen (a timer still ringing) stays
+            const kept = host.scene;
+            setup("halo", "muted", {
+                volume: 0.8
+            }, false, false);
+            host.ring(true);
+            check(host.showing && host.scene === kept, "a refused new alert keeps the one on screen");
             host.dismiss();
             return true;
         }, function () {
