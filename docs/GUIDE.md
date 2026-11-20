@@ -242,18 +242,6 @@ When the alarm cannot play its sound, Sands says so instead of staying quiet: **
 - **No player**: Sands plays with `pw-play` (PipeWire) and falls back to `paplay`. Run `pw-play /usr/share/sounds/freedesktop/stereo/complete.oga` in a terminal: an error there is the same one Sands met.
 - **Nothing is wrong but it is silent**: *Volume* is at 0, the output device is muted, or *Respect Do Not Disturb* is on while Do Not Disturb is active (no message then: that silence is on purpose).
 
-## Alex
-
-If the Alex plugin is loaded, Sands publishes one event when a timer ends: a fixed `kind` field (`timerFinished`), an id, the timer label (60 characters at most) and the end time. The event lives in the shell's memory only (nothing is written to disk, no process starts), and any loaded plugin can read the last one. Without Alex Sands makes no call at all. Sands always shows its own alarm, plays its sound and keeps its bar pill. If several timers end in the same tick, one event is published for each, in order; Alex that loads late sees only the last one.
-
-### When a Sands timer ends
-
-The last row of *Alerts & sounds* picks who shows the alarm: **Sands only**, **Sands + Alex reacts** (the default) or **Alarm in the Alex island**. Sands always keeps its sound and its bar chip, whatever you pick. The small bar under the row shows what rings where.
-
-The value belongs to Alex: the same choice is in Alex's settings, and a change in either page shows in the other while both are open. Sands keeps no copy and writes nothing in Alex's settings. It asks Alex through `dms ipc call` and follows the notice Alex publishes, only while this page is open.
-
-If Alex is not installed or is turned off, the row is greyed with nothing selected and Sands rings on its own. Install or enable Alex, then reopen the page. Nothing listens and nothing polls while the row is greyed or the page is closed.
-
 ## Report a problem
 
 **Settings -> Help -> Copy report** builds an anonymous report (versions, a few settings, counts, the shell's CPU over one second, the last events) and copies it to the clipboard, ready to paste into a GitHub issue. The GitHub mark beside the button opens a new issue for Sands in your browser; it is a plain link, nothing is prefilled and the report is never put in the address.

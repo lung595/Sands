@@ -1,6 +1,6 @@
 .pragma library
 
-// The four look choices of Sands (journal, favourites, notice, end mode) as
+// The three look choices of Sands (journal, favourites, notice) as
 // data: keys, allowed values, defaults and English labels. This is the only
 // place that names them; views, settings rows and IPC import it. Pure, no
 // state, no side effect. Tested by tests/variants.test.js.
@@ -21,10 +21,6 @@ var VARIANTS = {
     "notice": [
         { "value": "pill", "label": "Pill whisper" },
         { "value": "card", "label": "Quiet card" }
-    ],
-    "endMode": [
-        { "value": "ask", "label": "Ask first" },
-        { "value": "auto", "label": "Last grains" }
     ]
 };
 
@@ -44,8 +40,7 @@ function choices(key) {
 }
 
 // `raw` when it is an allowed value of `key`, else the default. Anything
-// unknown, missing, not a string or too long gives the default, so "auto"
-// for endMode is only ever returned for exactly "auto".
+// unknown, missing, not a string or too long gives the default.
 function clean(key, raw) {
     if (!VARIANTS.hasOwnProperty(key))
         return "";

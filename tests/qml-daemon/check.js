@@ -152,6 +152,7 @@ check("ring: saved Bread runs, 1 h", bread && bread.label === "Bread" && bread.s
 check("ring: saved Soup is paused with its time left", soup && soup.label === "Soup" && soup.state === "paused" && soup.remaining <= 600000 && soup.remaining > 599000 && soup.hue === 3, soup);
 check("ring: saved exactly four timers, next id 5", sTimers.length === 4 && state.nextId === 5, { n: sTimers.length, nextId: state.nextId });
 check("ring: recents keep the four durations", same((state.recents || []).map(r => [r.ms, r.label, r.uses]).sort((a, b) => a[0] - b[0]), [[2000, "Tea", 1], [8000, "Rice", 1], [600000, "Soup", 1], [3600000, "Bread", 1]]), state.recents);
+check("ring: the old end modes are dropped once, the rest kept", same(first(ring, "settings"), { settings: { smartTimer: { hourglassStyle: "classic" }, other: { endMode: "keep" } }, saves: 1 }), first(ring, "settings"));
 check("ring: launcher works without a prefix (noTrigger saved)", ring.some(l => l.what === "data" && l.value.key === "noTrigger" && l.value.value === true));
 
 const journal = tryRead("ring.history");
@@ -201,6 +202,7 @@ const allClose = closes.filter(c => c.at >= stopAll.at);
 check("restore: the last stop closes Rice's notification (43)", allClose.length === 1 && same(allClose[0].args, closeArgs(43)) && closes.length === 2, closes);
 check("restore: no sound after the last stop", bPlays.every(c => c.at <= stopAll.at + 100), bPlays.map(c => c.at - stopAll.at));
 check("restore: nothing else runs", others(backCalls, ["pw-play", "notify-send", "gdbus"]).length === 0, others(backCalls, ["pw-play", "notify-send", "gdbus"]));
+check("restore: clean settings are not written again", same(first(back, "settings"), { settings: { smartTimer: { hourglassStyle: "classic" } }, saves: 0 }), first(back, "settings"));
 check("restore: no other plugin is told", back.every(l => l.what !== "global"));
 
 const left = bFinal.timers;

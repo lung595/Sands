@@ -4,7 +4,8 @@
 # stand-ins of the DMS modules, a throw-away home, no Wayland, no session bus,
 # and stand-ins first on PATH for every program the daemon may run. Each one
 # records its arguments, so check.js can assert what the end of a timer did.
-#   1. ring:    a 2 s timer rings: sound, dune, notification, saved state, journal
+#   1. ring:    a 2 s timer rings: sound, dune, notification, saved state,
+#               journal; the old end-mode settings are dropped at start
 #   (an 8 s timer then ends between the two runs, while no shell runs)
 #   2. restore: a new daemon from that saved state: the timers come back, both
 #               ended ones ring and are notified again; each stop closes its

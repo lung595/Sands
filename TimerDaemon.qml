@@ -5,7 +5,6 @@ import qs.Services
 import "TimeParser.js" as TP
 import "Timers.js" as Timers
 import "Guide.js" as Guide
-import "AlexBridge.js" as AlexBridge
 import "components/alert"
 import "components/daemon"
 import "components/daemon/History.js" as History
@@ -71,7 +70,6 @@ Item {
     signal panelRequested(string screenName)
 
     property int _nextId: 1
-    property int _ringSeq: 0
 
     function setting(key, fallback) {
         return pluginService ? pluginService.loadPluginData(pluginId, key, fallback) : fallback;
@@ -420,7 +418,6 @@ Item {
             if (Lifecycle.audible(r.list.filter((t, i) => t !== before[i])))
                 alarm.startRinging();
             newly.forEach(t => _notify(t));
-            newly.forEach(t => _tellAlex(t));
             newly.forEach(t => _keep(t));
         }
     }
@@ -446,14 +443,6 @@ Item {
     // Empties the history (the settings "erase" action)
     function eraseHistory() {
         history.erase();
-    }
-
-    // One event per ended timer, and no call at all when Alex is not loaded.
-    // The label is never logged.
-    function _tellAlex(t) {
-        if (!pluginService || !pluginService.isPluginLoaded(AlexBridge.ALEX_ID))
-            return;
-        pluginService.setGlobalVar(pluginId, AlexBridge.EVENT_KEY, AlexBridge.buildEvent(t, ++_ringSeq));
     }
 
     function _notify(t) {
@@ -561,6 +550,7 @@ Item {
         if (!pluginService)
             return;
         store.ensureLauncherDefault();
+        store.dropRetiredSettings();
 
         const saved = store.read();
         const t0 = Date.now();

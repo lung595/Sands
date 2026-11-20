@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.Common
 
 // End-to-end scene of the whole daemon (TimerDaemon.qml and every part it
 // loads), run twice by run.sh with the real Quickshell offscreen. It only acts
@@ -18,6 +19,8 @@ import Quickshell
 //            good; Mint rings without sound, its dune shown although the
 //            alert is set to "only when muted"; then pause all / resume all,
 //            Soup's undo once its 5 s are over, quits
+// The ring run starts from the settings of an older Sands (the end mode, gone
+// in 1.7.0): the daemon must drop them without a word and end Tea as always.
 ShellRoot {
     id: scene
 
@@ -99,9 +102,10 @@ ShellRoot {
                 value: value
             });
         }
-        // No other plugin is loaded: nothing may be told to anyone
+        // Every plugin counts as loaded (any other plugin): still nothing may be told
+        // to anyone when a timer ends
         function isPluginLoaded(id) {
-            return false;
+            return true;
         }
         function setGlobalVar(id, name, value) {
             scene.say("global", {
@@ -211,6 +215,21 @@ ShellRoot {
 
     // The daemon reads the saved state as it completes, inside createObject
     function begin() {
+        // An older Sands saved its end mode; another plugin's keys are not Sands'
+        SettingsData.pluginSettings = phase === "ring" ? {
+            smartTimer: {
+                endMode: "auto",
+                timerEndMode: "sands",
+                hourglassStyle: "classic"
+            },
+            other: {
+                endMode: "keep"
+            }
+        } : {
+            smartTimer: {
+                hourglassStyle: "classic"
+            }
+        };
         const component = Qt.createComponent("TimerDaemon.qml");
         daemon = component.createObject(scene, {
             pluginService: service
@@ -220,6 +239,10 @@ ShellRoot {
             Qt.quit();
             return;
         }
+        say("settings", {
+            settings: SettingsData.pluginSettings,
+            saves: SettingsData.pluginSettingsSaves
+        });
         if (phase === "ring") {
             say("begin", Date.now());
             scene.daemon.start(2000, "Tea", "duration", 0, true);
