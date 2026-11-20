@@ -126,6 +126,7 @@ Sands/
 │   ├── timers.test.js
 │   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
 │   ├── hourglass.test.js, journal.test.js, journal-layout.sh
+│   ├── qml-daemon/             # the real daemon end to end: run.sh, shell.qml (scene), check.js (assertions)
 │   ├── harness.js              # shared loader for the daemon tests
 │   ├── preview.test.js
 │   └── guide.test.js
@@ -156,7 +157,10 @@ gjs tests/alex-bridge.test.js   # 8 tests: event shape, id per ring, label cap a
 gjs tests/hourglass.test.js     # 35 checks: hourglass geometry, volumes, outline, frost shapes
 gjs tests/journal.test.js       # journal rows, layer heights, thread lengths
 sh tests/journal-layout.sh      # offscreen: every journal state and look, alone and inside the panel, narrow and wide; overlap, closed-panel read, Clear the journal
+sh tests/qml-daemon/run.sh      # the real daemon end to end, about 13 s (see below)
 ```
+
+Daemon end to end (real Quickshell offscreen, staged like `daemon-loop.sh`): `tests/qml-daemon/run.sh` runs `TimerDaemon.qml` twice in a throw-away home, with stand-ins on `PATH` that record their arguments (`pw-play`, `paplay`, `notify-send`, `gdbus`, `wl-copy`, `dms`, `niri`). First run: a 2 s timer rings; it checks the `pw-play` and `notify-send` arguments and timing (rising volume, 450 ms gap, no sound before the end), the dune (up at the ring, named after the timer), the saved plugin state, the journal line and its file modes. A second timer ends while no shell runs. Second run, from the saved state: the timers come back, both ended ones ring and are notified again, the dune is named after the last to end, each stop closes its own notification (`gdbus`) and the last one, a click on the dune, silences the alarm and takes the dune down. An `AudioService` stand-in gives one unmuted output. `shell.qml` acts and reports, `check.js` judges; it fails (exit 1) with the name of each broken check, and on any script error (`ReferenceError`, `TypeError`...) in either run's log. A change to what the end of a timer does must update `check.js` in the same commit.
 
 Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qml-page/run.sh` checks Ctrl+F, `/`, typing, Esc, Enter and the scroll of a picked row inside a Flickable, and `tst_sections.qml` checks that every section is built with the page and that walking the rail repeatedly never builds or drops one (NAK-708).
 
