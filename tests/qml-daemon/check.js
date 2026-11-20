@@ -267,6 +267,17 @@ const actionChanges = changes.filter(at => at <= mStopSoup.at + 50);
 check("mute: one list change per accepted action", actionChanges.length === 8, actionChanges.length);
 const pauseChanges = changes.filter(at => at >= mPause.at - 50 && at <= mLate.at + 50);
 check("mute: pause all and resume all change the list once each", pauseChanges.length === 2, changes.map(at => at - mBegin));
+// The launcher refresh: never on a DMS that has not asked for the Timers row
+// (it declares the signal too and would run the open search again), then
+// once per list change
+const updates = phase => lines(phase).filter(l => l.what === "launcherUpdate").length;
+check("ring and restore: no launcher refresh without live sections", updates("ring") === 0 && updates("restore") === 0, [updates("ring"), updates("restore")]);
+const liveAt = mute.findIndex(l => l.what === "live");
+const muteBefore = mute.slice(0, Math.max(liveAt, 0));
+const muteAfter = liveAt < 0 ? [] : mute.slice(liveAt);
+check("mute: no launcher refresh before DMS asks for the row", liveAt > 0 && muteBefore.every(l => l.what !== "launcherUpdate"), muteBefore.filter(l => l.what === "launcherUpdate").length);
+const refreshes = muteAfter.filter(l => l.what === "launcherUpdate");
+check("mute: then one refresh per list change, for smartTimer", refreshes.length === 2 && refreshes.length === muteAfter.filter(l => l.what === "changed").length && refreshes.every(l => l.value === "smartTimer"), refreshes);
 check("mute: the muted state is saved", (savedState(mute).timers || []).some(t => t.id === MINT && t.muted === true), savedState(mute).timers);
 
 print(failed === 0 ? "daemon e2e: all checks passed" : "daemon e2e: " + failed + " check(s) failed");

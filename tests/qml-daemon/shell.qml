@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.Services
 
 // End-to-end scene of the whole daemon (TimerDaemon.qml and every part it
 // loads), run twice by run.sh with the real Quickshell offscreen. It only acts
@@ -126,11 +127,23 @@ ShellRoot {
         }
     }
 
-    // mute: lets the silent ring go on, then pause all and resume all
+    // Every refresh asked of the launcher: none until DMS has asked for the
+    // Timers row (liveSections), an older DMS would run its search again
+    Connections {
+        target: PluginService
+        function onRequestLauncherUpdate(pluginId) {
+            scene.say("launcherUpdate", pluginId);
+        }
+    }
+
+    // mute: lets the silent ring go on, then pause all and resume all, once
+    // the launcher has said DMS has live sections
     Timer {
         id: afterMute
         interval: 1500
         onTriggered: {
+            scene.daemon.liveSections = true;
+            scene.say("live", Date.now());
             const paused = scene.daemon.pauseAll();
             const pausedAgain = scene.daemon.pauseAll();
             scene.say("pauseAll", Object.assign(scene.snapshot(), {

@@ -19,6 +19,7 @@
         "launcher": "./TimerLauncher.qml"
     },
     "trigger": "timer",
+    "launcherSection": true,
     "settings": "./TimerSettings.qml",
     "requires_dms": ">=1.6.0",
     "dependencies": [

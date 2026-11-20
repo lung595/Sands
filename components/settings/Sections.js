@@ -16,6 +16,7 @@
 var SECTIONS = [
     { "id": "start", "label": "Getting started" },
     { "id": "timers", "label": "Timers" },
+    { "id": "launcher", "label": "Launcher" },
     { "id": "focus", "label": "Focus & chains" },
     { "id": "appearance", "label": "Appearance" },
     { "id": "effects", "label": "Effects & battery" },
@@ -49,6 +50,21 @@ var SETTINGS = [
     { "key": "endActions", "section": "timers", "label": "End actions", "default": "",
       "help": "Power off, Sleep, Stop the music or a command of your own, started by a word after a timer",
       "words": ["words", "launcher", "command", "program", "power off", "shutdown", "sleep", "suspend", "music", "after", "film", "off", "commande", "mots", "éteindre", "veille", "musique", "ajouter", "add", "remove", "reset"] },
+
+    // Launcher: the Timers row of Super+Space (a DMS with live sections)
+    { "key": "launcherSection", "section": "launcher", "label": "Timers in the launcher", "default": true,
+      "help": "A row of your timers at the top of Super+Space",
+      "words": ["launcher", "spotlight", "super space", "row", "section", "cards", "pinned", "lanceur", "rangée", "cartes", "épinglé", "minuteurs", "afficher"] },
+    { "key": "launcherSectionDuringSearch", "section": "launcher", "label": "While searching", "default": true, "anchor": "launcherSection",
+      "help": "The row stays above the results while you type",
+      "words": ["search", "typing", "query", "results", "recherche", "taper", "résultats", "pendant"] },
+    { "key": "launcherSectionFavourites", "section": "launcher", "label": "Favourites in the row", "default": true, "anchor": "launcherSection",
+      "help": "Your most started timers fill the free places",
+      "words": ["favorites", "most started", "free", "favoris", "plus lancés", "places libres"] },
+    { "key": "launcherAnimate", "section": "launcher", "label": "Animate the sand", "default": true,
+      "help": "The sand falls while the launcher is open",
+      "level": "light", "cost": "Redraws the sand while the launcher is open",
+      "words": ["animation", "motion", "hourglasses", "flow", "freeze", "animer", "sabliers", "sable", "mouvement", "couler", "figer"] },
 
     // Appearance
     { "key": "lookPreset", "section": "appearance", "label": "Look", "pending": true,

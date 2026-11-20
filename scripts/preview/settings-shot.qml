@@ -56,7 +56,7 @@ Window {
             Qt.callLater(() => page.page.daemon.report.clipboard.result = report.slice(7));
         const section = Qt.application.arguments.find(a => a.indexOf("section=") === 0);
         if (section)
-            openSection(page, section.slice(8));
+            Qt.callLater(() => openSection(page, section.slice(8)));
         if (args[2] === "focus")
             focusOpenEntry(page);
     }

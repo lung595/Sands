@@ -12,6 +12,7 @@ import "components/daemon/History.js" as History
 import "components/daemon/Lifecycle.js" as Lifecycle
 import "components/daemon/Notifications.js" as Notifications
 import "components/daemon/Snooze.js" as Snooze
+import "components/launcher/Section.js" as Section
 
 // Timer engine, instantiated once. The bar and the launcher
 // reach it through PluginService.pluginDaemonInstances["smartTimer"].
@@ -40,6 +41,15 @@ Item {
     // section listens to (at most a few times per action, not every second).
     property var timers: []
     property real now: Date.now()
+
+    // Set by the launcher when DMS asks for the Timers row (getSectionItems):
+    // only a DMS with live sections does.
+    property bool liveSections: false
+
+    // Refreshes the Timers row of an open launcher, once DMS has asked for it.
+    // An older DMS declares the same refresh signal but would run the open
+    // search again: it is never called there. Never on the clock.
+    onTimersChanged: Section.requestUpdate(PluginService, pluginId, liveSections)
 
     // Display order, see Lifecycle.sortTimers. Does not depend on the clock
     // (the order of end times does not change over time): recomputed only

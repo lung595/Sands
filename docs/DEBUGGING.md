@@ -43,6 +43,7 @@ A code is `SND-` followed by a level letter (`E` error, `W` warning, `I` info, `
 | `SND-E004` | error | The ring sound could not be played | `reason` |
 | `SND-W010` | warning | A helper program is missing | `tool` |
 | `SND-W011` | warning | A timer text was not understood | `reason` |
+| `SND-W012` | warning | The launcher section has no timer service (the daemon did not load): the Timers row stays hidden | `surface` |
 | `SND-I020` | info | A surface (widget, daemon, launcher, settings, panel) was loaded | `surface` |
 | `SND-I021` | info | A surface was unloaded | `surface` |
 | `SND-I030` | info | A diagnostic report was requested | `via` |
@@ -58,7 +59,7 @@ Look for `SND-E004` (the sound could not be played) and `SND-W010` with `tool=pw
 
 ### The widget or the launcher word does nothing
 
-`SND-W011` says a text was not understood; `SND-I020`/`SND-I021` show which surfaces were loaded and unloaded.
+`SND-W011` says a text was not understood; `SND-I020`/`SND-I021` show which surfaces were loaded and unloaded. `SND-W012` says the Timers row of the launcher found no timer service: it is written once, and `scripts/diagnose.sh` prints it as its own line.
 
 ### The shell restarts or the bar freezes
 

@@ -11,6 +11,9 @@ QtObject {
     signal pluginLoaded(string pluginId)
     signal pluginUnloaded(string pluginId)
     signal globalVarChanged(string pluginId, string varName)
+    // Declared by every DMS, live launcher sections or not (an older one runs
+    // the open search again when it fires)
+    signal requestLauncherUpdate(string pluginId)
 
     // No prefix set, like the default install
     function getPluginTrigger(id) {

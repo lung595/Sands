@@ -264,7 +264,7 @@ Item {
                 Item {
                     id: sectionsHost
                     width: parent.width
-                    readonly property Item current: root.section === "start" ? startSection : root.section === "timers" ? timersSection : root.section === "appearance" ? appearanceSection : root.section === "alerts" ? alertsSection : root.section === "advanced" ? advancedSection : helpSection
+                    readonly property Item current: root.section === "start" ? startSection : root.section === "timers" ? timersSection : root.section === "launcher" ? launcherSection : root.section === "appearance" ? appearanceSection : root.section === "alerts" ? alertsSection : root.section === "advanced" ? advancedSection : helpSection
 
                     StartSection {
                         id: startSection
@@ -275,6 +275,10 @@ Item {
                         id: timersSection
                         visible: root.section === "timers"
                         daemon: root.daemon
+                    }
+                    LauncherSection {
+                        id: launcherSection
+                        visible: root.section === "launcher"
                     }
                     AppearanceSection {
                         id: appearanceSection

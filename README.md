@@ -123,6 +123,7 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 
 | Setting | Default |
 | --- | --- |
+| Launcher (Super+Space): a *Timers* row of cards on top, also while searching, with favourites in the free places, animated sand. Needs a DMS with live launcher sections (not released yet); elsewhere nothing changes | On |
 | Hourglass: Classic or Glass of Time | Classic |
 | Visual alert: Rising dune, Edge halo or None | Rising dune |
 | Show on: all screens, the active screen, or one screen by name | All screens |

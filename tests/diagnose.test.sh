@@ -88,6 +88,7 @@ echo 'Oct 08 12:00:00 bobs-pc qs[12]: [sands] SND-I001 ready'
 echo 'oct. 08 12:00:03 bobs-pc qs[12]: [sands] SND-W010 tool=pw_play'
 echo '10月 08 12:00:04 bobs-pc qs[12]: [sands] SND-E003 tool=pw_play code=1'
 echo '[sands] SND-I020 surface=widget'
+echo '[sands] SND-W012 surface=launcher'
 echo '[sands] Bearer abcdef123 ghp_abcdefgh1234 fe80::1ff:fe23:4567:890a /root/x https://bob:pw@files.example.net/x'
 echo 'Oct 08 12:00:01 bobs-pc qs[12]: [sands] seen on bobs-pc with token=abc123 and Password: hunter2'
 echo 'Oct 08 12:00:02 bobs-pc qs[12]: [sands] icon@2x.png for bob@2x.io on /run/media/bobby/USB'
@@ -105,6 +106,7 @@ check "the journal is asked for the message alone" "$(grep -c -- '-o cat' "$work
 check "a line that still has its prefix loses it whole" "$(echo "$out" | grep -c '^  \[sands\] SND-I001 ready$')" 1
 check "a French and a Japanese date are cut too" "$(echo "$out" | grep -cE '^  \[sands\] SND-(W010 tool=pw_play|E003 tool=pw_play code=1)$')" 2
 check "a bare message is kept as it is" "$(echo "$out" | grep -c '^  \[sands\] SND-I020 surface=widget$')" 1
+check "a launcher row without timer service is said on its own line" "$(echo "$out" | grep -c '^Launcher row : hidden, the timer service did not load (SND-W012)$')" 1
 check "no local time and no program name left" "$(echo "$out" | grep -cE '12:00:0|qs\[')" 0
 check "bearer, token prefix, IPv6, root folder and link credentials are hidden as in Redact.js" "$(echo "$out" | grep -c '^  \[sands\] Bearer <secret> <secret> <ip> ~/x https://<secret>@files.example.net/x$')" 1
 check "the short and the full machine name are hidden" "$(echo "$out" | grep -ciE 'bobs-pc|example\.org')" 0
@@ -125,8 +127,13 @@ cat >"$work/tiny/dms" <<'SH'
 [ "$1" = "version" ] && { echo "dms v1.6.3 on pc, not pcx nor a-pc"; exit 0; }
 exit 1
 SH
-chmod +x "$work/tiny/hostname" "$work/tiny/dms"
+cat >"$work/tiny/journalctl" <<'SH'
+#!/bin/sh
+echo '[sands] SND-W010 tool=pw_play'
+SH
+chmod +x "$work/tiny/hostname" "$work/tiny/dms" "$work/tiny/journalctl"
 out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/tiny:$work/bin:$PATH" sh "$script" 2>&1)
 check "a two-character host name is hidden as a whole word only" "$(echo "$out" | grep -c 'dms v1.6.3 on host, not pcx nor a-pc')" 1
+check "no launcher row line without SND-W012" "$(echo "$out" | grep -c '^Launcher row')" 0
 
 [ "$fails" -eq 0 ] && echo "diagnose.sh: all passed" || exit 1

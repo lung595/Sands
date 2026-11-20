@@ -135,6 +135,10 @@ report_without_shell() {
     else
         echo "  none"
     fi
+    # The launcher row writes SND-W012 once when it finds no timer service
+    case $lines in
+    *SND-W012*) echo "Launcher row : hidden, the timer service did not load (SND-W012)" ;;
+    esac
 }
 
 # The latest crash folder Quickshell kept: its file names and the start of

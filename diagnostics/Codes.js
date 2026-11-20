@@ -33,6 +33,7 @@ var CODES = {
     "SND-E004": { "text": "The ring sound could not be played", "fields": ["reason"] },
     "SND-W010": { "text": "A helper program is missing", "fields": ["tool"] },
     "SND-W011": { "text": "A timer text was not understood", "fields": ["reason"] },
+    "SND-W012": { "text": "The launcher section has no timer service", "fields": ["surface"] },
     "SND-I020": { "text": "A surface was loaded", "fields": ["surface"] },
     "SND-I021": { "text": "A surface was unloaded", "fields": ["surface"] },
     "SND-I030": { "text": "A diagnostic report was requested", "fields": ["via"] },
@@ -59,7 +60,11 @@ var SETTINGS = {
     "rampUp": "bool",
     "tick": "bool",
     "respectDnd": "bool",
-    "noTrigger": "bool"
+    "noTrigger": "bool",
+    "launcherSection": "bool",
+    "launcherSectionDuringSearch": "bool",
+    "launcherSectionFavourites": "bool",
+    "launcherAnimate": "bool"
 };
 
 // What the plugin reports about itself at the moment of the report (counts of

@@ -175,6 +175,7 @@ scripts/preview/shots.sh /tmp/sands-shots panel pill-4 # only some of them
 scripts/preview/cmp.sh /tmp/sands-shots                # compare with scripts/preview/reference/
 TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher.qml   # launcher: prints each query's lines as text
 TZ=UTC QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher-shot.qml -- out.png   # docs/images/launcher.png: the launcher row from made-up input, fixed clock
+QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher-section-shot.qml -- out.png [light]   # the Timers row of Spotlight: ringing, running, +N, then favourites
 ```
 
 Scenes (`shot.qml -- <scene> <out.png>`): `pill-idle`, `pill-running`, `pill-label` (right after a start), `pill-done`, `pill-4`, `panel`, `panel-paused`, `panel-ringing`, `panel-4` (four 1 h timers), `hourglass-running`, `hourglass-frozen`, `hourglass-ringing`. Bench-only scenes (not in the reference set): `pill-beat`, `pill-bell`, `pill-short`. The suffix `-reduce` turns Reduce motion on.

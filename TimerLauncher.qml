@@ -4,6 +4,10 @@ import qs.Services
 import "TimeParser.js" as TP
 import "Preview.js" as Preview
 import "Guide.js" as Guide
+import "components/launcher/Section.js" as Section
+import "components/favourites/Pins.js" as Pins
+import "diagnostics/Log.js" as Log
+import "components/launcher"
 
 // Launcher provider. No prefix by default: it only answers when the
 // input looks like a duration (« timer 20 min », « 1h30 pâtes », « à 18h »),
@@ -19,6 +23,104 @@ Item {
 
     readonly property var daemon: PluginService.pluginDaemonInstances[pluginId] ?? null
     readonly property bool use24h: SettingsData.use24HourClock !== false
+
+    // ------------------------------------------------------------------
+    // The "Timers" row of Spotlight (DMS live sections, "launcherSection"
+    // in plugin.json). A DMS without that API never reads any of this.
+    // ------------------------------------------------------------------
+
+    readonly property string sectionTitle: Section.header(_lang(), daemon ? daemon.count : 0)
+    readonly property string sectionIcon: "timer"
+    readonly property real sectionPriority: 1.5
+    readonly property Component sectionCard: cardComponent
+    // A card sets this while it is open or under the pointer: the row then
+    // keeps its order (Section.order)
+    property bool holdOrder: false
+    // The order of the last answer, kept so the cards do not move for nothing
+    property var _order: []
+    // Pins.pins() of the history, read when the timers change, not per query
+    property var _favourites: []
+    property bool _warnedNoDaemon: false
+
+    function _lang() {
+        if (typeof I18n !== "undefined" && I18n._lang)
+            return I18n._lang;
+        return Qt.locale().name;
+    }
+
+    function _flag(key) {
+        return pluginService ? pluginService.loadPluginData(pluginId, key, true) !== false : true;
+    }
+
+    function getSectionItems(query) {
+        const d = daemon;
+        // Only a DMS with live sections calls this: from now on the daemon may
+        // ask it to refresh the row
+        if (d && !d.liveSections)
+            d.liveSections = true;
+        if (!d) {
+            // The section cannot show anything without the timer service: said once
+            if (!_warnedNoDaemon) {
+                _warnedNoDaemon = true;
+                Log.event("SND-W012", {
+                    surface: "launcher"
+                });
+            }
+            return [];
+        }
+        const r = Section.build({
+            timers: d.timers,
+            favourites: _favourites,
+            query: query,
+            trigger: PluginService.getPluginTrigger(pluginId) || "",
+            settings: {
+                section: _flag("launcherSection"),
+                duringSearch: _flag("launcherSectionDuringSearch"),
+                favourites: _flag("launcherSectionFavourites")
+            },
+            prev: _order,
+            hold: holdOrder
+        });
+        _order = r.order;
+        return r.items;
+    }
+
+    function _reloadFavourites() {
+        const d = daemon;
+        if (!d || !d.historyFavourites || !_flag("launcherSectionFavourites"))
+            return;
+        d.historyFavourites(list => {
+            const next = Pins.pins(list);
+            if (JSON.stringify(next) === JSON.stringify(root._favourites))
+                return;
+            root._favourites = next;
+            Section.requestUpdate(PluginService, root.pluginId, d.liveSections);
+        });
+    }
+
+    // A ring adds to the history: the favourites are read again after a change
+    // of the timers (an action or a ring, never the clock)
+    Connections {
+        target: root.daemon
+        ignoreUnknownSignals: true
+        function onTimersChanged() {
+            favouritesReload.restart();
+        }
+    }
+
+    Timer {
+        id: favouritesReload
+        interval: 500
+        onTriggered: root._reloadFavourites()
+    }
+
+    onDaemonChanged: if (daemon)
+        favouritesReload.restart()
+
+    Component {
+        id: cardComponent
+        SectionCard {}
+    }
 
     function _usesTrigger() {
         const t = PluginService.getPluginTrigger(pluginId);
@@ -195,6 +297,7 @@ Item {
                 break;
             }
         case "cancel":
+        case "stop":
             d.remove(parseInt(data));
             break;
         case "cancelAll":

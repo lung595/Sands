@@ -7,11 +7,11 @@ const L = load("components/settings/SectionLogos.js");
 
 const root = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
 // The rows live in the section files next to the page
-const qml = ["Timers", "Appearance", "Alerts"].map(n => new TextDecoder().decode(GLib.file_get_contents(root + "/components/settings/" + n + "Section.qml")[1])).join("\n");
+const qml = ["Timers", "Launcher", "Appearance", "Alerts"].map(n => new TextDecoder().decode(GLib.file_get_contents(root + "/components/settings/" + n + "Section.qml")[1])).join("\n");
 const keys = S.SETTINGS.map(s => s.key);
 
 // Every key of the settings page is in the table, once, with its default
-const existing = ["trigger", "noTrigger", "hourglassStyle", "alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "sound", "customSound", "volume", "rampUp", "ringDuration", "tick", "notify", "respectDnd"];
+const existing = ["trigger", "noTrigger", "launcherSection", "launcherSectionDuringSearch", "launcherSectionFavourites", "launcherAnimate", "hourglassStyle", "alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "sound", "customSound", "volume", "rampUp", "ringDuration", "tick", "notify", "respectDnd"];
 for (const k of existing)
     eq(keys.filter(x => x === k).length, 1, "key present once: " + k);
 eq(new Set(keys).size, keys.length, "no key is listed twice");
@@ -54,20 +54,28 @@ eq(S.SETTINGS.filter(s => !ids.includes(s.section)).map(s => s.key), [], "every 
 eq(S.SETTINGS.filter(s => !s.words.length || !s.help || !s.label).map(s => s.key), [], "label, help and words are filled");
 
 // Section order and the hidden rule
-eq(ids, ["start", "timers", "focus", "appearance", "effects", "bar", "desktop", "alerts", "advanced", "help"], "section order");
-eq(S.visibleSections().map(s => s.id), ["start", "timers", "appearance", "alerts", "advanced", "help"], "empty sections are hidden, order kept");
+eq(ids, ["start", "timers", "launcher", "focus", "appearance", "effects", "bar", "desktop", "alerts", "advanced", "help"], "section order");
+eq(S.visibleSections().map(s => s.id), ["start", "timers", "launcher", "appearance", "alerts", "advanced", "help"], "empty sections are hidden, order kept");
 
 // Helpers
 eq(S.sectionOf("volume"), "alerts", "section of a key");
 eq(S.sectionOf("nope"), "", "unknown key has no section");
 eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger", "endActions"], "settings of a section, pending held back");
 eq([S.previousSection("start"), S.nextSection("start")], ["start", "timers"], "start of the list");
-eq([S.previousSection("timers"), S.nextSection("timers")], ["start", "appearance"], "second section");
+eq([S.previousSection("timers"), S.nextSection("timers")], ["start", "launcher"], "second section");
+eq([S.previousSection("launcher"), S.nextSection("launcher")], ["timers", "appearance"], "launcher section between timers and appearance");
 eq([S.previousSection("help"), S.nextSection("help")], ["advanced", "help"], "end of the list");
 eq(S.nextSection("bogus"), "start", "unknown section starts at the first");
-eq(S.costly("light").map(s => s.key), ["tick"], "costly settings by level");
+eq(S.costly("light").map(s => s.key), ["launcherAnimate", "tick"], "costly settings by level");
 eq([S.costly("high"), S.costly("some")], [[], []], "no costly setting at the other levels");
 eq(S.SETTINGS.filter(s => s.level && (!s.cost || !S.LEVELS.includes(s.level))).length, 0, "a level always comes with a cost note");
+// The Launcher section: the four switches of the Timers row, all on by default
+eq(S.settingsOf("launcher").map(s => s.key), ["launcherSection", "launcherSectionDuringSearch", "launcherSectionFavourites", "launcherAnimate"], "launcher settings in page order");
+eq(S.settingsOf("launcher").map(s => s.default), [true, true, true, true], "launcher settings on by default");
+eq(S.SETTINGS.filter(s => s.anchor === "launcherSection").map(s => s.key), ["launcherSectionDuringSearch", "launcherSectionFavourites"], "the row switches hide behind the main one");
+// The launcher reads the same keys the page saves
+const launcher = new TextDecoder().decode(GLib.file_get_contents(root + "/TimerLauncher.qml")[1]);
+eq(["launcherSection", "launcherSectionDuringSearch", "launcherSectionFavourites"].filter(k => !launcher.includes('_flag("' + k + '")')), [], "the launcher reads every row switch");
 // Every section of the rail has its drawn logo
 for (const sec of S.SECTIONS)
     eq(L.pathFor(sec.id) !== "", true, "logo drawn for " + sec.id);
