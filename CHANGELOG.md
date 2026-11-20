@@ -40,6 +40,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- The formatting functions (`formatClock`, `formatHuman`, `formatRelative`, `formatTimeOfDay`, `isTomorrow`, `widthTemplate`) moved from `TimeParser.js` to `TimeFormat.js`, which also gets `use24h(setting)` for the DMS 12/24 h choice; `TimeParser.js` re-exports them for now, so nothing changes for its callers. `Plans.js` uses the parser's `normalize` instead of its own copy. Covered by `tests/time-format.test.js`.
 - The offscreen renders are no longer in git: `out/` is ignored, and `scripts/preview/shots.sh` writes there by default from any folder. Covered by `tests/preview-out.test.sh`.
 - Taking time off a timer stops at 0:10 instead of being refused below one second: « pasta −5 » with 3 min left gives 0:10, and the −1 min button and the panel wheel work until 0:10.
 
