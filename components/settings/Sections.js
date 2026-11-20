@@ -14,6 +14,7 @@
 
 // Order is the order of the rail. A section without a visible setting is hidden.
 var SECTIONS = [
+    { "id": "start", "label": "Getting started" },
     { "id": "timers", "label": "Timers" },
     { "id": "focus", "label": "Focus & chains" },
     { "id": "appearance", "label": "Appearance" },
@@ -26,6 +27,11 @@ var SECTIONS = [
 ];
 
 var SETTINGS = [
+    // Getting started: a read-only entry, so the section exists and "add widget" finds it
+    { "key": "gettingStarted", "section": "start", "label": "Getting started",
+      "help": "Add the Sands widget to a bar, then type a duration in the launcher",
+      "words": ["start", "tutorial", "first", "widget", "bar", "add", "pill", "install", "setup", "how", "démarrer", "tuto", "tutoriel", "premiers pas", "ajouter", "barre", "commencer", "comment"] },
+
     // Timers
     { "key": "noTrigger", "section": "timers", "label": "Automatic detection", "default": true,
       "help": "Understands “timer 20 min”, “25m pasta” or “at 6pm” without a prefix",

@@ -55,9 +55,9 @@ In **Settings → Plugins**, turn **Sands** on. The launcher now understands dur
 
 | Where | How to add it |
 | --- | --- |
-| **Bar** | **Settings → Appearance → DankBar Layout**, add **Sands** to a section (the center looks best) |
+| **Bar** | **Settings → Bar widgets → Add**, pick **Sands** (the center looks best) |
 
-The pill only shows while you have a timer (running, paused or ringing), so an empty bar right after adding it is normal.
+The pill only shows while you have a timer (running, paused or ringing), so an empty bar right after adding it is normal. The plugin settings open on **Getting started** with these steps while the widget is in no bar.
 
 ### 4. First steps
 

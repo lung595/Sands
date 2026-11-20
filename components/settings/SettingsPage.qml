@@ -3,6 +3,7 @@ import qs.Common
 import qs.Widgets
 import "Sections.js" as Sections
 import "Search.js" as Search
+import "Placement.js" as Placement
 
 // The settings page: search on top, the section rail on the left, one section
 // at a time on the right. The sections are built with the page, so a closed
@@ -15,7 +16,11 @@ Item {
     required property var soundOptions
     required property var daemon
 
-    property string section: Sections.visibleSections()[0].id
+    // Read only, live: the Getting started callout follows a widget added or removed
+    readonly property bool inBar: Placement.inBar(SettingsData.barConfigs, "smartTimer")
+    // Opens on Getting started while the widget is in no bar, else on the first real section
+    property string section: ""
+    Component.onCompleted: section = inBar ? Sections.nextSection("start") : "start"
     property string query: ""
     readonly property var results: Search.find(query, prepared)
     readonly property var prepared: Search.prepare()
@@ -259,8 +264,13 @@ Item {
                 Item {
                     id: sectionsHost
                     width: parent.width
-                    readonly property Item current: root.section === "timers" ? timersSection : root.section === "appearance" ? appearanceSection : root.section === "alerts" ? alertsSection : root.section === "advanced" ? advancedSection : helpSection
+                    readonly property Item current: root.section === "start" ? startSection : root.section === "timers" ? timersSection : root.section === "appearance" ? appearanceSection : root.section === "alerts" ? alertsSection : root.section === "advanced" ? advancedSection : helpSection
 
+                    StartSection {
+                        id: startSection
+                        visible: root.section === "start"
+                        inBar: root.inBar
+                    }
                     TimersSection {
                         id: timersSection
                         visible: root.section === "timers"

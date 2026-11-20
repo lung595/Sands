@@ -28,7 +28,7 @@ Item {
         name: "SettingsSections"
         when: windowShown
 
-        readonly property var ids: ["timers", "appearance", "alerts", "advanced", "help"]
+        readonly property var ids: ["start", "timers", "appearance", "alerts", "advanced", "help"]
 
         function find(item, name) {
             for (const c of item.children) {

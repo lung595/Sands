@@ -5,6 +5,7 @@
 // stroke weight. Paths of sections not shown yet stay here on purpose: they belong
 // with the table in Sections.js and cost nothing until their section is listed.
 var PATHS = {
+    "start": "M4 14V2.5M4 3h8l-2 2.75l2 2.75h-8",
     "timers": "M4 2.5h8M4 13.5h8M5 2.5c0 3 2.6 3.6 3 5.5c.4-1.9 3-2.5 3-5.5M5 13.5c0-3 2.6-3.6 3-5.5c.4 1.9 3 2.5 3 5.5",
     "focus": "M1.5 12.5l3-5 3 5zM8.5 12.5l3-5 3 5zM4.5 4h.01M8 3h.01M11.5 4h.01",
     "appearance": "M8 2.5a5.5 5.5 0 1 0 0 11a5.5 5.5 0 0 0 0-11zM3.5 10.5c2-2.6 4-2.6 5.5-.5s2.5 1 3.5 0",

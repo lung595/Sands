@@ -9,6 +9,8 @@ ThemeColors {
     lightMode: light
     readonly property bool light: Qt.application.arguments.indexOf("light") >= 0
     property color primary: root.light ? "#6750A4" : "#D0BCFF"
+    property color primaryContainer: root.light ? "#EADDFF" : "#4F378B"
+    property color onPrimaryContainer: root.light ? "#21005D" : "#EADDFF"
     property color error: root.light ? "#B3261E" : "#F2B8B5"
     property color warning: root.light ? "#8A5100" : "#FFB95C"
     property color success: root.light ? "#1B6E2E" : "#8FD99A"

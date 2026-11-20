@@ -54,16 +54,17 @@ eq(S.SETTINGS.filter(s => !ids.includes(s.section)).map(s => s.key), [], "every 
 eq(S.SETTINGS.filter(s => !s.words.length || !s.help || !s.label).map(s => s.key), [], "label, help and words are filled");
 
 // Section order and the hidden rule
-eq(ids, ["timers", "focus", "appearance", "effects", "bar", "desktop", "alerts", "advanced", "help"], "section order");
-eq(S.visibleSections().map(s => s.id), ["timers", "appearance", "alerts", "advanced", "help"], "empty sections are hidden, order kept");
+eq(ids, ["start", "timers", "focus", "appearance", "effects", "bar", "desktop", "alerts", "advanced", "help"], "section order");
+eq(S.visibleSections().map(s => s.id), ["start", "timers", "appearance", "alerts", "advanced", "help"], "empty sections are hidden, order kept");
 
 // Helpers
 eq(S.sectionOf("volume"), "alerts", "section of a key");
 eq(S.sectionOf("nope"), "", "unknown key has no section");
 eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger", "endActions"], "settings of a section, pending held back");
-eq([S.previousSection("timers"), S.nextSection("timers")], ["timers", "appearance"], "start of the list");
+eq([S.previousSection("start"), S.nextSection("start")], ["start", "timers"], "start of the list");
+eq([S.previousSection("timers"), S.nextSection("timers")], ["start", "appearance"], "second section");
 eq([S.previousSection("help"), S.nextSection("help")], ["advanced", "help"], "end of the list");
-eq(S.nextSection("bogus"), "timers", "unknown section starts at the first");
+eq(S.nextSection("bogus"), "start", "unknown section starts at the first");
 eq(S.costly("light").map(s => s.key), ["tick"], "costly settings by level");
 eq([S.costly("high"), S.costly("some")], [[], []], "no costly setting at the other levels");
 eq(S.SETTINGS.filter(s => s.level && (!s.cost || !S.LEVELS.includes(s.level))).length, 0, "a level always comes with a cost note");
@@ -71,6 +72,16 @@ eq(S.SETTINGS.filter(s => s.level && (!s.cost || !S.LEVELS.includes(s.level))).l
 for (const sec of S.SECTIONS)
     eq(L.pathFor(sec.id) !== "", true, "logo drawn for " + sec.id);
 eq(L.pathFor("bogus"), "", "unknown id draws nothing");
+
+// Getting started opens while the widget is in no bar (Placement.js, read from SettingsData.barConfigs)
+const Pl = load("components/settings/Placement.js");
+eq(Pl.inBar([{ id: "default", rightWidgets: ["smartTimer", "systemTray"] }], "smartTimer"), true, "a bare id in a section counts");
+eq(Pl.inBar([{ leftWidgets: [{ id: "smartTimer", enabled: true }] }], "smartTimer"), true, "an object entry counts");
+eq(Pl.inBar([{ centerWidgets: [{ id: "smartTimer", enabled: false }] }], "smartTimer"), false, "a switched-off entry does not count");
+eq(Pl.inBar([{ enabled: false, centerWidgets: ["smartTimer"] }], "smartTimer"), false, "a disabled bar does not count");
+eq(Pl.inBar([{ futureWidgets: ["smartTimer"] }], "smartTimer"), true, "any *Widgets section counts");
+eq(Pl.inBar([{ rightWidgets: ["clock"], island: "smartTimer" }], "smartTimer"), false, "only widget sections are read");
+eq([Pl.inBar(undefined, "smartTimer"), Pl.inBar([], "smartTimer"), Pl.inBar("smartTimer", "smartTimer")], [false, false, false], "no bars, no widget");
 
 // Visual alert rows (NAK-681, NAK-663): visible, filed under Alerts & sounds, with
 // the keys the daemon reads (RingAlert.qml) and the defaults of the pure rules
