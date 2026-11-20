@@ -1,14 +1,15 @@
 // Preview.js tests — run with: gjs tests/preview.test.js (from the plugin root)
 // The one-line preview the launcher shows before Enter.
 const GLib = imports.gi.GLib;
+imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
+const { load } = imports.harness;
 
 const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/preview.test.js", GLib.get_current_dir())));
 const read = f => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + f)[1]);
-// Preview.js imports TimeParser.js through the QML « .import »; here the
-// parser is loaded the same way as in the other tests and handed in as TP.
-const parserSrc = read("TimeParser.js").replace(".pragma library", "");
-const TP = new Function(parserSrc + "; return { formatTimeOfDay, isTomorrow, formatHuman, formatRelative };")();
-const TM = new Function(read("Timers.js").replace(".pragma library", "") + "; return { displayLabel };")();
+// Preview.js imports TimeParser.js and Timers.js through the QML « .import »;
+// here they are loaded the way the other tests load them and handed in.
+const TP = load("TimeParser.js");
+const TM = load("Timers.js");
 const src = read("Preview.js").split("\n").filter(l => !/^\.(pragma|import)/.test(l)).join("\n");
 const P = new Function("TP", "Timers", src + "; return { title, previewLine, ringsLine, hintOf };")(TP, TM);
 

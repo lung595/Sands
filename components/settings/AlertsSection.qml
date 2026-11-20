@@ -220,21 +220,4 @@ Column {
         description: "In Do Not Disturb, no sound: the pill still pulses"
         defaultValue: true
     }
-
-    // The choice is Alex's (Q151): this section only asks and follows, and it is
-    // built only while the section is open, so nothing listens with the page closed.
-    AlexMode {
-        id: alexMode
-    }
-
-    // The row's view of AlexMode, also what the offscreen test reads
-    readonly property bool alexLoaded: alexMode.loaded
-    readonly property string timerEndMode: alexMode.mode
-
-    TimerEndRow {
-        alexLoaded: alexMode.loaded
-        mode: alexMode.mode
-        onModeRequested: value => alexMode.request(value)
-        onGuideRequested: Qt.openUrlExternally(Guide.URL + "#" + Guide.ALEX_ANCHOR)
-    }
 }

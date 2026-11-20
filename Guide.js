@@ -7,8 +7,6 @@
 
 // The one place that names the guide; callers add "#" + an anchor.
 var URL = "https://github.com/lung595/Sands/blob/main/docs/GUIDE.md";
-// The section behind the greyed « when a timer ends » row
-var ALEX_ANCHOR = "alex";
 // The section behind the greyed Edge halo card
 var VISUAL_ANCHOR = "visual-alert";
 

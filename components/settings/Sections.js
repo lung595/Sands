@@ -47,10 +47,6 @@ var SETTINGS = [
       "help": "A quiet heads-up before a long timer ends",
       "words": ["warning", "reminder", "heads-up", "préavis", "avertissement", "avant la fin"] },
 
-    { "key": "endActions", "section": "timers", "label": "End actions", "default": "",
-      "help": "Power off, Sleep, Stop the music or a command of your own, started by a word after a timer",
-      "words": ["words", "launcher", "command", "program", "power off", "shutdown", "sleep", "suspend", "music", "after", "film", "off", "commande", "mots", "éteindre", "veille", "musique", "ajouter", "add", "remove", "reset"] },
-
     // Launcher: the Timers row of Super+Space (a DMS with live sections)
     { "key": "launcherSection", "section": "launcher", "label": "Timers in the launcher", "default": true,
       "help": "A row of your timers at the top of Super+Space",

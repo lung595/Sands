@@ -1,9 +1,10 @@
 #!/bin/sh
-# Renders every scene of shot.qml to <out dir>/<scene>.png (default: ./out).
+# Renders every scene of shot.qml to <out dir>/<scene>.png (default: the
+# repository's out/, which git ignores: renders are never committed).
 #   scripts/preview/shots.sh [out dir] [scene...]
 # Offscreen, from made-up timers: nothing of the live shell is read or touched.
 # The scenes are listed once, in manifest.txt (name, tolerance, hash), which cmp.sh uses too.
-out=$(realpath -m "${1:-out}"); mkdir -p "$out"
+out=$(realpath -m "${1:-$(dirname "$0")/../../out}"); mkdir -p "$out"
 cd "$(dirname "$0")" || exit 1
 [ $# -gt 0 ] && shift
 scenes="${*:-$(cut -d" " -f1 manifest.txt)}"

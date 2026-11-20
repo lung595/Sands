@@ -8,6 +8,11 @@ QtObject {
     property var pluginSettings: ({})
     // No bar holds the widget: the settings open on Getting started
     property var barConfigs: []
+    // How many times the settings were written (the daemon e2e test reads it)
+    property int pluginSettingsSaves: 0
+    function savePluginSettings() {
+        pluginSettingsSaves++;
+    }
     function getPluginSettingsForPlugin(id) {
         return pluginSettings[id] || {};
     }

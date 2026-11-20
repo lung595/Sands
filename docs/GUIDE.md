@@ -119,6 +119,7 @@ Type in English or French, words or digits, in any order:
 | `1h30m20s`, `5m30`, `90s`, `1:30`, `1:02:03` | Exact durations (`1:30` = 1 min 30 s) |
 | `half an hour`, `an hour and a half`, `twenty five minutes` | Spelled-out durations |
 | `une demi-heure`, `trois quarts d'heure`, `2 heures et quart` | Same in French |
+| `dans 1/4 d'heure`, `1/2 h`, `3/4 of an hour` | Fractions of an hour (15, 30, 45 min) |
 | `12 min pasta`, `pasta 12 min`, `pasta for 12 min` | A named timer |
 | `4x 1h`, `4* 1h`, `1h x4` | Four timers of one hour (up to 20); they count once in your recents |
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
@@ -144,13 +145,16 @@ Sands also reads sentences, in English or French. These all work with or without
 | `tomorrow at 8`, `demain 8h` | An alarm at 08:00 on the next calendar day |
 | `noon`, `midi`, `midnight`, `minuit` | An alarm at 12:00 or 00:00 |
 | `7 du soir`, `7 in the morning`, `9 du matin` | An alarm at 19:00, 07:00, 09:00 |
+| `6:15pm`, `ce soir 20h`, `demain 7h` | An alarm at 18:15, 20:00, 07:00 |
+| `dans 1h à peu près`, `about 20 min`, `20 min-ish` | The approximation is dropped: 1 h, 20 min |
+| `rappelle-moi dans 10 min de sortir le linge` | *Sortir le linge*, 10 minutes |
 | `8h`, `timer 14h30` | Ambiguous: both readings are listed (see below) |
 
 **Clock times.** A bare hour after `at` / `à` is the next time that hour comes round within 24 hours: at 21:47, `at 7` is tomorrow 07:00. `tomorrow` always means the next calendar day.
 
 **Both readings, never a guess.** `8h` can be an 8-hour timer or 08:00. Sands lists the two, the likelier first, and nothing starts until you press <kbd>Enter</kbd> on the one you pick.
 
-**Typos.** A unit one letter off is still read: `20 mni`, `1 heur`, `20 minuts pasta`, `10 secnds tea`. Names are never corrected: `20 min pasat` keeps *pasat*. Real words near a unit stay words: `3 jours`, `4 cours` and `2 hors` are not hours.
+**Typos.** A unit one letter off is still read: `20 mni`, `1 heur`, `20 minuts pasta`, `10 secnds tea`. Names are never corrected: `20 min pasat` keeps *pasat*. Real words near a unit stay words: `3 jours`, `4 cours` and `2 hors` are not hours. Accents, capitals and punctuation do not matter (`RAPPELLE MOI A 18H`, `Timer: 10 min, pâtes !`), and emoji are left out of the name.
 
 **A bare number.** When you type without the word `timer`, a number counts as minutes only right after a word and up to 180: `pasta 12` is 12 min, `pasta 181` and `12` alone are not timers, and after a preposition (`dans 12`) it is left alone. With `timer` in front the number is yours to give: `timer 12` is 12 min and `timer pasta 181` is 181 min.
 
@@ -196,21 +200,9 @@ The page has a left rail of sections (Timers, Appearance, Alerts & sounds, Advan
 | Final countdown ticks | A soft tick on each of the last 10 seconds | Off |
 | Respect Do Not Disturb | No sound; the pill still pulses | On |
 | Automatic detection / Prefix | Answer any duration in the launcher, or only after your prefix | Automatic detection |
-| End actions | One row per action: Power off, Sleep, Stop the music and your own commands, each with its launcher words: see [End actions and their words](#end-actions-and-their-words) | One word each, no own command |
 | Erase history | Deletes the journal and the favourites at once: see [Erasing the history](#erasing-the-history) | Button |
 
 DMS's *Reduce motion* is respected: no floating, no spin or flip animation.
-
-### End actions and their words
-
-In **Timers**, each end action has a row: Power off, Sleep, Stop the music, then your own commands. Type one of its words after a timer to start it when the timer ends, for example `45m film off`. Any word works, even a made-up one.
-
-> **Not yet:** the rows save your commands and words, but nothing runs them when a timer ends until the end action runner lands (a separate story). Until then a word after a duration does nothing.
-
-- **Add a word**: type it in the small field and press Enter. It is lower-cased and spaces are removed. A row holds at most 8 words of 24 characters; click a chip to remove its word. **Reset the words** puts every action back to its default word.
-- A word is refused, with the reason beside the field, when it is empty, too long, has characters other than letters, digits, `-` and `_`, starts with a digit, reads as a number or a unit of time (`30`, `min`), or already belongs to another action. Nothing is saved in that case.
-- **Add a command** asks for a name (up to 40 characters) and the command: a program name or an absolute path, then its arguments separated by spaces (at most 16 of 200 characters). There is no quoting and no shell: the text is split on spaces and run as a program with its arguments. A program starting with `-`, or with a control character, is refused. You can keep 16 commands. Edit the name or the command in place and press Enter to save; **Remove** deletes the command and its words.
-- A command runs without any question asked. Power off and Sleep always ask first.
 
 ### Erasing the history
 
@@ -241,18 +233,6 @@ When the alarm cannot play its sound, Sands says so instead of staying quiet: **
 - **A sound theme file**: pick another one in *Sound*. Hourglass and Silt Chime are files of Sands itself, so they need nothing else; the system sounds come from your sound theme packages, such as `sound-theme-freedesktop`.
 - **No player**: Sands plays with `pw-play` (PipeWire) and falls back to `paplay`. Run `pw-play /usr/share/sounds/freedesktop/stereo/complete.oga` in a terminal: an error there is the same one Sands met.
 - **Nothing is wrong but it is silent**: *Volume* is at 0, the output device is muted, or *Respect Do Not Disturb* is on while Do Not Disturb is active (no message then: that silence is on purpose).
-
-## Alex
-
-If the Alex plugin is loaded, Sands publishes one event when a timer ends: a fixed `kind` field (`timerFinished`), an id, the timer label (60 characters at most) and the end time. The event lives in the shell's memory only (nothing is written to disk, no process starts), and any loaded plugin can read the last one. Without Alex Sands makes no call at all. Sands always shows its own alarm, plays its sound and keeps its bar pill. If several timers end in the same tick, one event is published for each, in order; Alex that loads late sees only the last one.
-
-### When a Sands timer ends
-
-The last row of *Alerts & sounds* picks who shows the alarm: **Sands only**, **Sands + Alex reacts** (the default) or **Alarm in the Alex island**. Sands always keeps its sound and its bar chip, whatever you pick. The small bar under the row shows what rings where.
-
-The value belongs to Alex: the same choice is in Alex's settings, and a change in either page shows in the other while both are open. Sands keeps no copy and writes nothing in Alex's settings. It asks Alex through `dms ipc call` and follows the notice Alex publishes, only while this page is open.
-
-If Alex is not installed or is turned off, the row is greyed with nothing selected and Sands rings on its own. Install or enable Alex, then reopen the page. Nothing listens and nothing polls while the row is greyed or the page is closed.
 
 ## Report a problem
 

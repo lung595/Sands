@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.Common
 import qs.Services
 
 // End-to-end scene of the whole daemon (TimerDaemon.qml and every part it
@@ -19,6 +20,10 @@ import qs.Services
 //            good; Mint rings without sound, its dune shown although the
 //            alert is set to "only when muted"; then pause all / resume all,
 //            Soup's undo once its 5 s are over, quits
+// The ring run starts from the settings of an older Sands (the end mode and
+// the end actions, gone in 1.7.0): the daemon must drop them, say once that
+// the end actions are gone, and end Tea as always. The restore run gives Rice
+// the end action an older Sands could have saved: Rice must ring as any other.
 ShellRoot {
     id: scene
 
@@ -65,6 +70,7 @@ ShellRoot {
     function finish() {
         scene.daemon.historyThisWeek(week => {
             scene.say("week", week);
+            scene.say("toasts", ToastService.shown);
             scene.say("final", scene.snapshot());
             Qt.quit();
         });
@@ -92,7 +98,12 @@ ShellRoot {
             });
         }
         function loadPluginState(id, key, fallback) {
-            return key in scene.saved ? scene.saved[key] : fallback;
+            const value = key in scene.saved ? scene.saved[key] : fallback;
+            if (key === "timers" && scene.phase === "restore" && Array.isArray(value))
+                return value.map(t => t.label === "Rice" ? Object.assign({
+                        actionId: "poweroff"
+                    }, t) : t);
+            return value;
         }
         function savePluginState(id, key, value) {
             scene.say("save", {
@@ -100,9 +111,10 @@ ShellRoot {
                 value: value
             });
         }
-        // No other plugin is loaded: nothing may be told to anyone
+        // Every plugin counts as loaded (any other plugin): still nothing may be told
+        // to anyone when a timer ends
         function isPluginLoaded(id) {
-            return false;
+            return true;
         }
         function setGlobalVar(id, name, value) {
             scene.say("global", {
@@ -224,6 +236,30 @@ ShellRoot {
 
     // The daemon reads the saved state as it completes, inside createObject
     function begin() {
+        // An older Sands saved its end mode and end actions; another plugin's
+        // keys are not Sands'
+        SettingsData.pluginSettings = phase === "ring" ? {
+            smartTimer: {
+                endMode: "auto",
+                timerEndMode: "sands",
+                personalActions: [{
+                        name: "Lights",
+                        program: "lights",
+                        args: ["off"]
+                    }],
+                actionWords: {
+                    poweroff: ["off", "film"]
+                },
+                hourglassStyle: "classic"
+            },
+            other: {
+                endMode: "keep"
+            }
+        } : {
+            smartTimer: {
+                hourglassStyle: "classic"
+            }
+        };
         const component = Qt.createComponent("TimerDaemon.qml");
         daemon = component.createObject(scene, {
             pluginService: service
@@ -233,6 +269,10 @@ ShellRoot {
             Qt.quit();
             return;
         }
+        say("settings", {
+            settings: SettingsData.pluginSettings,
+            saves: SettingsData.pluginSettingsSaves
+        });
         if (phase === "ring") {
             say("begin", Date.now());
             scene.daemon.start(2000, "Tea", "duration", 0, true);

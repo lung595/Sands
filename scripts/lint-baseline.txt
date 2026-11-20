@@ -107,11 +107,8 @@ components/journal/Threads.qml	unqualified	Unqualified access	root
 components/journal/Threads.qml	unqualified	Unqualified access	root
 components/journal/Threads.qml	unqualified	Unqualified access	root
 components/journal/Threads.qml	unqualified	Unqualified access	root
-components/settings/ActionRow.qml	unqualified	Unqualified access	root
-components/settings/ActionRow.qml	unqualified	Unqualified access	root
 components/settings/AlertsSection.qml	missing-property	Member "value" not found on type "StringSetting"	value
 components/settings/AlertsSection.qml	missing-property	Member "value" not found on type "StringSetting"	value
-components/settings/AlexMode.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
 components/settings/BatteryPill.qml	unqualified	Unqualified access	root
 components/settings/CardChoice.qml	unqualified	Unqualified access	cards
 components/settings/CardChoice.qml	unqualified	Unqualified access	cards
@@ -121,29 +118,6 @@ components/settings/CardChoice.qml	unqualified	Unqualified access	root
 components/settings/CardChoice.qml	unqualified	Unqualified access	root
 components/settings/CardChoice.qml	unqualified	Unqualified access	root
 components/settings/CardChoice.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	personal
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	root
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
-components/settings/EndActionsSection.qml	unqualified	Unqualified access	words
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
@@ -158,35 +132,6 @@ components/settings/SettingsPage.qml	missing-property	Member "contentY" not foun
 components/settings/SettingsPage.qml	missing-property	Member "cursorPosition" not found on type "QQuickItem"	cursorPosition
 components/settings/SettingsPage.qml	unqualified	Unqualified access	root
 components/settings/StartSection.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	measureRep
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	measureRep
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	measureRep
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	root
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	segRep
-components/settings/TimerEndRow.qml	unqualified	Unqualified access	segments
 tests/qml-dune/tst_duneBand.qml	missing-property	Member "reach" not found on type "QQuickItem"	reach
 tests/qml-dune/tst_duneBand.qml	missing-property	Member "reach" not found on type "QQuickItem"	reach
 tests/qml-dune/tst_duneBand.qml	missing-property	Member "reach" not found on type "QQuickItem"	reach

@@ -28,26 +28,6 @@ QtObject {
         return globalVars[id] && name in globalVars[id] ? globalVars[id][name] : fallback;
     }
 
-    // A mocked Alex for the timer-end row: `dms ipc call alex timerEndMode [mode]`
-    // answers like the real one, and every call is kept for the scene to assert.
-    property string alexMode: "react"
-    property var dmsCalls: []
-
-    function dms(command) {
-        dmsCalls = dmsCalls.concat([command.slice(1)]);
-        if (!isPluginLoaded("alex"))
-            return "Target not found.";
-        if (command.length === 6) {
-            alexMode = command[5];
-            setGlobalVar("alex", "timerEndModeChanged", {
-                kind: "timerEndModeChanged",
-                mode: alexMode
-            });
-            return "ok";
-        }
-        return alexMode;
-    }
-
     function setGlobalVar(id, name, value) {
         const next = Object.assign({}, globalVars);
         next[id] = Object.assign({}, next[id] || {}, {

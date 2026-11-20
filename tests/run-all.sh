@@ -7,7 +7,7 @@
 # Fast: every tests/*.test.js (gjs) and tests/*.test.sh (sh), one after the
 # other. Full adds, in parallel with them: every tests/*/run.sh (the QML
 # runners, the daemon end to end), tests/journal-layout.sh, the settings
-# overlap scene, the Alex bridge scene while it exists, and scripts/lint.sh.
+# overlap scene and scripts/lint.sh.
 # New files that follow these names are picked up without editing this script.
 #
 # A failure never stops the run: each job writes to its own temporary file
@@ -55,26 +55,6 @@ run() (
     echo "$status $(( ($(date +%s%N) - start) / 1000000 ))" > "$work/$i.res"
 )
 
-# The Alex bridge scene loads the real daemon, so it runs on a copy of the
-# plugin with the stand-in of the dune windows (no layer shell offscreen), and
-# must print "OK present" and "OK absent"
-alex() {
-    tree=$TMPDIR/tree
-    mkdir -p "$tree/scripts"
-    cp ./*.qml ./*.js plugin.json "$tree/" && cp -r components diagnostics sounds "$tree/" &&
-        cp -r scripts/preview "$tree/scripts/" &&
-        cp scripts/preview/mock/DuneWindows.qml "$tree/components/alert/DuneWindows.qml" || return 1
-    cd "$tree/scripts/preview" || return 1
-    fails=0
-    for mode in present absent; do
-        out=$(QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen timeout 60 qml-qt6 -I imports alex.qml -- "$mode" /dev/null 2>&1)
-        status=$?
-        printf '%s\n' "$out"
-        [ $status -eq 0 ] && printf '%s\n' "$out" | grep -q "OK $mode" || { echo "FAIL alex $mode (exit $status)"; fails=1; }
-    done
-    return $fails
-}
-
 overlap() {
     cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen timeout 120 qml-qt6 -I imports settings-overlap.qml
 }
@@ -86,7 +66,6 @@ if [ $full -eq 1 ]; then
     done
     [ -f tests/journal-layout.sh ] && bg journal-layout.sh sh tests/journal-layout.sh
     [ -f scripts/preview/settings-overlap.qml ] && bg settings-overlap overlap
-    [ -f scripts/preview/alex.qml ] && bg alex.qml alex
     [ -f scripts/lint.sh ] && bg lint sh scripts/lint.sh
 fi
 for t in tests/*.test.js; do [ -f "$t" ] && job "${t#tests/}" gjs "$t"; done

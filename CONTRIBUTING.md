@@ -18,7 +18,7 @@ Everything needed to work on Sands or take over the project.
 1. Clone the repository into the DMS plugin folder and enable it in **Settings → Plugins**:
 
    ```sh
-   git clone https://github.com/lung595/Sands ~/.config/DankMaterialShell/plugins/Sands
+   git clone https://github.com/lung595/Sands ~/.config/dms/plugins/smartTimer
    ```
 
 2. Add the **Sands** widget to the bar to see the pill and the panel.
@@ -43,7 +43,7 @@ The daemon is split by role, one file each, in `components/daemon/`. Each QML fi
 
 | File | Role | Pure logic |
 | --- | --- | --- |
-| `TimerStore.qml` | Persistence through the DMS plugin state | |
+| `TimerStore.qml` | Persistence through the DMS plugin state; drops the settings an older Sands left | `Retired.js` |
 | `AlarmSound.qml` | Every sound: alarm, settings preview, tick (one idle `Process` each) | `Sound.js` |
 | `TimerNotifier.qml` | End notification with Stop / +5 min (one `notify-send` per ringing timer) | `Notifications.js` |
 | `TimerIpc.qml` | The `dms ipc call smartTimer …` commands | `IpcReplies.js` |
@@ -54,17 +54,22 @@ The daemon is split by role, one file each, in `components/daemon/`. Each QML fi
 
 Logic that can be tested lives in **pure `.js` files** with no QML:
 
-- `TimeParser.js`: natural-language parser (English and French) and formatting.
+- `TimeParser.js`: natural-language parser (English and French) and formatting. `parse()` runs the named stages of `STAGES` in order (typos, context verb, keyword, repeat, clock time, `1:30`, fractions, phrases, number + unit, bare numbers, approximations); each consumes what it read and what is left is the label. Its words come from the language packs `lang/en.js` and `lang/fr.js` (`PACKS`): `grammar(packs)` builds every regex from their union, once. A new language is one more pack of the same shape, added to `PACKS`; `tests/parser.test.js` checks that every pack has the keys of the English one and runs its cases with each pack alone and with the union.
+- `Commands.js`: the launcher commands on running timers (« timer +5 », « timer -2 pâtes », « pause pâtes », « reprendre », « snooze 10 », « renomme pâtes en riz », « rename tea to infusion », « thé = infusion »). Not wired yet; the launcher will call, on each keystroke and before `TP.parse`:
+  - `parseCommand(text, { now })` → `{ kind, delta, name, newName, minutes, lang }` or null. `kind` is `adjust` (`delta` in signed ms), `pause`, `resume`, `snooze` (`minutes`, 0 = the default), `rename` (`newName`, emoji removed); `name` "" means the nearest timer; `lang` is `fr` / `en` when the verb belongs to one language only.
+  - `resolveTarget(intent, daemon.timers, now)` → the timer, or null. No name: the nearest the command applies to (ringing first, then the one ending first, `Lifecycle.sortTimers`); a name: that one (whole name, then its start, then a part; accents, case and emoji ignored).
+  - `previewCommand(intent, target, now, { lang, use24, snoozeMinutes })` → `{ text, icon, at, changed }`: « +5 min à Pâtes (finit à 18:47) » / « +5 min to Pasta (ends 18:47) », a Material Symbols icon name, the new end, and `changed: false` when Enter would do nothing. The 10 s floor and the restart of a ringing timer come from `Lifecycle.adjust` on a copy, so the line shows what Enter will do.
+  - A null intent or target means "not a command": fall back to `TP.parse`, so « pause café 15 min » or « pasta 12 » still start a timer. On Enter, call the daemon with `target.id`: `adjust(id, delta)`, `pause(id)`, `resume(id)`, `rename(id, newName)`, and for a snooze `adjust(id, minutes * 60000)` as `TimerIpc.snooze` does.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
 - `components/daemon/*.js`: the rules of the daemon's parts (see the table above). They import `TimeParser.js` and `Timers.js` where needed.
-- `components/alert/*.js`: the visual alert of a finished timer, `AlertPolicy.js` (which alert and when) and `HaloMotion.js` (the Edge halo steps), both tested and not wired yet.
+- `components/alert/*.js`: the visual alert of a finished timer, `AlertPolicy.js` (which alert and when, read by `DuneAlert.qml` and the settings), `HaloMotion.js` (the Edge halo steps), `DuneMotion.js` and `DuneStyles.js` (the Rising dune), `SandTint.js` (the sand colours).
 - `Preview.js`: the one-line preview and the « Rings at … » line the launcher shows before Enter.
 - `Guide.js`: the short notes shown when something can't be done (title, hint, guide anchor); a test checks every anchor exists in `docs/GUIDE.md`.
 - `components/Motion.js`: every looping motion as a pure function of time.
 - `components/Press.js`: what the controls drawn by hand share (the keys that press them, the 44 px target, the fades).
 - `diagnostics/*.js`: the anonymous report. `Gather.js` (the probes and how their answers are read), `Redact.js` (what is hidden), `Report.js` (the text), `Cpu.js`, `Log.js`, `Codes.js`, `Allow.js`. `scripts/diagnose.sh` builds the same report from a terminal when the shell does not answer; its cleaning rules mirror `Redact.js` and both sides are tested (`tests/diagnostics.test.js`, `tests/diagnose.test.sh`).
 - `components/settings/ReportRow.js`: every word and state of the "Copy report" row.
-- `components/settings/Sections.js`: the settings sections and every setting as one table (keys, help, synonyms, battery level); `components/settings/Search.js`: the settings search over it (copied from Orbit's engine, typo-tolerant, ranked). Not drawn yet.
+- `components/settings/Sections.js`: the settings sections and every setting as one table (keys, help, synonyms, battery level); `components/settings/Search.js`: the settings search over it (copied from Orbit's engine, typo-tolerant, ranked), both used by `SettingsPage.qml`.
 
 **Motion timers.** Nothing animates with QML animations while idle. The pill's single motion clock is `components/PillClock.qml`, driven by `HorizontalPill.qml`: 16 ms only for the bell swing, 33 ms for the final-countdown beat and the breathing; it runs only while ringing or beating and stops after the alarm duration. The panel's sand clock is `components/hourglass/MotionClock.qml` (33 ms once the sand is settled, stopped under Reduce motion).
 
@@ -80,6 +85,8 @@ Sands/
 ├── TimerLauncher.qml           # launcher provider
 ├── TimerSettings.qml           # settings page
 ├── TimeParser.js               # natural-language parser + formatting (tested)
+├── lang/                       # language packs of the parser and commands: en.js, fr.js
+├── Commands.js                 # launcher commands on running timers: intent, target, preview (tested)
 ├── Timers.js                   # pure timer logic: time left, recents ranking… (tested)
 ├── Preview.js                  # launcher preview lines: « Pasta · 12 min · ends 12:42 » (tested)
 ├── Guide.js                    # "why it can't be done" notes + guide anchors (tested)
@@ -93,7 +100,7 @@ Sands/
 │   ├── daemon/                 # the engine's parts, one role per file (see Architecture)
 │   │   ├── TimerStore.qml, AlarmSound.qml, TimerNotifier.qml, TimerIpc.qml
 │   │   ├── ReportService.qml, ReportClipboard.qml, ToolProcess.qml   # the anonymous report, on demand only
-│   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js, PlainText.js   (tested)
+│   │   └── Lifecycle.js, Sound.js, Notifications.js, IpcReplies.js, PlainText.js, Retired.js   (tested)
 │   ├── alert/                  # "Rising dune" alert: DuneAlert (host), RingAlert (wiring to the engine), DuneWindows (layer window per screen), DuneBand (Loader, 30 Hz Timer, legend), GrainsScene (Last grains), WindScene (Wind dune), WaveScene (Flat wave); pure logic DuneStyles.js, DuneMotion.js, SandTint.js, AlertPolicy.js, HaloMotion.js   (logic tested by gjs, band by tests/qml-dune/run.sh)
 │   ├── TimerPanelContent.qml   # panel: state, switching between timers, wiring of the parts below
 │   ├── PanelGlass.qml          # hourglass, gestures (GlassGestures), dots (TimerDots), frost (FrostMist, FrostDust)
@@ -121,7 +128,7 @@ Sands/
 ├── scripts/lint.sh             # qmllint against scripts/lint-baseline.txt, rule levels in .qmllint.ini (tested by tests/lint.test.sh)
 ├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
 ├── tests/
-│   ├── parser.test.js
+│   ├── parser.test.js, commands.test.js
 │   ├── motion.test.js
 │   ├── timers.test.js
 │   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
@@ -146,15 +153,15 @@ sh tests/run-all.sh          # full, about 1 min: run it before every commit
 sh tests/run-all.sh --fast   # a few seconds, while working
 ```
 
-`--fast` runs every `tests/*.test.js` with `gjs` and every `tests/*.test.sh` with `sh`. The full run adds, side by side, every `tests/*/run.sh` (the offscreen QML runners, the daemon end to end), `tests/journal-layout.sh`, the settings overlap scene, the Alex bridge scene (`scripts/preview/alex.qml`) and `scripts/lint.sh`. It needs `gjs`, `qml-qt6`, `qmltestrunner-qt6`, `quickshell` and the DMS install. A failure does not stop it: it prints the end of each failed job's output, then one line per job (name, ok/FAIL, seconds), and exits 1 if any failed. A new test that follows these names is picked up on its own; `tests/run-all.test.sh` tests the runner. One job alone: `gjs tests/parser.test.js`, `sh tests/qml/run.sh`...
+`--fast` runs every `tests/*.test.js` with `gjs` and every `tests/*.test.sh` with `sh`. The full run adds, side by side, every `tests/*/run.sh` (the offscreen QML runners, the daemon end to end), `tests/journal-layout.sh`, the settings overlap scene and `scripts/lint.sh`. It needs `gjs`, `qml-qt6`, `qmltestrunner-qt6`, `quickshell` and the DMS install. A failure does not stop it: it prints the end of each failed job's output, then one line per job (name, ok/FAIL, seconds), and exits 1 if any failed. A new test that follows these names is picked up on its own; `tests/run-all.test.sh` tests the runner. One job alone: `gjs tests/parser.test.js`, `sh tests/qml/run.sh`...
 
-Daemon end to end (real Quickshell offscreen, staged like `daemon-loop.sh`): `tests/qml-daemon/run.sh` runs `TimerDaemon.qml` twice in a throw-away home, with stand-ins on `PATH` that record their arguments (`pw-play`, `paplay`, `notify-send`, `gdbus`, `wl-copy`, `dms`, `niri`). First run: a 2 s timer rings; it checks the `pw-play` and `notify-send` arguments and timing (rising volume, 450 ms gap, no sound before the end), the dune (up at the ring, named after the timer), the saved plugin state, the journal line and its file modes. A second timer ends while no shell runs. Second run, from the saved state: the timers come back, both ended ones ring and are notified again, the dune is named after the last to end, each stop closes its own notification (`gdbus`) and the last one, a click on the dune, silences the alarm and takes the dune down. An `AudioService` stand-in gives one unmuted output. `shell.qml` acts and reports, `check.js` judges; it fails (exit 1) with the name of each broken check, and on any script error (`ReferenceError`, `TypeError`...) in either run's log. A change to what the end of a timer does must update `check.js` in the same commit.
+Daemon end to end (real Quickshell offscreen, staged like `daemon-loop.sh`): `tests/qml-daemon/run.sh` runs `TimerDaemon.qml` twice in a throw-away home, with stand-ins on `PATH` that record their arguments (`pw-play`, `paplay`, `notify-send`, `gdbus`, `wl-copy`, `dms`, `niri`). First run, from the settings of an older Sands (its end mode): those keys are dropped once and nothing else changes, then a 2 s timer rings; it checks the `pw-play` and `notify-send` arguments and timing (rising volume, 450 ms gap, no sound before the end), the dune (up at the ring, named after the timer), the saved plugin state, the journal line and its file modes; every plugin counts as loaded, and none is told anything. A second timer ends while no shell runs. Second run, from the saved state: the timers come back, both ended ones ring and are notified again, the dune is named after the last to end, each stop closes its own notification (`gdbus`) and the last one, a click on the dune, silences the alarm and takes the dune down. An `AudioService` stand-in gives one unmuted output. `shell.qml` acts and reports, `check.js` judges; it fails (exit 1) with the name of each broken check, and on any script error (`ReferenceError`, `TypeError`...) in either run's log. A change to what the end of a timer does must update `check.js` in the same commit.
 
 Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qml-page/run.sh` checks Ctrl+F, `/`, typing, Esc, Enter and the scroll of a picked row inside a Flickable, and `tst_sections.qml` checks that every section is built with the page and that walking the rail repeatedly never builds or drops one (NAK-708).
 
 Settings overlap (offscreen, needs `qml-qt6`): `cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml` loads the settings page at 228, 360 and 404 px and exits 1 on any overlap, elided text or text off the page. `scripts/preview/before-after.sh <commit> <out.html>` builds the before/after page (dark and light, two widths, four made-up stores; stores live in `scripts/preview/mock/Presets.js`).
 
-Every new syntax goes with a test in `tests/parser.test.js`.
+Every new syntax goes with a test in `tests/parser.test.js` (a launcher command: `tests/commands.test.js`); a new word goes in the pack of its language, with a case in that pack's list of `PACK_CASES`.
 
 ### Lint
 
@@ -170,7 +177,8 @@ The warnings that were already there are listed in `scripts/lint-baseline.txt` (
 `scripts/preview/` renders the real `TimerWidget.qml` (pill and panel), `TimerPanelContent.qml` and `Hourglass.qml` with a made-up daemon (`mock/FakeDaemon.qml`), made-up timers and stand-ins for the DMS modules (`imports/qs/*`). Nothing of the live shell is read or touched, and the plugin never loads anything from this folder. It needs `qml-qt6` (Qt 6) and the DMS install for the Material Symbols font.
 
 ```sh
-scripts/preview/shots.sh /tmp/sands-shots              # every scene of manifest.txt, as PNGs
+scripts/preview/shots.sh                               # every scene of manifest.txt, as PNGs in out/ (ignored by git)
+scripts/preview/shots.sh /tmp/sands-shots              # the same, in another folder
 scripts/preview/shots.sh /tmp/sands-shots panel pill-4 # only some of them
 scripts/preview/cmp.sh /tmp/sands-shots                # compare with scripts/preview/reference/
 TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I scripts/preview/imports scripts/preview/launcher.qml   # launcher: prints each query's lines as text

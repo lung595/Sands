@@ -27,7 +27,7 @@ chmod 700 "$dir/run"
 
 # The plugin as shipped, the stand-ins of the DMS modules, the scene as root
 cp "$root"/*.qml "$root"/*.js "$root/plugin.json" "$dir/tree/"
-cp -r "$root/components" "$root/diagnostics" "$root/sounds" "$dir/tree/"
+cp -r "$root/components" "$root/diagnostics" "$root/lang" "$root/sounds" "$dir/tree/"
 cp -r "$here/imports/qs/." "$dir/tree/"
 cp "$here/daemon-loop.qml" "$dir/tree/shell.qml"
 # The one file that needs a layer shell (never created while nothing rings)

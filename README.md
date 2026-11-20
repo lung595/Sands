@@ -35,14 +35,14 @@ dms plugins install smartTimer
 <summary>Manual install</summary>
 
 ```sh
-git clone https://github.com/lung595/Sands ~/.config/DankMaterialShell/plugins/Sands
+git clone https://github.com/lung595/Sands ~/.config/dms/plugins/smartTimer
 ```
 
 Then click **Settings → Plugins → *Scan for plugins***.
 </details>
 
 > [!NOTE]
-> The plugin id is `smartTimer` (install command, IPC, settings); the display name is **Sands**.
+> The plugin id is `smartTimer` (install command, plugin folder, IPC, settings); the display name is **Sands**.
 
 ### 2. Enable
 
@@ -138,9 +138,7 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 | Gentle alarm (rises from 30 %) | On |
 | Final countdown ticks | Off |
 | Respect Do Not Disturb | On |
-| When a Sands timer ends: Sands only, Sands + Alex reacts, Alarm in the Alex island (greyed without Alex; the value is Alex's) | Sands + Alex reacts |
 | Launcher: automatic detection, or a prefix | Automatic detection |
-| End actions: one row each for Power off, Sleep, Stop the music and your own commands, with their launcher words (saved; not run until the runner lands) | One word each, no own command |
 | Erase history (Advanced) | Button |
 | Help: *Copy report* (anonymous diagnostic report to the clipboard) and a GitHub mark that opens a new issue | - |
 
@@ -190,7 +188,7 @@ bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 
 ## Privacy
 
-No network access, no telemetry. Only short-lived local tools run (`pw-play` to ring, `notify-send` for the notification; for the report, only when you ask: `dms`, `quickshell`, `niri`, `rpm`, `cat`, `journalctl` to read versions and error codes, and `wl-copy` or `dms clipboard copy` to copy it). Your running and recent timers are saved by DMS, and so are the end-action commands and launcher words you type in the settings (names, programs, arguments and words, on this machine only). When a timer rings, Sands also keeps its name and times in its own private history file, `~/.local/state/sands/history.json` (readable by you only, 12 months at most, never read or written while idle); **Erase history** in the settings deletes it at once; uninstalling the plugin removes it with its folder. If the Alex plugin is loaded, Sands publishes the label you typed (60 characters at most) and the end time when a timer ends, in the shell's memory only, where any loaded plugin can read the last event; without Alex nothing is published. See [Alex](docs/GUIDE.md#alex) and the [user guide](docs/GUIDE.md#privacy).
+No network access, no telemetry. Only short-lived local tools run (`pw-play` to ring, `notify-send` for the notification; for the report, only when you ask: `dms`, `quickshell`, `niri`, `rpm`, `cat`, `journalctl` to read versions and error codes, and `wl-copy` or `dms clipboard copy` to copy it). Your running and recent timers are saved by DMS, on this machine only. When a timer rings, Sands also keeps its name and times in its own private history file, `~/.local/state/sands/history.json` (readable by you only, 12 months at most, never read or written while idle); **Erase history** in the settings deletes it at once; uninstalling the plugin removes it with its folder. Sands publishes nothing to other plugins. See the [user guide](docs/GUIDE.md#privacy).
 
 The anonymous report ([Report a problem](docs/GUIDE.md#report-a-problem)) is built only when you ask, lives in memory, and is copied with `wl-copy --sensitive` (or `dms clipboard copy`). `--sensitive` asks clipboard managers not to keep it, and needs a wl-clipboard that knows the option (see `wl-copy --help`). The `dms clipboard copy` fallback leaves the report in the DMS clipboard history: the row says so, delete it there once pasted. The GitHub mark beside the button opens the new-issue page on click only, with a constant address and nothing prefilled.
 

@@ -1,11 +1,7 @@
-// TimeParser.js tests — run with: gjs -m tests/parser.test.js
-// (or: gjs tests/parser.test.js from the plugin root)
-const GLib = imports.gi.GLib;
-
-const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/parser.test.js", GLib.get_current_dir())));
-const [, bytes] = GLib.file_get_contents(dir + "/TimeParser.js");
-const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const TP = new Function(src + "; return { parse, tooLong, MAX_INPUT, MAX_LABEL, formatClock, formatHuman, formatRelative, formatTimeOfDay };")();
+// TimeParser.js tests — run with: gjs tests/parser.test.js (from the plugin root)
+imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
+const { load } = imports.harness;
+const TP = load("TimeParser.js");
 
 // Wednesday, Sept 24 2026, 21:47:00 local time
 const NOW = new Date(2026, 8, 24, 21, 47, 0, 0).getTime();
@@ -311,6 +307,124 @@ check("timer 2 days at 9h", [{ at: "9:00", label: "2 days" }]);
 check("meeting 3 at 9am", [{ at: "9:00", label: "meeting 3" }]);
 // « at 13pm » keeps its 24 h reading (as before the natural clock times)
 check("timer at 13pm", [{ at: "13:00", label: "" }]);
+
+// Free orders (6a): fractions of an hour, numbers in words, « et demie »
+check("rappelle-moi dans 10 min de sortir le linge", [{ ms: 10 * MIN, label: "sortir le linge" }]);
+check("dans 1/4 d'heure", [{ ms: 15 * MIN, label: "" }]);
+check("dans 3/4 d’heure", [{ ms: 45 * MIN, label: "" }]);
+check("dans 1/2 heure", [{ ms: 30 * MIN, label: "" }]);
+check("1/2 h pâtes", [{ ms: 30 * MIN, label: "pâtes" }]);
+check("3/4 of an hour", [{ ms: 45 * MIN, label: "" }]);
+check("1/0 h", []);
+check("une demi-heure", [{ ms: 30 * MIN, label: "" }]);
+check("deux minutes", [{ ms: 2 * MIN, label: "" }]);
+check("two minutes tea", [{ ms: 2 * MIN, label: "tea" }]);
+check("10 minutes et demie", [{ ms: 10.5 * MIN, label: "" }]);
+
+// Fuzzy clock times (6a). NOW is Wednesday 21:47.
+check("à midi", [{ at: "12:00", label: "" }]);
+check("minuit", [{ at: "0:00", label: "" }]);
+check("demain 7h", [{ at: "7:00", label: "" }]);
+check("ce soir 20h", [{ at: "20:00", label: "" }]);
+check("18h15", [{ at: "18:15", label: "" }, { ms: 18 * H + 15 * MIN, label: "" }]);
+check("6:15pm", [{ at: "18:15", label: "" }]);
+check("6:15 p.m.", [{ at: "18:15", label: "" }]);
+check("dans 1h à peu près", [{ ms: H, label: "" }]);
+check("dans une heure environ", [{ ms: H, label: "" }]);
+check("environ 20 min pâtes", [{ ms: 20 * MIN, label: "pâtes" }]);
+check("in 1h or so", [{ ms: H, label: "" }]);
+check("about 20 min", [{ ms: 20 * MIN, label: "" }]);
+check("20 min-ish tea", [{ ms: 20 * MIN, label: "tea" }]);
+check("around 6pm", [{ at: "18:00", label: "" }]);
+// An approximation word away from the time stays in the label
+check("timer 10 min talk about cats", [{ ms: 10 * MIN, label: "talk about cats" }]);
+
+// Typos, accents, capitals, punctuation (6a)
+check("10 mn", [{ ms: 10 * MIN, label: "" }]);
+check("10 minuts", [{ ms: 10 * MIN, label: "" }]);
+check("2 heurs", [{ ms: 2 * H, label: "" }]);
+check("RAPPELLE MOI A 18H", [{ at: "18:00", label: "" }]);
+check("rappelle moi de sortir le linge dans 20 minutes", [{ ms: 20 * MIN, label: "sortir le linge" }]);
+check("DANS 20 MN, PATES.", [{ ms: 20 * MIN, label: "PATES" }]);
+check("Timer: 10 min, pâtes !", [{ ms: 10 * MIN, label: "pâtes" }]);
+check("pâtes ?! 12 min", [{ ms: 12 * MIN, label: "pâtes" }]);
+
+// Emoji never reach the name (6a)
+check("timer 10 min 🍝 pâtes", [{ ms: 10 * MIN, label: "pâtes" }]);
+check("🍝 10 min", [{ ms: 10 * MIN, label: "" }]);
+check("pâtes 🍝 12", [{ ms: 12 * MIN, label: "pâtes" }]);
+check("🍝 12", []);
+check("at 7pm ☕️ coffee", [{ at: "19:00", label: "coffee" }]);
+
+// Language packs (6a): each pack alone reads its own words, never the
+// other's; the union (the default) reads both.
+const EN = TP.grammar([TP.PACKS[0]]);
+const FR = TP.grammar([TP.PACKS[1]]);
+const PACK_CASES = {
+    en: [
+        ["timer 20 min", [{ ms: 20 * MIN, label: "" }]],
+        ["remind me in 20 minutes to take out the laundry", [{ ms: 20 * MIN, label: "take out the laundry" }]],
+        ["an hour and a half", [{ ms: 90 * MIN, label: "" }]],
+        ["three quarters of an hour", [{ ms: 45 * MIN, label: "" }]],
+        ["3/4 of an hour", [{ ms: 45 * MIN, label: "" }]],
+        ["twenty five minutes", [{ ms: 25 * MIN, label: "" }]],
+        ["tonight at 9", [{ at: "21:00", label: "" }]],
+        ["at noon", [{ at: "12:00", label: "" }]],
+        ["6:15pm", [{ at: "18:15", label: "" }]],
+        ["in 1h or so", [{ ms: H, label: "" }]],
+        ["20 minuts pasta", [{ ms: 20 * MIN, label: "pasta" }]],
+        ["pasta for 12 min", [{ ms: 12 * MIN, label: "pasta" }]],
+        ["set a timer for 20 minutes for the pasta", [{ ms: 20 * MIN, label: "pasta" }]]
+    ],
+    fr: [
+        ["minuteur 20 min", [{ ms: 20 * MIN, label: "" }]],
+        ["rappelle-moi dans 10 min de sortir le linge", [{ ms: 10 * MIN, label: "sortir le linge" }]],
+        ["une heure et demie", [{ ms: 90 * MIN, label: "" }]],
+        ["trois quarts d'heure", [{ ms: 45 * MIN, label: "" }]],
+        ["dans 1/4 d'heure", [{ ms: 15 * MIN, label: "" }]],
+        ["vingt-cinq minutes", [{ ms: 25 * MIN, label: "" }]],
+        ["dix-sept minutes", [{ ms: 17 * MIN, label: "" }]],
+        ["ce soir à 9h", [{ at: "21:00", label: "" }]],
+        ["à midi", [{ at: "12:00", label: "" }]],
+        ["7 du soir", [{ at: "19:00", label: "" }]],
+        ["dans 1h à peu près", [{ ms: H, label: "" }]],
+        ["2 heurs", [{ ms: 2 * H, label: "" }]],
+        ["pâtes pour 12 min", [{ ms: 12 * MIN, label: "pâtes" }]],
+        ["mets un minuteur de 20 minutes pour les pâtes", [{ ms: 20 * MIN, label: "pâtes" }]]
+    ]
+};
+for (const [own, other] of [[EN, FR], [FR, EN]]) {
+    const cases = own === EN ? PACK_CASES.en : PACK_CASES.fr;
+    for (const [input, expected] of cases) {
+        check(input, expected, { grammar: own });
+        check(input, expected);
+    }
+}
+// The other pack's words mean nothing alone
+check("une demi-heure", [], { grammar: EN });
+check("trois quarts d'heure", [], { grammar: EN });
+check("half an hour", [], { grammar: FR });
+check("at noon", [], { grammar: FR });
+check("dans 1h à peu près", [{ ms: H, label: "dans à peu près" }], { grammar: EN });
+
+// Every pack has the same keys, of the same types, as the English one
+for (const pack of TP.PACKS) {
+    for (const key of Object.keys(TP.PACKS[0])) {
+        count++;
+        const a = TP.PACKS[0][key], b = pack[key];
+        if (b === undefined || Array.isArray(a) !== Array.isArray(b) || typeof a !== typeof b) {
+            failures++;
+            print("✗ pack " + pack.NAME + " lacks " + key + " (or has another type)");
+        }
+    }
+    for (const key of Object.keys(TP.PACKS[0].COMMANDS).concat(Object.keys(TP.PACKS[0].PREVIEW))) {
+        count++;
+        if (!(key in pack.COMMANDS) && !(key in pack.PREVIEW)) {
+            failures++;
+            print("✗ pack " + pack.NAME + " lacks command or preview " + key);
+        }
+    }
+}
 
 // Every result list carries a string hint
 for (const t of ["timer at 7", "timer 20 min", "hello", "", "timer gloubi"]) {
