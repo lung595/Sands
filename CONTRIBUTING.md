@@ -142,23 +142,11 @@ The panel parts show what they are given and report what the user does with sign
 ## Tests
 
 ```sh
-gjs tests/parser.test.js        # 216 parser tests
-gjs tests/motion.test.js
-gjs tests/timers.test.js        # timer logic and sound choice tests
-gjs tests/preview.test.js       # launcher preview lines
-gjs tests/guide.test.js         # 23 tests: note length, guide anchors
-gjs tests/lifecycle.test.js     # 48 tests: transitions, expiry, wake-up, restore
-gjs tests/sound.test.js         # 33 tests: sound file and rings, volume, ramp, player command
-gjs tests/daemon-text.test.js   # 22 tests: IPC sentences, notification commands
-gjs tests/daemon-surface.test.js # every daemon member any .qml reads (aliases, Connections handlers) is still declared
-gjs tests/alex-bridge.test.js   # 8 tests: event shape, id per ring, label cap and cleaning
-# scripts/preview/alex.qml: offscreen check of the Alex bridge (present / absent), see the header;
-# needs QT_FORCE_STDERR_LOGGING=1 to print OK / FAIL, exit code 1 on failure
-gjs tests/hourglass.test.js     # 35 checks: hourglass geometry, volumes, outline, frost shapes
-gjs tests/journal.test.js       # journal rows, layer heights, thread lengths
-sh tests/journal-layout.sh      # offscreen: every journal state and look, alone and inside the panel, narrow and wide; overlap, closed-panel read, Clear the journal
-sh tests/qml-daemon/run.sh      # the real daemon end to end, about 13 s (see below)
+sh tests/run-all.sh          # full, about 1 min: run it before every commit
+sh tests/run-all.sh --fast   # a few seconds, while working
 ```
+
+`--fast` runs every `tests/*.test.js` with `gjs` and every `tests/*.test.sh` with `sh`. The full run adds, side by side, every `tests/*/run.sh` (the offscreen QML runners, the daemon end to end), `tests/journal-layout.sh`, the settings overlap scene, the Alex bridge scene (`scripts/preview/alex.qml`) and `scripts/lint.sh`. It needs `gjs`, `qml-qt6`, `qmltestrunner-qt6`, `quickshell` and the DMS install. A failure does not stop it: it prints the end of each failed job's output, then one line per job (name, ok/FAIL, seconds), and exits 1 if any failed. A new test that follows these names is picked up on its own; `tests/run-all.test.sh` tests the runner. One job alone: `gjs tests/parser.test.js`, `sh tests/qml/run.sh`...
 
 Daemon end to end (real Quickshell offscreen, staged like `daemon-loop.sh`): `tests/qml-daemon/run.sh` runs `TimerDaemon.qml` twice in a throw-away home, with stand-ins on `PATH` that record their arguments (`pw-play`, `paplay`, `notify-send`, `gdbus`, `wl-copy`, `dms`, `niri`). First run: a 2 s timer rings; it checks the `pw-play` and `notify-send` arguments and timing (rising volume, 450 ms gap, no sound before the end), the dune (up at the ring, named after the timer), the saved plugin state, the journal line and its file modes. A second timer ends while no shell runs. Second run, from the saved state: the timers come back, both ended ones ring and are notified again, the dune is named after the last to end, each stop closes its own notification (`gdbus`) and the last one, a click on the dune, silences the alarm and takes the dune down. An `AudioService` stand-in gives one unmuted output. `shell.qml` acts and reports, `check.js` judges; it fails (exit 1) with the name of each broken check, and on any script error (`ReferenceError`, `TypeError`...) in either run's log. A change to what the end of a timer does must update `check.js` in the same commit.
 
@@ -166,7 +154,7 @@ Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qm
 
 Settings overlap (offscreen, needs `qml-qt6`): `cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml` loads the settings page at 228, 360 and 404 px and exits 1 on any overlap, elided text or text off the page. `scripts/preview/before-after.sh <commit> <out.html>` builds the before/after page (dark and light, two widths, four made-up stores; stores live in `scripts/preview/mock/Presets.js`).
 
-Run them all before every commit. Every new syntax goes with a test in `tests/parser.test.js`.
+Every new syntax goes with a test in `tests/parser.test.js`.
 
 ### Lint
 
