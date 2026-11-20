@@ -6,7 +6,7 @@ const GLib = imports.gi.GLib;
 const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/timers.test.js", GLib.get_current_dir())));
 const [, bytes] = GLib.file_get_contents(dir + "/Timers.js");
 const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const T = new Function(src + "; return { remainingOf, progressOf, displayLabel, rankRecents, remember, freeHue, stripEmoji, fallbackName, cleanName };")();
+const T = new Function(src + "; return { remainingOf, progressOf, savedName, displayLabel, rankRecents, remember, freeHue, stripEmoji, fallbackName, cleanName };")();
 
 let failures = 0, count = 0;
 
@@ -35,10 +35,16 @@ eq(T.progressOf({ state: "running", endAt: 9000, total: 1000 }, 0), 1, "never ab
 eq(T.progressOf({ state: "running", endAt: 1000, total: 0 }, 0), 0, "a zero total does not divide by zero");
 
 // Names
-eq(T.displayLabel({ label: "pasta", kind: "in" }), "pasta", "its label first");
+eq(T.displayLabel({ label: "pasta", kind: "in" }), "Pasta", "its label first, with a capital");
+eq(T.displayLabel({ label: "thé vert", kind: "in" }), "Thé vert", "only the first letter, accents kept");
+eq(T.displayLabel({ label: "Pâtes", kind: "in" }), "Pâtes", "a capital already there is kept");
 eq(T.displayLabel({ kind: "at" }), "Alarm", "an unnamed alarm");
 eq(T.displayLabel({ kind: "in" }), "Timer", "an unnamed timer");
 eq(T.displayLabel(null), "", "nothing for no timer");
+eq(T.savedName({ label: "thé", kind: "in" }), "thé", "the saved name stays as typed");
+eq(T.savedName({ kind: "at" }), "Alarm", "an unnamed alarm is saved under its kind");
+eq(T.savedName({ kind: "in" }), "Timer", "an unnamed timer too");
+eq(T.savedName(null), "", "no saved name for no timer");
 
 // Frecency: often and recently beats often long ago
 const now = 100 * DAY;

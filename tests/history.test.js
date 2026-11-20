@@ -97,4 +97,17 @@ wk = H.add(wk, "Short", t(2026, 10, 6, 10), t(2026, 10, 6, 10, 2), NOW);
 wk = H.add(wk, "Long", t(2026, 10, 7, 10), t(2026, 10, 7, 10, 30), NOW);
 eq(H.thisWeek(wk, new Date(NOW)).map(e => e.name), ["Long", "Short"], "this week only, longest first");
 eq(H.thisWeek(H.empty(), new Date(NOW)), [], "no week when empty");
+
+// A name typed in lower case is saved as typed (Timers.savedName, what the
+// daemon keeps), not with its on-screen capital: old and new « thé » stay one favourite
+const Tm = load("Timers.js");
+let tea = H.empty();
+tea = H.add(tea, "thé", t(2026, 10, 6, 10), t(2026, 10, 6, 10, 4), NOW);
+tea = H.add(tea, "thé", t(2026, 10, 7, 10), t(2026, 10, 7, 10, 4), NOW);
+for (const day of [8, 9]) {
+    const r = H.fromTimer(Tm.savedName({ label: "thé", kind: "duration" }), t(2026, 10, day, 10, 4), 4 * MIN);
+    tea = H.add(tea, r.name, r.start, r.end, NOW);
+}
+eq(H.favourites(tea).map(f => [f.name, f.count]), [["thé", 4]], "old and new records of one name make one favourite");
+eq(H.thisWeek(tea, new Date(NOW)).map(e => e.name), ["thé"], "and one line in the week");
 done();

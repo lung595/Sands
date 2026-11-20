@@ -30,7 +30,7 @@ eq(R.list([
     { state: "ringing", label: "tea", finishedAt: 0 },
     { state: "running", label: "", kind: "duration", endAt: 65000 },
     { state: "paused", label: "", kind: "at", remaining: 5000 }
-], 0), "tea\t0:00 (done)\nTimer\t1:05\nAlarm\t0:05 (paused)", "one line per timer, tab separated");
+], 0), "Tea\t0:00 (done)\nTimer\t1:05\nAlarm\t0:05 (paused)", "one line per timer, tab separated, names with a capital");
 
 // Notification
 eq(N.body({ kind: "duration", total: 300000 }, true), "5 min elapsed", "a duration timer");
@@ -50,7 +50,7 @@ eq(N.parseLine("1 2"), null, "not an id");
 eq(R.started({ started: 1, count: 1, kind: "duration", label: "a\u2014b \u2013 c", ms: 60000 }, null, 50, G, true), "Started: a - b - c - 1 min", "dashes in a label, reply");
 eq(N.showCommand("a\u2014b", "x").slice(-2)[0], "a - b - done", "dashes in a label, title");
 
-eq(R.list([{ state: "running", label: "a\u2014b", kind: "duration", endAt: 65000 }], 0), "a - b\t1:05", "dashes in a label, list");
+eq(R.list([{ state: "running", label: "a\u2014b", kind: "duration", endAt: 65000 }], 0), "A - b\t1:05", "dashes in a label, list");
 eq(R.started({ started: 1, count: 1, kind: "duration", label: "a \u2014 \u2014 b", ms: 60000 }, null, 50, G, true), "Started: a - b - 1 min", "two dashes in a row");
 
 // No user-facing string of components/ holds an em or en dash. Scanned in JS

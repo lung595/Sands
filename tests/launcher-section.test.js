@@ -61,6 +61,11 @@ eq(ids(build({ timers: [run(1, 5000, "pasta")], favourites: favs3 })).includes("
 const fv = build({ favourites: [fav("Pasta", 600000)] }).items[0];
 eq([fv.id, fv.name, fv.comment, fv.kind, fv.ms, fv.expandable, fv.keepOpen, fv.preferSelect], ["favourite:Pasta", "Pasta", "10m", "favourite", 600000, false, false, false], "favourite card starts at once");
 eq(JSON.parse(fv.action.slice(6)), { ms: 600000, label: "Pasta", kind: "duration", at: 0, count: 1 }, "favourite action is a start");
+
+// Names: written with a capital, like the preview rows below the cards (« Thé · 4 min »)
+const typed = build({ timers: [run(1, 3000, "thé"), pause(2, 5000, "pâtes")], favourites: [fav("four", 1800000)] });
+eq(typed.items.map(i => i.name), ["Thé", "Pâtes", "Four"], "timer and favourite names get a capital");
+eq(JSON.parse(typed.items[2].action.slice(6)).label, "four", "a favourite still starts under its own name");
 const tm = build({ timers: [run(7, 5000, "Tea")] }).items[0];
 eq([tm.id, tm.name, tm.kind, tm.timerId, tm.state, tm.expandable, tm.keepOpen, tm.action, tm.icon], ["timer:7", "Tea", "timer", 7, "running", true, true, "toggle:7", "material:timer"], "running card unfolds");
 eq(build({ timers: [run(8, 5000)] }).items[0].name, "Timer", "unnamed timer gets the default name");

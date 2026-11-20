@@ -12,7 +12,7 @@ eq(parse([]), { count: 0, ringing: false, timers: [] }, "empty list");
 
 // running: 90.2 s left rounds up so a script never sees 0 while it runs
 const run = { id: "a", state: "running", total: 120000, endAt: now + 90200, label: "pasta", kind: "duration" };
-eq(parse([run]), { count: 1, ringing: false, timers: [{ id: "a", label: "pasta", phase: "running", remaining: 91, total: 120 }] }, "one running");
+eq(parse([run]), { count: 1, ringing: false, timers: [{ id: "a", label: "Pasta", phase: "running", remaining: 91, total: 120 }] }, "one running");
 
 // paused keeps its remaining time, unnamed falls back to the kind
 const paused = { id: "b", state: "paused", total: 60000, remaining: 30000, kind: "duration" };

@@ -18,6 +18,7 @@ eq(C.clock(ring(1, 42000), T0 + 18000), "+1:00", "the overrun grows");
 eq(C.overrun(run(1, 5000), T0), 0, "no overrun before it rings");
 eq(C.title(run(1, 754000, 900000, "Pâtes"), T0), "Pâtes — 12:34", "collapsed title");
 eq(C.title(null, T0), "", "no timer, no title");
+eq(C.title(run(1, 215000, 900000, "thé"), T0), "Thé — 3:35", "a name typed in lower case gets a capital");
 
 // The end: the time of day it rings, in the DMS 12/24 h setting
 eq(C.endText(run(1, 6 * 60000 + 42 * 60000), true).length, 5, "24 h end");

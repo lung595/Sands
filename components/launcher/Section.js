@@ -117,7 +117,8 @@ function _timerItem(t, preferSelect) {
 function _favouriteItem(f) {
     return {
         "id": "favourite:" + f.name,
-        "name": f.name,
+        // Shown like a timer's name (a capital), started under its own
+        "name": Timers.displayLabel({ "label": f.name }),
         "icon": "material:timer",
         "comment": f.duration || "",
         "action": "start:" + JSON.stringify({ "ms": f.ms, "label": f.name, "kind": "duration", "at": 0, "count": 1 }),

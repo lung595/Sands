@@ -24,13 +24,22 @@ function progressOf(t, now) {
     return Math.max(0, Math.min(1, remainingOf(t, now) / t.total));
 }
 
-// What a timer is called on screen: its label, else its kind
-function displayLabel(t) {
+// What a timer is called in the saved history: its label as typed, else its
+// kind. Never capitalised: the journal and the favourites group names as they
+// are, so « thé » saved before and after the on-screen capital stays one name.
+function savedName(t) {
     if (!t)
         return "";
     if (t.label)
         return t.label;
     return t.kind === "at" ? "Alarm" : "Timer";
+}
+
+// What a timer is called on screen: its saved name with a capital (« thé »
+// typed shows « Thé », as the launcher's preview rows write it)
+function displayLabel(t) {
+    const name = savedName(t);
+    return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 // "Frecency": used often AND recently. A timer started 10 times last month

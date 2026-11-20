@@ -33,7 +33,8 @@ Window {
 
     readonly property var specs: ({
             "one": [["running", "Pâtes", 900000, 754000, 0]],
-            "four": [["running", "Thé", 300000, 250000, 1], ["running", "Pâtes", 900000, 754000, 0], ["paused", "Linge", 3600000, 1860000, 2], ["running", "Four", 2700000, 1860000, 3], ["running", "Œufs", 420000, 400000, 4], ["running", "Pain", 2400000, 2200000, 5]],
+            // Typed in lower case, as from the IPC: the cards still write « Thé »
+            "four": [["running", "thé", 300000, 250000, 1], ["running", "pâtes", 900000, 754000, 0], ["paused", "linge", 3600000, 1860000, 2], ["running", "four", 2700000, 1860000, 3], ["running", "Œufs", 420000, 400000, 4], ["running", "Pain", 2400000, 2200000, 5]],
             "ringing": [["ringing", "Pâtes", 600000, 0, 0], ["running", "Thé", 300000, 190000, 1]],
             "favourites": [],
             "stopped": [["running", "Thé", 300000, 190000, 1]],

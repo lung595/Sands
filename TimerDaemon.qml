@@ -436,7 +436,8 @@ Item {
     // A timer that rings is kept in the private history; stopping or removing
     // one never reaches this. Written once, at the ring, never while it runs.
     function _keep(t) {
-        history.append(History.fromTimer(displayLabel(t), t.finishedAt, t.total));
+        // The name as typed, not the on-screen capital: History groups exact names
+        history.append(History.fromTimer(Timers.savedName(t), t.finishedAt, t.total));
     }
 
     // Read side for the views, computed on demand only (one file read each):

@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- A timer named in lower case (« thé », from the IPC or the panel) showed « thé — 3:35 » on its Spotlight card while the rows under it wrote « Thé · 4 min ». A timer's name is now shown with a first capital everywhere it is written (`Timers.displayLabel`: cards, bar, panel, notifications, `list`, status), and a favourite card does the same. The history still keeps the name as typed (`Timers.savedName`), so a « thé » saved before and after this stays one favourite and one line in the week. Covered by `tests/timers.test.js`, `tests/history.test.js`, `tests/launcher-section.test.js` and `tests/launcher-card.test.js`; the `four` variant of `scripts/preview/launcher-section.qml` now types its names in lower case.
 - The manual install cloned into a folder DMS does not read (the old shell folder, named after the display name): the README and CONTRIBUTING now clone into `~/.config/dms/plugins/smartTimer`, the folder named after the plugin id. `tests/docs-paths.test.js` fails on any other plugin install path in the docs and the scripts.
 - Quickshell crashed when the settings page switched to "Alerts & sounds" (NAK-708). The page no longer builds a section on demand: all five are built with the page and only shown or hidden, as before the rail. Cause not proven (a `Loader` with a deferred Popup is suspected); covered by `tests/qml-page/tst_sections.qml`.
 
