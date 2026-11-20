@@ -3,6 +3,7 @@
 .import "Timers.js" as Timers
 .import "components/daemon/Lifecycle.js" as Lifecycle
 .import "components/daemon/Snooze.js" as Snooze
+.import "Strings.js" as Strings
 
 // Launcher commands on the timers that already run, in English and French
 // (the words come from the packs of TimeParser.PACKS). Pure: no QML, no
@@ -56,15 +57,6 @@ function commandGrammar(packs) {
 }
 
 var COMMAND_GRAMMAR = commandGrammar(TP.PACKS);
-
-// The pack named `lang`, else the first one (English)
-function packOf(lang) {
-    for (var i = 0; i < TP.PACKS.length; i++) {
-        if (TP.PACKS[i].NAME === lang)
-            return TP.PACKS[i];
-    }
-    return TP.PACKS[0];
-}
 
 // The language of the words at the start of `work` for regex key `key`
 // ("keyword" or a verb kind): a pack name when only one pack has them, else ""
@@ -232,26 +224,23 @@ function resolveTarget(it, timers, now) {
     return null;
 }
 
-// Fills the %1… placeholders of a template
-function fill(template, values) {
-    return template.replace(/%(\d)/g, function (all, n) {
-        return values[n - 1] === undefined ? all : values[n - 1];
-    });
-}
-
 // What the launcher shows before Enter, or null when there is nothing to do:
 // { text: « +5 min à Pâtes (finit à 18:47) », icon: a Material Symbols name,
 //   at: the new end (0 when the timer will not run), changed: false when
 //   Enter would change nothing (already at the 10 s floor, over the maximum) }.
-// options: { lang: the interface language (else the command's, else
-// English), use24 (default true), snoozeMinutes: the default snooze,
+// options: { lang: the interface language or locale name (else the
+// command's, else English; the words are Strings.js "command.*"), use24 (default true), snoozeMinutes: the default snooze,
 // maxMs: the longest timer (TP.MAX_MS) }
 function previewCommand(it, target, now, options) {
     if (!it || !target)
         return null;
     options = options || {};
-    var words = packOf(options.lang || it.lang || "en").PREVIEW;
-    var name = target.label || (target.kind === "at" ? words.alarm : words.timer);
+    var lang = Strings.langOf(options.lang || it.lang || "en");
+    var name = target.label || Strings.tr(target.kind === "at" ? "name.alarm" : "name.timer", lang);
+    // %1 the timer, then the amount, the new end and the new name
+    var tr = function (key, a, b, c) {
+        return Strings.tr("command." + key, lang, name, a, b, c);
+    };
     var clock = function (at) {
         return TP.formatTimeOfDay(at, options.use24 !== false);
     };
@@ -262,19 +251,19 @@ function previewCommand(it, target, now, options) {
         var copy = JSON.parse(JSON.stringify(target));
         out.changed = Lifecycle.adjust(copy, now, it.delta, options.maxMs || TP.MAX_MS);
         out.at = copy.state === "running" ? copy.endAt : now + copy.remaining;
-        out.text = fill(words.adjust, [name, (it.delta < 0 ? "−" : "+") + TP.formatHuman(Math.abs(it.delta)), clock(out.at)]);
+        out.text = tr("adjust", (it.delta < 0 ? "−" : "+") + TP.formatHuman(Math.abs(it.delta)), clock(out.at));
     } else if (it.kind === "pause") {
-        out.text = fill(words.pause, [name]);
+        out.text = tr("pause");
     } else if (it.kind === "resume") {
         out.at = now + Math.max(0, target.remaining);
-        out.text = fill(words.resume, [name, "", clock(out.at)]);
+        out.text = tr("resume", "", clock(out.at));
     } else if (it.kind === "snooze") {
         var minutes = it.minutes || Snooze.minutes(options.snoozeMinutes) || Snooze.DEFAULT_MINUTES;
         out.at = now + minutes * 60000;
-        out.text = fill(words.snooze, [name, TP.formatHuman(minutes * 60000), clock(out.at)]);
+        out.text = tr("snooze", TP.formatHuman(minutes * 60000), clock(out.at));
     } else if (it.kind === "rename") {
         out.changed = it.newName !== target.label;
-        out.text = fill(words.rename, [name, "", "", it.newName]);
+        out.text = tr("rename", "", "", it.newName);
     }
     return out;
 }

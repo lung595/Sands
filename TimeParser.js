@@ -2,6 +2,7 @@
 .import "lang/en.js" as En
 .import "lang/fr.js" as Fr
 .import "Timers.js" as Timers
+.import "TimeFormat.js" as TimeFormat
 
 // Free-form input parser (French / English) for starting a timer.
 //
@@ -692,67 +693,16 @@ function parse(input, now, options) {
 
 
 // ---------------------------------------------------------------------------
-// Formatting
+// Formatting: moved to TimeFormat.js. These re-exports keep every current
+// caller (TP.formatClock…) working; new code imports TimeFormat.js directly.
+// They are function declarations, not `var x = TimeFormat.x`, because
+// qmllint only sees the functions of a .js import.
 // ---------------------------------------------------------------------------
 
-function pad(n) {
-    return n < 10 ? "0" + n : "" + n;
-}
-
-// Countdown, rounded up to the next second: 20:00 at the start, 0:00
-// exactly when it rings. Negative = time elapsed since the end (« −0:12 »).
-function formatClock(ms) {
-    var neg = ms < 0;
-    var s = neg ? Math.floor(-ms / 1000) : Math.ceil(ms / 1000);
-    var h = Math.floor(s / 3600);
-    var mn = Math.floor((s % 3600) / 60);
-    var sec = s % 60;
-    var txt = h > 0 ? h + ":" + pad(mn) + ":" + pad(sec) : mn + ":" + pad(sec);
-    return (neg && s > 0 ? "−" : "") + txt;
-}
-
-// Readable duration: « 1 h 30 », « 20 min », « 1 min 30 s », « 45 s ».
-function formatHuman(ms) {
-    var s = Math.round(ms / 1000);
-    var h = Math.floor(s / 3600);
-    var mn = Math.floor((s % 3600) / 60);
-    var sec = s % 60;
-    if (h > 0)
-        return mn > 0 ? h + " h " + pad(mn) : h + " h";
-    if (mn > 0)
-        return sec > 0 ? mn + " min " + sec + " s" : mn + " min";
-    return sec + " s";
-}
-
-// Duration rounded to the minute, for « dans 2 h 16 » ("in 2 h 16").
-function formatRelative(ms) {
-    var mnTotal = Math.round(ms / 60000);
-    if (mnTotal < 1)
-        return formatHuman(ms);
-    var h = Math.floor(mnTotal / 60);
-    var mn = mnTotal % 60;
-    if (h > 0)
-        return mn > 0 ? h + " h " + pad(mn) : h + " h";
-    return mn + " min";
-}
-
-function formatTimeOfDay(epoch, use24) {
-    var d = new Date(epoch);
-    var h = d.getHours();
-    var mn = pad(d.getMinutes());
-    if (use24 === false) {
-        var h12 = h % 12 === 0 ? 12 : h % 12;
-        return h12 + ":" + mn + (h >= 12 ? " PM" : " AM");
-    }
-    return pad(h) + ":" + mn;
-}
-
-function isTomorrow(epoch, now) {
-    return new Date(epoch).getDate() !== new Date(now || Date.now()).getDate();
-}
-
-// Fixed-width template (digits replaced by 0) so the pill does not move
-// every second.
-function widthTemplate(text) {
-    return text.replace(/\d/g, "0");
-}
+function pad(n) { return TimeFormat.pad(n); }
+function formatClock(ms) { return TimeFormat.formatClock(ms); }
+function formatHuman(ms) { return TimeFormat.formatHuman(ms); }
+function formatRelative(ms) { return TimeFormat.formatRelative(ms); }
+function formatTimeOfDay(epoch, use24) { return TimeFormat.formatTimeOfDay(epoch, use24); }
+function isTomorrow(epoch, now) { return TimeFormat.isTomorrow(epoch, now); }
+function widthTemplate(text) { return TimeFormat.widthTemplate(text); }

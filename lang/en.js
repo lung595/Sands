@@ -96,15 +96,3 @@ var COMMANDS = {
     rename: ["rename"],
     renameTo: ["to", "as"]
 };
-
-// What the launcher shows before Enter. %1 name, %2 amount, %3 clock time,
-// %4 new name.
-var PREVIEW = {
-    adjust: "%2 to %1 (ends %3)",
-    pause: "Pause %1",
-    resume: "Resume %1 (ends %3)",
-    snooze: "Snooze %1 %2 (rings %3)",
-    rename: "%1 → %4",
-    timer: "Timer",
-    alarm: "Alarm"
-};

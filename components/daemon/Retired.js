@@ -1,4 +1,5 @@
 .pragma library
+.import "../../Strings.js" as Strings
 
 // Settings keys an older Sands saved and this one no longer reads. They are
 // dropped once when the daemon starts; the behaviour is then the default
@@ -53,8 +54,9 @@ function notice(hadEndActions, alreadyDone) {
     return hadEndActions === true && alreadyDone !== true;
 }
 
+// `localeName`: Qt.locale().name or a language (Strings.langOf)
 function toastText(localeName) {
-    return /^fr/i.test(localeName || "") ? "Actions de fin retirées" : "End actions removed";
+    return Strings.tr("retired.toast", localeName);
 }
 
 // The saved timers without their end action: a timer that had one ends as

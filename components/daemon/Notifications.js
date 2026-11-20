@@ -1,20 +1,27 @@
 .pragma library
 .import "../../TimeParser.js" as TP
 .import "PlainText.js" as Plain
+.import "../../Strings.js" as Strings
+.import "Snooze.js" as Snooze
 
 // Pure parts of the end-of-timer notification: what it says, the command
 // that shows it, the command that closes it, and what its output means.
+// `lang` is the interface language or locale name (Strings.langOf); English
+// when left out.
 
 var CLOSE_COMMAND_HEAD = ["gdbus", "call", "--session", "--dest", "org.freedesktop.Notifications", "--object-path", "/org/freedesktop/Notifications", "--method", "org.freedesktop.Notifications.CloseNotification"];
 
-function body(t, use24h) {
-    return t.kind === "at" ? "It's " + TP.formatTimeOfDay(t.endAt, use24h) : TP.formatHuman(t.total) + " elapsed";
+function body(t, use24h, lang) {
+    return t.kind === "at" ? Strings.tr("notify.at", lang, TP.formatTimeOfDay(t.endAt, use24h)) : Strings.tr("notify.elapsed", lang, TP.formatHuman(t.total));
 }
 
 // notify-send waits for the user's choice and prints the notification id,
-// then the action chosen ("stop" or "snooze")
-function showCommand(label, bodyText) {
-    return ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p", "-A", "stop=Stop", "-A", "snooze=+5 min", Plain.plain(label) + " - done", bodyText];
+// then the action chosen ("stop" or "snooze"; the ids never change, only
+// the button words)
+function showCommand(label, bodyText, lang) {
+    return ["notify-send", "-a", "Sands", "-i", "alarm-symbolic", "-u", "critical", "-p",
+            "-A", "stop=" + Strings.tr("notify.stop", lang), "-A", "snooze=" + Strings.tr("notify.snooze", lang, Snooze.DEFAULT_MINUTES),
+            Strings.tr("notify.title", lang, Plain.plain(label)), bodyText];
 }
 
 // A timer that ended long ago, while the machine slept or the shell was off:
