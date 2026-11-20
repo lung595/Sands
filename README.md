@@ -102,6 +102,8 @@ A preview line shows what Enter will create (`Pasta · 12 min · ends 12:42`). U
 
 Open the launcher (Spotlight, Super+Space, or the island launcher): your timers sit on top as a row of cards.
 
+![An open timer card in the launcher](docs/images/launcher-card.png)
+
 | Card | Shows | Keys |
 | --- | --- | --- |
 | Running or paused | Hourglass, name, time left, end time | <kbd>Enter</kbd> or click: expand (pause, restart, stop, ±1 / +5 min, rename, mute) |
