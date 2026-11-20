@@ -9,7 +9,8 @@
 //
 // An item follows the DMS getItems() format plus the live section keys:
 //   { id, name, icon, comment, action, expandable, keepOpen, preferSelect,
-//     kind: "timer" | "favourite" | "more", timerId, state, ms, hidden }
+//     kind: "timer" | "favourite" | "more" | "stopped", timerId, state, ms,
+//     hidden }
 // DMS hands the whole item to the card as launcherItem.data and back to
 // executeItem(), so kind and timerId are read there.
 
@@ -128,6 +129,40 @@ function _favouriteItem(f) {
     };
 }
 
+// A timer stopped from its card, kept in place for the undo window: Enter
+// (or the card's button) brings it back
+function _stoppedItem(t, at) {
+    return {
+        "id": "timer:" + t.id,
+        "name": Timers.displayLabel(t),
+        "icon": "material:undo",
+        "comment": "",
+        "action": "undo:" + t.id,
+        "expandable": false,
+        "keepOpen": true,
+        "preferSelect": false,
+        "kind": "stopped",
+        "timerId": t.id,
+        "state": "stopped",
+        "at": at || 0
+    };
+}
+
+// `ord` with the timers stopped less than `undoMs` ago put back where they
+// were in `prev`, as { id, state: "stopped" }
+function withStopped(ord, prev, removed, now, undoMs) {
+    const gone = {};
+    for (const r of Array.isArray(removed) ? removed : [])
+        if (r && r.timer && now - r.at < undoMs)
+            gone[r.timer.id] = true;
+    const out = ord.slice();
+    (Array.isArray(prev) ? prev : []).forEach((p, i) => {
+        if (gone[p.id] && !out.some(x => x.id === p.id))
+            out.splice(Math.min(i, out.length), 0, { "id": p.id, "state": "stopped" });
+    });
+    return out;
+}
+
 // The "+N" card: opens the first hidden timer, the others are listed in it
 function _moreItem(hidden, first) {
     return {
@@ -147,19 +182,21 @@ function _moreItem(hidden, first) {
 
 // The cards of the row and the order to keep for next time.
 // `o` = { timers, favourites (Pins.pins() entries), query, trigger,
-//         settings: { section, duringSearch, favourites }, prev, hold }
+//         settings: { section, duringSearch, favourites }, prev, hold,
+//         removed (the daemon's [{ timer, at }]), now }
 // Returns { items, order }; no item means DMS hides the row.
 function build(o) {
     const timers = Array.isArray(o.timers) ? o.timers : [];
     const settings = o.settings || {};
-    const ord = order(timers, o.prev, o.hold);
+    const prevLive = Array.isArray(o.prev) ? o.prev.filter(p => p.state !== "stopped") : o.prev;
+    const ord = withStopped(order(timers, prevLive, o.hold), o.prev, o.removed, o.now || 0, Lifecycle.UNDO_MS);
     const running = {};
     for (const t of timers)
         running[Timers.displayLabel(t).toLowerCase()] = true;
     // A favourite already running is not offered again
     const favs = settings.favourites === false ? [] : (Array.isArray(o.favourites) ? o.favourites : []).filter(f => f && f.name && !running[String(f.name).toLowerCase()]);
     const shown = visible({
-        "timers": timers.length,
+        "timers": ord.length,
         "favourites": favs.length,
         "query": o.query,
         "command": isCommand(o.query, o.trigger),
@@ -169,6 +206,12 @@ function build(o) {
         return { "items": [], "order": ord };
 
     const byId = {};
+    const stoppedAt = {};
+    for (const r of Array.isArray(o.removed) ? o.removed : [])
+        if (r && r.timer) {
+            byId[r.timer.id] = r.timer;
+            stoppedAt[r.timer.id] = r.at;
+        }
     for (const t of timers)
         byId[t.id] = t;
     const queryEmpty = String(o.query || "").trim() === "";
@@ -176,12 +219,23 @@ function build(o) {
     let selectGiven = false;
     for (const p of ord.slice(0, SLOTS)) {
         const t = byId[p.id];
+        if (p.state === "stopped") {
+            items.push(_stoppedItem(t, stoppedAt[p.id]));
+            continue;
+        }
         const prefer = queryEmpty && !selectGiven && t.state === "ringing";
         selectGiven = selectGiven || prefer;
         items.push(_timerItem(t, prefer));
     }
-    if (ord.length > SLOTS)
-        items.push(_moreItem(ord.length - SLOTS, byId[ord[SLOTS].id]));
+    // "+N" counts the live hidden timers only. A hidden timer just stopped
+    // (the one "+N" opened) takes its place as "Stopped · Undo" once no
+    // other is hidden.
+    const hiddenLive = ord.slice(SLOTS).filter(p => p.state !== "stopped");
+    const hiddenStopped = ord.slice(SLOTS).filter(p => p.state === "stopped");
+    if (hiddenLive.length > 0)
+        items.push(_moreItem(hiddenLive.length, byId[hiddenLive[0].id]));
+    else if (hiddenStopped.length > 0)
+        items.push(_stoppedItem(byId[hiddenStopped[0].id], stoppedAt[hiddenStopped[0].id]));
     for (const f of favs.slice(0, favouriteSlots(timers.length)))
         items.push(_favouriteItem(f));
     return { "items": items, "order": ord };

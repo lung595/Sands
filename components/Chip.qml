@@ -62,4 +62,24 @@ Rectangle {
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
+
+    // Keyboard, where a chip is in the Tab chain (activeFocusOnTab, the
+    // launcher card): Enter presses it, a ring shows the focus. Space is left
+    // to the card (it pauses the timer)
+    Accessible.role: Accessible.Button
+    Accessible.name: root.text
+    Accessible.onPressAction: root.clicked()
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            root.clicked();
+            event.accepted = true;
+        }
+    }
+
+    FocusRing {
+        anchors.margins: -2
+        radius: height / 2
+        visible: root.activeFocus
+        border.color: Theme.primary
+    }
 }

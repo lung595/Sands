@@ -79,7 +79,9 @@ Item {
                 favourites: _flag("launcherSectionFavourites")
             },
             prev: _order,
-            hold: holdOrder
+            hold: holdOrder,
+            removed: d.removed || [],
+            now: Date.now()
         });
         _order = r.order;
         return r.items;
@@ -106,6 +108,10 @@ Item {
         function onTimersChanged() {
             favouritesReload.restart();
         }
+        // The "Stopped · Undo" card comes and goes with the undo window
+        function onRemovedChanged() {
+            Section.requestUpdate(PluginService, root.pluginId, root.daemon.liveSections);
+        }
     }
 
     Timer {
@@ -117,9 +123,23 @@ Item {
     onDaemonChanged: if (daemon)
         favouritesReload.restart()
 
+    // The cards open or under the pointer: while there is one, the row
+    // keeps its order
+    property var _holders: []
+    function holdCard(card, on) {
+        const rest = _holders.filter(c => c !== card);
+        _holders = on ? rest.concat([card]) : rest;
+        holdOrder = _holders.length > 0;
+    }
+
     Component {
         id: cardComponent
-        SectionCard {}
+        SectionCard {
+            daemon: root.daemon
+            host: root
+            animateSetting: root._flag("launcherAnimate")
+            lang: root._lang()
+        }
     }
 
     function _usesTrigger() {
@@ -305,6 +325,9 @@ Item {
             break;
         case "toggle":
             d.toggle(parseInt(data));
+            break;
+        case "undo":
+            d.undoRemove(parseInt(data));
             break;
         }
     }

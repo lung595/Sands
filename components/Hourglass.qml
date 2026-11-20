@@ -40,6 +40,8 @@ Item {
     property color frostColor: Qt.rgba(0.8, 0.9, 1, 1)
     property color shadowColor: "black"
     property string style: "classic"
+    // No halo and no shadow: the small hourglasses of the launcher cards
+    property bool bare: false
     readonly property bool gotStyle: style === "glassOfTime"
 
     // Effects clock (s): the panel's frost mist and crystals follow it.
@@ -93,6 +95,7 @@ Item {
     }
 
     Halos {
+        visible: !root.bare
         // Glass of Time: sized on its sphere, within the panel's width
         size: root.gotStyle ? Math.min(root.dim.sphereR * 3.6, root.width * 1.5) : root.dim.hgH * 1.3
         gotStyle: root.gotStyle
@@ -105,6 +108,7 @@ Item {
     }
 
     Shadow {
+        visible: !root.bare
         hgW: root.dim.hgW
         hgH: root.dim.hgH
         floatY: root.floatY

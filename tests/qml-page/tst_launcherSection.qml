@@ -23,6 +23,7 @@ Item {
         property int reads: 0
         property bool liveSections: false
         property var removed: []
+        property var stops: []
         function historyFavourites(done) {
             reads++;
             done(history);
@@ -31,8 +32,22 @@ Item {
             return t.label || "Timer";
         }
         function remove(id) {
-            removed = removed.concat([id]);
+            stops = stops.concat([id]);
             return true;
+        }
+        // What a card reads (tst_launcherCard tests the cards themselves)
+        property real now: 0
+        function find(id) {
+            return timers.find(t => t.id === id) || null;
+        }
+        function remainingOf(t, n) {
+            return t && t.state === "running" ? t.endAt - n : 0;
+        }
+        function progressOf(t) {
+            return 0;
+        }
+        function colorFor(t) {
+            return "#D0BCFF";
         }
     }
 
@@ -87,6 +102,7 @@ Item {
             fakeDaemon.timers = [];
             fakeDaemon.history = [];
             fakeDaemon.removed = [];
+            fakeDaemon.stops = [];
             fakeDaemon.reads = 0;
             fakeDaemon.liveSections = false;
             refreshSpy.clear();
@@ -202,7 +218,7 @@ Item {
             const it = launcher.getSectionItems("")[0];
             compare(it.action, "stop:5");
             launcher.executeItem(it);
-            compare(fakeDaemon.removed, [5]);
+            compare(fakeDaemon.stops, [5]);
         }
 
         function test_noDaemonWarnsOnce() {
