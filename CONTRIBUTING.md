@@ -54,7 +54,12 @@ The daemon is split by role, one file each, in `components/daemon/`. Each QML fi
 
 Logic that can be tested lives in **pure `.js` files** with no QML:
 
-- `TimeParser.js`: natural-language parser (English and French) and formatting.
+- `TimeParser.js`: natural-language parser (English and French) and formatting. `parse()` runs the named stages of `STAGES` in order (typos, context verb, keyword, repeat, clock time, `1:30`, fractions, phrases, number + unit, bare numbers, approximations); each consumes what it read and what is left is the label. Its words come from the language packs `lang/en.js` and `lang/fr.js` (`PACKS`): `grammar(packs)` builds every regex from their union, once. A new language is one more pack of the same shape, added to `PACKS`; `tests/parser.test.js` checks that every pack has the keys of the English one and runs its cases with each pack alone and with the union.
+- `Commands.js`: the launcher commands on running timers (« timer +5 », « timer -2 pâtes », « pause pâtes », « reprendre », « snooze 10 », « renomme pâtes en riz », « rename tea to infusion », « thé = infusion »). Not wired yet; the launcher will call, on each keystroke and before `TP.parse`:
+  - `parseCommand(text, { now })` → `{ kind, delta, name, newName, minutes, lang }` or null. `kind` is `adjust` (`delta` in signed ms), `pause`, `resume`, `snooze` (`minutes`, 0 = the default), `rename` (`newName`, emoji removed); `name` "" means the nearest timer; `lang` is `fr` / `en` when the verb belongs to one language only.
+  - `resolveTarget(intent, daemon.timers, now)` → the timer, or null. No name: the nearest the command applies to (ringing first, then the one ending first, `Lifecycle.sortTimers`); a name: that one (whole name, then its start, then a part; accents, case and emoji ignored).
+  - `previewCommand(intent, target, now, { lang, use24, snoozeMinutes })` → `{ text, icon, at, changed }`: « +5 min à Pâtes (finit à 18:47) » / « +5 min to Pasta (ends 18:47) », a Material Symbols icon name, the new end, and `changed: false` when Enter would do nothing. The 10 s floor and the restart of a ringing timer come from `Lifecycle.adjust` on a copy, so the line shows what Enter will do.
+  - A null intent or target means "not a command": fall back to `TP.parse`, so « pause café 15 min » or « pasta 12 » still start a timer. On Enter, call the daemon with `target.id`: `adjust(id, delta)`, `pause(id)`, `resume(id)`, `rename(id, newName)`, and for a snooze `adjust(id, minutes * 60000)` as `TimerIpc.snooze` does.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
 - `components/daemon/*.js`: the rules of the daemon's parts (see the table above). They import `TimeParser.js` and `Timers.js` where needed.
 - `components/alert/*.js`: the visual alert of a finished timer, `AlertPolicy.js` (which alert and when) and `HaloMotion.js` (the Edge halo steps), both tested and not wired yet.
@@ -80,6 +85,8 @@ Sands/
 ├── TimerLauncher.qml           # launcher provider
 ├── TimerSettings.qml           # settings page
 ├── TimeParser.js               # natural-language parser + formatting (tested)
+├── lang/                       # language packs of the parser and commands: en.js, fr.js
+├── Commands.js                 # launcher commands on running timers: intent, target, preview (tested)
 ├── Timers.js                   # pure timer logic: time left, recents ranking… (tested)
 ├── Preview.js                  # launcher preview lines: « Pasta · 12 min · ends 12:42 » (tested)
 ├── Guide.js                    # "why it can't be done" notes + guide anchors (tested)
@@ -121,7 +128,7 @@ Sands/
 ├── scripts/lint.sh             # qmllint against scripts/lint-baseline.txt, rule levels in .qmllint.ini (tested by tests/lint.test.sh)
 ├── scripts/preview/            # offscreen scenes, mocks and reference pictures (never loaded by the plugin)
 ├── tests/
-│   ├── parser.test.js
+│   ├── parser.test.js, commands.test.js
 │   ├── motion.test.js
 │   ├── timers.test.js
 │   ├── lifecycle.test.js, sound.test.js, daemon-text.test.js, daemon-surface.test.js
@@ -154,7 +161,7 @@ Settings keys and reveal (real key events, needs `qmltestrunner-qt6`): `tests/qm
 
 Settings overlap (offscreen, needs `qml-qt6`): `cd scripts/preview && TZ=UTC QT_FORCE_STDERR_LOGGING=1 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports settings-overlap.qml` loads the settings page at 228, 360 and 404 px and exits 1 on any overlap, elided text or text off the page. `scripts/preview/before-after.sh <commit> <out.html>` builds the before/after page (dark and light, two widths, four made-up stores; stores live in `scripts/preview/mock/Presets.js`).
 
-Every new syntax goes with a test in `tests/parser.test.js`.
+Every new syntax goes with a test in `tests/parser.test.js` (a launcher command: `tests/commands.test.js`); a new word goes in the pack of its language, with a case in that pack's list of `PACK_CASES`.
 
 ### Lint
 

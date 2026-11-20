@@ -1,4 +1,7 @@
 .pragma library
+.import "lang/en.js" as En
+.import "lang/fr.js" as Fr
+.import "Timers.js" as Timers
 
 // Free-form input parser (French / English) for starting a timer.
 //
@@ -13,6 +16,12 @@
 //
 // A duration can be repeated: « 4x 1h », « 4*1h », « 1h x4 » → count: 4
 // (four timers of one hour).
+//
+// The words come from the language packs (lang/*.js): PACKS lists them and
+// grammar() builds every regex from their union, once. parse() runs the
+// named stages of STAGES in order over one reading (see newReading); each
+// stage reads what it knows and consumes it, so the next ones never see it
+// again. What is left is the label.
 
 var MAX_MS = 100 * 3600 * 1000;
 var MAX_COUNT = 20;
@@ -21,86 +30,148 @@ var MAX_COUNT = 20;
 var MAX_INPUT = 200;
 // A label longer than this would not fit anywhere it is shown
 var MAX_LABEL = 60;
-
-var KEYWORDS = "timer|minuteur|minuterie|countdown|compte a rebours|chrono|alarme|alarm|rappel|reminder|reveil";
-
-var WORD_VALUES = {
-    "zero": 0, "un": 1, "une": 1, "a": 1, "an": 1, "one": 1,
-    "deux": 2, "two": 2, "trois": 3, "three": 3, "quatre": 4, "four": 4,
-    "cinq": 5, "five": 5, "six": 6, "sept": 7, "seven": 7, "huit": 8, "eight": 8,
-    "neuf": 9, "nine": 9, "dix": 10, "ten": 10, "onze": 11, "eleven": 11,
-    "douze": 12, "twelve": 12, "treize": 13, "thirteen": 13, "quatorze": 14, "fourteen": 14,
-    "quinze": 15, "fifteen": 15, "seize": 16, "sixteen": 16,
-    "seventeen": 17, "eighteen": 18, "nineteen": 19,
-    "vingt": 20, "twenty": 20, "trente": 30, "thirty": 30, "quarante": 40, "forty": 40,
-    "cinquante": 50, "fifty": 50, "soixante": 60, "sixty": 60
-};
-
-var TENS = "vingt|trente|quarante|cinquante|soixante|twenty|thirty|forty|fifty|sixty";
-var UNITS_W = "une|un|deux|trois|quatre|cinq|six|sept|huit|neuf|one|two|three|four|five|seven|eight|nine";
-var SINGLE = "zero|onze|douze|treize|quatorze|quinze|seize|seventeen|eighteen|nineteen|eleven|twelve|thirteen|fourteen|fifteen|sixteen|dix|ten|" + UNITS_W + "|six|an|a";
-var WORDNUM = "(?:(?:" + TENS + ")(?:[- ](?:et[- ])?(?:" + UNITS_W + "|six))?|dix[- ](?:sept|huit|neuf)|" + SINGLE + ")";
-var NUM = "(\\d+(?:[.,]\\d+)?|" + WORDNUM + ")";
-
-var U_HOUR = "heures?|hours?|hrs?|h";
-var U_MIN = "minutes?|mins?|mn|m";
-var U_SEC = "secondes?|seconds?|secs?|s";
-var UNIT = "(" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")";
-var HALF = "(?:\\s*(?:et|and)\\s*(demie?|quart|a half|half|a quarter|quarter))?";
-
-// Verbs that only introduce the request: « rappelle-moi de », « remind me to »,
-// « set a timer for », « mets un minuteur de ». They are dropped, never shown
-// as the label. The optional connector goes with them.
-var CONTEXT = new RegExp("^\\s*(?:" +
-    "rappelle[sz]?[- ]moi|remind me|reveille[sz]?[- ]moi|wake(?:\\s+me)?(?:\\s+up)?|" +
-    "(?:set|start|create|add|put)\\s+(?:me\\s+)?(?:an?\\s+|the\\s+|my\\s+)?(?:timer|alarm|reminder|countdown)|" +
-    "(?:mets?|lance|lancer|demarre|regle|programme|cree)(?:-moi)?\\s+(?:un|une|le|la)?\\s*(?:timer|minuteur|minuterie|alarme|rappel|compte a rebours|chrono|reveil)" +
-    ")(?![a-z])(?:\\s+(?:for|to|of|about|that|de|pour|que)(?![a-z])|\\s+d'|\\s+qu')?");
-// Left over at the start of the label when the time came first: « remind me in 20 minutes to … »
-var CONNECTOR = /^(?:(?:to|that|about|que)\s+|qu'\s*)/i;
-
 // The longest bare number read as minutes (« pasta 12 »): above this it is
 // more likely a name or a version than a duration.
 var MAX_BARE_MINUTES = 180;
 
-// Unit words that a typo can be matched against (see fixUnitTypos), with the
-// short unit they stand for.
-var TYPO_UNITS = [
-    ["minute", "min"], ["minutes", "min"], ["heure", "h"], ["heures", "h"],
-    ["hour", "h"], ["hours", "h"], ["seconde", "s"], ["secondes", "s"],
-    ["second", "s"], ["seconds", "s"]
-];
-// Three-letter units are too close to ordinary words (« men », « sex ») to
-// allow anything but two swapped letters: « mni », « esc ».
-var TYPO_ABBREVIATIONS = [["min", "min"], ["sec", "s"]];
+var PACKS = [En, Fr];
 
-// Day words that fix the date or the half of the day of a clock time:
-// « demain 8h », « ce soir à 9h ». shift = days added to the date, pm = hours
-// 1–11 are read as afternoon or evening, night = « 12 » means midnight.
-var DAY_WORDS = {
-    "demain": { shift: 1 }, "tomorrow": { shift: 1 },
-    "ce soir": { shift: 0, pm: true, night: true }, "tonight": { shift: 0, pm: true, night: true },
-    "this evening": { shift: 0, pm: true, night: true },
-    "cet apres-midi": { shift: 0, pm: true }, "this afternoon": { shift: 0, pm: true },
-    "ce matin": { shift: 0 }, "this morning": { shift: 0 },
-    "aujourd'hui": { shift: 0 }, "today": { shift: 0 }
-};
-// Words that make an hour explicit: « 7pm », « 7 du soir », « 7 in the morning ».
-var PERIOD = "am|pm|du\\s+(?:matin|soir)|de\\s+l'apres[- ]?midi|in\\s+the\\s+(?:morning|evening|afternoon)";
+// ---------------------------------------------------------------------------
+// Grammar: the regexes built from the packs
+// ---------------------------------------------------------------------------
+
+// Every entry of `key` in the packs, each once
+function gather(packs, key) {
+    var out = [];
+    for (var i = 0; i < packs.length; i++) {
+        var list = packs[i][key] || [];
+        for (var j = 0; j < list.length; j++) {
+            if (out.indexOf(list[j]) < 0)
+                out.push(list[j]);
+        }
+    }
+    return out;
+}
+
+// The objects `key` of the packs merged into one
+function merge(packs, key) {
+    var out = {};
+    for (var i = 0; i < packs.length; i++) {
+        var obj = packs[i][key] || {};
+        for (var k in obj)
+            out[k] = obj[k];
+    }
+    return out;
+}
+
+// A regex alternation of the words, longest first so a short word never
+// hides a longer one that starts the same way
+function alt(words) {
+    return words.slice().sort(function (a, b) {
+        return b.length - a.length;
+    }).join("|");
+}
+
+// The parser's tables and regexes for a list of packs
+function grammar(packs) {
+    var g = { packs: packs };
+    g.numbers = merge(packs, "NUMBERS");
+    var articles = gather(packs, "ARTICLES");
+    var tens = [], units = [], single = [], ones = ["1"];
+    for (var w in g.numbers) {
+        var v = g.numbers[w];
+        if (v >= 20 && v % 10 === 0) {
+            tens.push(w);
+        } else {
+            single.push(w);
+            if (v >= 1 && v <= 9 && articles.indexOf(w) < 0)
+                units.push(w);
+        }
+        if (v === 1)
+            ones.push(w);
+    }
+    g.numberLinks = gather(packs, "NUMBER_LINKS");
+    var links = g.numberLinks.length ? "(?:(?:" + alt(g.numberLinks) + ")[- ])?" : "";
+    var extra = gather(packs, "NUMBER_EXTRA");
+    var wordnum = "(?:(?:" + alt(tens) + ")(?:[- ]" + links + "(?:" + alt(units) + "))?|"
+        + (extra.length ? alt(extra) + "|" : "") + alt(single) + ")";
+    var NUM = "(\\d+(?:[.,]\\d+)?|" + wordnum + ")";
+
+    var hours = g.uHour = alt(gather(packs, "HOURS"));
+    var minutes = g.uMin = alt(gather(packs, "MINUTES"));
+    var seconds = g.uSec = alt(gather(packs, "SECONDS"));
+    var anyUnit = hours + "|" + minutes + "|" + seconds;
+    var UNIT = "(" + anyUnit + ")";
+    var quarter = gather(packs, "QUARTER");
+    var HALF = "(?:\\s*(?:" + alt(gather(packs, "AND")) + ")\\s*(" + alt(gather(packs, "HALF").concat(quarter)) + "))?";
+    g.quarterWord = new RegExp("^(?:" + alt(quarter) + ")$");
+
+    var elisions = function (list, after) {
+        return list.map(function (e) {
+            return "|" + after(e);
+        }).join("");
+    };
+    g.context = new RegExp("^\\s*(?:" + gather(packs, "CONTEXT").join("|") + ")(?![a-z])(?:\\s+(?:"
+        + alt(gather(packs, "CONTEXT_LINKS")) + ")(?![a-z])"
+        + elisions(gather(packs, "CONTEXT_ELISIONS"), function (e) { return "\\s+" + e; }) + ")?");
+    g.connector = new RegExp("^(?:(?:" + alt(gather(packs, "LABEL_LINKS")) + ")\\s+"
+        + elisions(gather(packs, "LABEL_ELISIONS"), function (e) { return e + "\\s*"; }) + ")", "i");
+    g.keyword = new RegExp("^\\s*(?:" + alt(gather(packs, "KEYWORDS")) + ")(?![a-z])");
+
+    // Labels: small words and punctuation trimmed from both ends
+    var edge = elisions(gather(packs, "LABEL_ELISIONS_EDGE"), function (e) { return e; });
+    g.labelHead = new RegExp("^(?:(?:" + alt(gather(packs, "LABEL_HEAD")) + ")(?=\\s|$)" + edge + "|:|-|–|—|,|\\.|!|\\?|…|;)\\s*", "i");
+    g.labelTail = new RegExp("\\s*(?:(?:^|\\s)(?:" + alt(gather(packs, "LABEL_TAIL")) + ")" + edge + "|:|-|–|—|,|\\.|!|\\?|…|;)$", "i");
+
+    // Day words fix the date or the half of the day of a clock time
+    g.dayWords = merge(packs, "DAY_WORDS");
+    g.day = new RegExp("(?:^|[^a-z])(" + alt(Object.keys(g.dayWords)) + ")(?![a-z])");
+    var pm = gather(packs, "PERIOD_PM");
+    var period = g.period = alt(gather(packs, "PERIOD_AM").concat(pm));
+    g.pm = new RegExp("^(?:" + alt(pm) + ")$");
+    // 1 preposition, 2 noon, 3 midnight, 4 hour, 5 « h » word, 6 minutes after h,
+    // 7 minutes after a colon, 8 period
+    g.clock = new RegExp("(?:^|[\\s\\u0000])(?:(" + alt(gather(packs, "CLOCK_PREPOSITIONS")) + ")\\s*)?(?:("
+        + alt(gather(packs, "NOON")) + ")|(" + alt(gather(packs, "MIDNIGHT")) + ")|"
+        + "(\\d{1,2})(?:\\s*(" + alt(gather(packs, "CLOCK_HOURS")) + ")\\s*(\\d{2})?|:(\\d{2}))?(?:\\s*(" + period + "))?)(?![\\w:])", "g");
+
+    // A bare hour followed by a unit is a duration: « pasta a 12 min »
+    g.unitAhead = new RegExp("^\\s*(?:" + anyUnit + ")(?![a-z])");
+    g.unitWord = new RegExp("^(?:" + anyUnit + ")$");
+    g.hourWord = new RegExp("^(?:" + hours + ")$");
+    g.minuteWord = new RegExp("^(?:" + minutes + ")$");
+    g.afterNumber = new RegExp("(^|[^a-z0-9.,'])" + NUM + "\\s*([a-z]{3,})(?![a-z])", "g");
+    g.typoUnits = gather(packs, "TYPO_UNITS");
+    g.typoAbbreviations = gather(packs, "TYPO_ABBREVIATIONS");
+    g.typoStopwords = gather(packs, "TYPO_STOPWORDS");
+
+    // Durations
+    g.fraction = new RegExp("(?:^|[^\\d/.,])(\\d{1,2})\\s*/\\s*(\\d{1,2})\\s*(?:" + alt(gather(packs, "FRACTION_HOUR")) + ")(?![a-z])");
+    g.halfHour = new RegExp("(?:^|[^a-z])((?:(?:" + alt(ones) + ")\\s+)?(?:" + alt(gather(packs, "HALF_HOUR")) + "))(?![a-z])");
+    g.quarterHour = new RegExp("(?:^|[^a-z0-9])((?:" + NUM + "\\s+)?(?:" + alt(gather(packs, "QUARTER_HOUR")) + "))(?![a-z])");
+    g.component = new RegExp("(?:^|[^a-z0-9.,'])" + NUM + "\\s*" + UNIT + "(?![a-z])" + HALF, "g");
+    g.chain = new RegExp("^\\s*" + NUM + "\\s*" + UNIT + "(?![a-z])" + HALF);
+    // Implicit remainder, unless it carries its own unit (« 1h 30min » is read separately).
+    g.remainder = new RegExp("^\\s*(\\d{1,2})(?![\\d.,:]|\\s*" + UNIT + "(?![a-z]))");
+
+    var approx = alt(gather(packs, "APPROX"));
+    g.approxAfter = new RegExp("\\u0000\\s*(" + approx + ")(?![a-z])");
+    g.approxBefore = new RegExp("(?:^|[^a-z])(" + approx + ")\\s*\\u0000");
+    return g;
+}
 
 // Built once: parse runs on every keystroke.
-var RE_DAY = new RegExp("(?:^|[^a-z])(" + Object.keys(DAY_WORDS).join("|") + ")(?![a-z])");
-// 1 preposition, 2 midi, 3 minuit, 4 hour, 5 « h » word, 6 minutes after h,
-// 7 minutes after a colon, 8 period
-var RE_CLOCK = new RegExp("(?:^|[\\s\\u0000])(?:(a|at|vers|until|jusqu'a|@)\\s*)?(?:(midi|noon)|(minuit|midnight)|" +
-    "(\\d{1,2})(?:\\s*(heures?|h)\\s*(\\d{2})?|:(\\d{2}))?(?:\\s*(" + PERIOD + "))?)(?![\\w:])", "g");
-// A bare hour followed by a unit is a duration: « pasta a 12 min »
-var RE_UNIT_AHEAD = new RegExp("^\\s*(?:" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")(?![a-z])");
-var RE_UNIT_WORD = new RegExp("^(?:" + U_HOUR + "|" + U_MIN + "|" + U_SEC + ")$");
-var RE_AFTER_NUMBER = new RegExp("(^|[^a-z0-9.,'])" + NUM + "\\s*([a-z]{3,})(?![a-z])", "g");
+var GRAMMAR = grammar(PACKS);
+// Every pack's units, periods (« pm », « du soir ») and day words, for Plans.js
+var U_HOUR = GRAMMAR.uHour;
+var U_MIN = GRAMMAR.uMin;
+var U_SEC = GRAMMAR.uSec;
+var PERIOD = GRAMMAR.period;
+var DAY_WORDS = GRAMMAR.dayWords;
 
-var RE_HOUR = new RegExp("^(?:" + U_HOUR + ")$");
-var RE_MIN = new RegExp("^(?:" + U_MIN + ")$");
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 // Lowercase, no accents, straight apostrophes. Each character maps to
 // exactly one character, so positions stay aligned with the original
@@ -119,22 +190,21 @@ function normalize(text) {
     return out;
 }
 
-function wordToNumber(w) {
+function wordToNumber(w, g) {
+    g = g || GRAMMAR;
     w = w.trim();
     if (/^\d/.test(w))
         return parseFloat(w.replace(",", "."));
-    if (WORD_VALUES[w] !== undefined)
-        return WORD_VALUES[w];
+    if (g.numbers[w] !== undefined)
+        return g.numbers[w];
     var parts = w.split(/[- ]+/).filter(function (p) {
-        return p !== "et";
+        return g.numberLinks.indexOf(p) < 0;
     });
-    if (parts.length === 2 && parts[0] === "dix")
-        return 10 + (WORD_VALUES[parts[1]] || NaN);
     var total = 0;
     for (var i = 0; i < parts.length; i++) {
-        if (WORD_VALUES[parts[i]] === undefined)
+        if (g.numbers[parts[i]] === undefined)
             return NaN;
-        total += WORD_VALUES[parts[i]];
+        total += g.numbers[parts[i]];
     }
     return total;
 }
@@ -172,65 +242,41 @@ function isMissingLetter(shorter, longer) {
     return shorter.substring(i) === longer.substring(i + 1);
 }
 
-// Real words one letter off a unit: they stay words (« 2 hors » is
-// « 2 outside », not two hours).
-var TYPO_STOPWORDS = ["hors"];
-
 // The short unit a word one letter off a unit stands for, or "". Short words
 // are matched strictly: « four » and « pour » are one letter from « hour ».
 // A dropped or substituted letter must not be the first one: « jours »,
 // « cours » and « tours » are one letter from « hours » but are French words
-// for days, classes and laps.
-function typoUnit(word) {
+// for days, classes and laps. Three-letter units (« min », « sec ») are too
+// close to ordinary words (« men », « sex ») to allow anything but two
+// swapped letters: « mni », « esc ».
+function typoUnit(word, g) {
+    g = g || GRAMMAR;
     var i, w;
-    if (TYPO_STOPWORDS.indexOf(word) >= 0)
+    if (g.typoStopwords.indexOf(word) >= 0)
         return "";
-    for (i = 0; i < TYPO_ABBREVIATIONS.length; i++) {
-        if (isSwap(word, TYPO_ABBREVIATIONS[i][0]))
-            return TYPO_ABBREVIATIONS[i][1];
+    for (i = 0; i < g.typoAbbreviations.length; i++) {
+        if (isSwap(word, g.typoAbbreviations[i][0]))
+            return g.typoAbbreviations[i][1];
     }
-    for (i = 0; i < TYPO_UNITS.length; i++) {
-        w = TYPO_UNITS[i][0];
+    for (i = 0; i < g.typoUnits.length; i++) {
+        w = g.typoUnits[i][0];
         if (isSwap(word, w))
-            return TYPO_UNITS[i][1];
+            return g.typoUnits[i][1];
         if (word.charAt(0) !== w.charAt(0))
             continue;
         if ((word.length >= 5 && isSubstitution(word, w))
                 || (word.length >= 4 && isMissingLetter(word, w))
                 || (word.length >= 6 && isMissingLetter(w, word)))
-            return TYPO_UNITS[i][1];
+            return g.typoUnits[i][1];
     }
     return "";
 }
 
-// « 20 mni », « 1 heur »: a misspelled unit right after a number is replaced
-// by the unit itself, in the normalized text and in the original alike so the
-// two stay aligned (the replaced word never reaches the label).
-function fixUnitTypos(original, work) {
-    var re = RE_AFTER_NUMBER;
-    var fixes = [];
-    var m;
-    re.lastIndex = 0;
-    while ((m = re.exec(work))) {
-        var word = m[m.length - 1];
-        if (RE_UNIT_WORD.test(word))
-            continue;
-        var unit = typoUnit(word);
-        if (unit)
-            fixes.push({ start: m.index + m[0].length - word.length, end: m.index + m[0].length, unit: unit });
-    }
-    for (var i = fixes.length - 1; i >= 0; i--) {
-        var f = fixes[i];
-        original = original.substring(0, f.start) + f.unit + original.substring(f.end);
-        work = work.substring(0, f.start) + f.unit + work.substring(f.end);
-    }
-    return { original: original, work: work };
-}
-
-function unitMs(u) {
-    if (RE_HOUR.test(u))
+function unitMs(u, g) {
+    g = g || GRAMMAR;
+    if (g.hourWord.test(u))
         return 3600000;
-    if (RE_MIN.test(u))
+    if (g.minuteWord.test(u))
         return 60000;
     return 1000;
 }
@@ -249,17 +295,18 @@ function consume(work, start, end) {
     return work.substring(0, start) + new Array(end - start + 1).join("\u0000") + work.substring(end);
 }
 
-function cleanLabel(original, work) {
+// What is left of the original text once the consumed parts are gone: no
+// emoji, no small words or punctuation at either end.
+function cleanLabel(original, work, g) {
+    g = g || GRAMMAR;
     var kept = "";
     for (var i = 0; i < original.length; i++)
         kept += work.charAt(i) === "\u0000" ? " " : original.charAt(i);
-    kept = kept.replace(/\s+/g, " ").trim();
-    var head = /^(?:(?:pour|for|de|dans|in|et|and|a|à|at|le|la|les|the)(?=\s|$)|d'|:|-|–|—|,|\.)\s*/i;
-    var tail = /\s*(?:(?:^|\s)(?:pour|for|de|dans|in|et|and|a|à|at)|d'|:|-|–|—|,)$/i;
+    kept = Timers.stripEmoji(kept, 0);
     var prev;
     do {
         prev = kept;
-        kept = kept.replace(head, "").replace(tail, "").trim();
+        kept = kept.replace(g.labelHead, "").replace(g.labelTail, "").trim();
     } while (kept !== prev);
     return kept;
 }
@@ -269,10 +316,10 @@ function tooLong(input) {
     return String(input || "").length > MAX_INPUT;
 }
 
-// The hour and minutes one RE_CLOCK match stands for, or null when it is not a
+// The hour and minutes one clock match stands for, or null when it is not a
 // clock time. A bare hour needs a preposition (« at 7 »): without one « 7 »
 // could be anything (« room 12 »), and « a 12 min » is a duration.
-function clockOfMatch(m, rest, dayInfo) {
+function clockOfMatch(m, rest, dayInfo, g) {
     if (m[2])
         return { hh: 12, mm: 0 };
     if (m[3])
@@ -282,14 +329,14 @@ function clockOfMatch(m, rest, dayInfo) {
     var explicit = m[5] || m[7] !== undefined || m[8];
     if (!m[1] && !(explicit && (m[8] || dayInfo)))
         return null;
-    if (!explicit && RE_UNIT_AHEAD.test(rest))
+    if (!explicit && g.unitAhead.test(rest))
         return null;
     if (m[8]) {
         // « at 13pm » keeps its 24 h reading; without a preposition it is no hour
         if ((hh < 1 || hh > 12) && !m[1])
             return null;
         if (hh >= 1 && hh <= 12)
-            hh = (hh % 12) + (/soir|evening|afternoon|apres|pm/.test(m[8]) ? 12 : 0);
+            hh = (hh % 12) + (g.pm.test(m[8].replace(/\s+/g, " ")) ? 12 : 0);
     } else if (dayInfo && dayInfo.pm && hh >= 1 && hh <= 11) {
         hh += 12;
     } else if (dayInfo && dayInfo.night && hh === 12) {
@@ -303,13 +350,14 @@ function clockOfMatch(m, rest, dayInfo) {
 // is tried, because a number earlier in the text (« room 12 at 7pm ») must not
 // hide the real time. A bare hour is the next occurrence of that hour within
 // 24 h; « tomorrow » is the calendar day after today.
-function readClockTime(work, now) {
-    var day = RE_DAY.exec(work);
-    var dayInfo = day ? DAY_WORDS[day[1]] : null;
+function readClockTime(work, now, g) {
+    g = g || GRAMMAR;
+    var day = g.day.exec(work);
+    var dayInfo = day ? g.dayWords[day[1]] : null;
     var m, clock = null;
-    RE_CLOCK.lastIndex = 0;
-    while ((m = RE_CLOCK.exec(work)) !== null) {
-        clock = clockOfMatch(m, work.substring(m.index + m[0].length), dayInfo);
+    g.clock.lastIndex = 0;
+    while ((m = g.clock.exec(work)) !== null) {
+        clock = clockOfMatch(m, work.substring(m.index + m[0].length), dayInfo, g);
         if (clock)
             break;
     }
@@ -343,215 +391,305 @@ function noResult(hint) {
 
 // « Unknown word », when a timer was clearly asked for (keyword or context
 // verb) but nothing could be read from the text: the first word left over.
-function unknownWordHint(original, work) {
-    var word = /[^\s\u0000]+/.exec(cleanLabel(original, work));
+function unknownWordHint(original, work, g) {
+    var word = /[^\s\u0000]+/.exec(cleanLabel(original, work, g));
     return word ? "Unknown word « " + word[0].substring(0, 20) + " »" : "";
 }
 
-function parse(input, now, options) {
-    if (!input || tooLong(input))
-        return noResult("");
-    now = now || Date.now();
-    options = options || {};
+// ---------------------------------------------------------------------------
+// Stages of parse(), in order. Each one reads the reading `r` (see
+// newReading), consumes what it understood from r.work (so later stages and
+// the label never see it) and records it.
+// ---------------------------------------------------------------------------
+
+// One parse in progress. `original` keeps the text as typed (the label comes
+// from it), `work` is its normalized twin, consumed as the stages go.
+function newReading(input, now, options, g) {
     var original = String(input);
-    var work = normalize(original);
-    var hasKeyword = !!options.keyword;
+    return {
+        g: g, now: now,
+        original: original, work: normalize(original),
+        keyword: !!options.keyword, context: false,
+        count: 1, capped: false,
+        target: null, total: 0, found: false, clockLike: null
+    };
+}
+
+// « 20 mni », « 1 heur »: a misspelled unit right after a number is replaced
+// by the unit itself, in the normalized text and in the original alike so the
+// two stay aligned (the replaced word never reaches the label).
+function fixUnitTypos(r) {
+    var re = r.g.afterNumber;
+    var fixes = [];
     var m;
+    re.lastIndex = 0;
+    while ((m = re.exec(r.work))) {
+        var word = m[m.length - 1];
+        if (r.g.unitWord.test(word))
+            continue;
+        var unit = typoUnit(word, r.g);
+        if (unit)
+            fixes.push({ start: m.index + m[0].length - word.length, end: m.index + m[0].length, unit: unit });
+    }
+    for (var i = fixes.length - 1; i >= 0; i--) {
+        var f = fixes[i];
+        r.original = r.original.substring(0, f.start) + f.unit + r.original.substring(f.end);
+        r.work = r.work.substring(0, f.start) + f.unit + r.work.substring(f.end);
+    }
+}
 
-    var fixed = fixUnitTypos(original, work);
-    original = fixed.original;
-    work = fixed.work;
-
-    var hasContext = false;
-    m = CONTEXT.exec(work);
+// Verbs that only introduce the request: « rappelle-moi de », « remind me to »,
+// « set a timer for », « mets un minuteur de ». Dropped, never in the label.
+function readContext(r) {
+    var m = r.g.context.exec(r.work);
     if (m) {
-        hasContext = true;
-        hasKeyword = true;
-        work = consume(work, 0, m[0].length);
+        r.context = true;
+        r.keyword = true;
+        r.work = consume(r.work, 0, m[0].length);
     }
+}
 
-    var kw = new RegExp("^\\s*(?:" + KEYWORDS + ")(?![a-z])").exec(work);
-    if (kw) {
-        hasKeyword = true;
-        work = consume(work, 0, kw[0].length);
-    }
-
-    var total = 0;
-    var found = false;
-    var target = null;
-    var clockLike = null;
-
-    // 0. Repeat: « 4x 1h », « 4 * 1h », « 4×1h » at the start, or « 1h x4 » at the end.
-    var count = 1;
-    var capped = false;
-    m = /^[\s\u0000]*(\d{1,2})\s*[x×*](?=\s|\d|$)/.exec(work) || /(?:^|\s)[x×*]\s*(\d{1,2})\s*$/.exec(work);
+// « timer », « minuteur »… at the start
+function readKeyword(r) {
+    var m = r.g.keyword.exec(r.work);
     if (m) {
-        var n = parseInt(m[1]);
-        if (n >= 1) {
-            count = Math.min(n, MAX_COUNT);
-            capped = n > MAX_COUNT;
-            work = consume(work, m.index, m.index + m[0].length);
-        }
+        r.keyword = true;
+        r.work = consume(r.work, 0, m[0].length);
     }
+}
 
-    // 1. Clock time: « à 18h », « at 6pm », « vers midi », « demain 8h », « ce soir à 9h ».
-    var clock = readClockTime(work, now);
-    if (clock) {
-        target = clock.at;
-        for (var c = 0; c < clock.spans.length; c++)
-            work = consume(work, clock.spans[c][0], clock.spans[c][1]);
+// Repeat: « 4x 1h », « 4 * 1h », « 4×1h » at the start, or « 1h x4 » at the end.
+function readRepeat(r) {
+    var m = /^[\s\u0000]*(\d{1,2})\s*[x×*](?=\s|\d|$)/.exec(r.work) || /(?:^|\s)[x×*]\s*(\d{1,2})\s*$/.exec(r.work);
+    if (!m)
+        return;
+    var n = parseInt(m[1]);
+    if (n >= 1) {
+        r.count = Math.min(n, MAX_COUNT);
+        r.capped = n > MAX_COUNT;
+        r.work = consume(r.work, m.index, m.index + m[0].length);
     }
+}
 
-    if (!target) {
-        // 2. Clock format: « 1:30 » (min:s) or « 1:02:03 » (h:min:s).
-        m = /(?:^|[^\d:])(\d{1,3}):(\d{2})(?::(\d{2}))?(?![\d:])/.exec(work);
-        if (m) {
-            var a = parseInt(m[1]), b = parseInt(m[2]);
-            if (m[3] !== undefined) {
-                total += a * 3600000 + b * 60000 + parseInt(m[3]) * 1000;
-            } else {
-                total += a * 60000 + b * 1000;
-                if (a <= 23 && b <= 59)
-                    clockLike = { h: a, m: b, colon: true };
+// Clock time: « à 18h », « at 6pm », « vers midi », « demain 8h », « ce soir à 9h ».
+function readClock(r) {
+    var clock = readClockTime(r.work, r.now, r.g);
+    if (!clock)
+        return;
+    r.target = clock.at;
+    for (var c = 0; c < clock.spans.length; c++)
+        r.work = consume(r.work, clock.spans[c][0], clock.spans[c][1]);
+}
+
+// Clock format: « 1:30 » (min:s) or « 1:02:03 » (h:min:s).
+function readColon(r) {
+    if (r.target)
+        return;
+    var m = /(?:^|[^\d:])(\d{1,3}):(\d{2})(?::(\d{2}))?(?![\d:])/.exec(r.work);
+    if (!m)
+        return;
+    var a = parseInt(m[1]), b = parseInt(m[2]);
+    if (m[3] !== undefined) {
+        r.total += a * 3600000 + b * 60000 + parseInt(m[3]) * 1000;
+    } else {
+        r.total += a * 60000 + b * 1000;
+        if (a <= 23 && b <= 59)
+            r.clockLike = { h: a, m: b, colon: true };
+    }
+    r.found = true;
+    r.work = consume(r.work, m.index + m[0].indexOf(m[1]), m.index + m[0].length);
+}
+
+// Fractions of an hour: « 1/4 d'heure », « 3/4 of an hour », « 1/2 h ».
+function readFraction(r) {
+    if (r.target)
+        return;
+    var m;
+    while ((m = r.g.fraction.exec(r.work))) {
+        var a = parseInt(m[1]), b = parseInt(m[2]);
+        var start = m.index + m[0].indexOf(m[1]);
+        r.work = consume(r.work, start, m.index + m[0].length);
+        if (a < 1 || b < 1)
+            continue;
+        r.total += a / b * 3600000;
+        r.found = true;
+    }
+}
+
+// Phrases: « demi-heure », « trois quarts d'heure », « half an hour ».
+function readPhrases(r) {
+    if (r.target)
+        return;
+    var m, start;
+    while ((m = r.g.halfHour.exec(r.work))) {
+        r.total += 1800000;
+        r.found = true;
+        start = m.index + m[0].indexOf(m[1]);
+        r.work = consume(r.work, start, start + m[1].length);
+    }
+    while ((m = r.g.quarterHour.exec(r.work))) {
+        var q = m[2] ? wordToNumber(m[2], r.g) : 1;
+        if (isNaN(q))
+            break;
+        r.total += q * 900000;
+        r.found = true;
+        start = m.index + m[0].indexOf(m[1]);
+        r.work = consume(r.work, start, start + m[1].length);
+    }
+}
+
+// "number + unit": « 1h », « 30 min », « 2 heures et demie », with an
+// implicit remainder: « 1h30 », « 2 heures 5 », « 5m30 », glued: « 1h30m20s ».
+function readComponents(r) {
+    if (r.target)
+        return;
+    var g = r.g;
+    var work = r.work;
+    var comps = [];
+    var readComp = function (mm, start, end) {
+        var value = wordToNumber(mm[1], g);
+        if (isNaN(value))
+            return -1;
+        var u = unitMs(mm[2], g);
+        var extra = mm[3] ? (g.quarterWord.test(mm[3]) ? 0.25 : 0.5) : 0;
+        var ms = (value + extra) * u;
+        var after = work.substring(end);
+        // Implicit remainder: « 1h30 » → 30 min, « 5m30 » → 30 s.
+        if (u > 1000 && !mm[3] && !g.chain.test(after)) {
+            var rest = g.remainder.exec(after);
+            if (rest) {
+                var rv = parseInt(rest[1]);
+                ms += rv * (u / 60);
+                if (u === 3600000 && value % 1 === 0 && value <= 23 && rest[1].length === 2 && rv <= 59)
+                    r.clockLike = { h: value, m: rv, colon: false };
+                end += rest[0].length;
+            } else if (mm[2] === "h" && value % 1 === 0 && value <= 23) {
+                // « 8h » alone is also a time of day
+                r.clockLike = { h: value, m: 0, colon: false, bare: true };
             }
-            found = true;
-            var cs = m.index + m[0].indexOf(m[1]);
-            work = consume(work, cs, m.index + m[0].length);
         }
-
-        // 3. Phrases: « demi-heure », « trois quarts d'heure », « half an hour ».
-        var halfRe = /(?:^|[^a-z])((?:(?:une|a|an|1)\s+)?(?:demi[- ]?heure|half[- ](?:an[- ])?hour))(?![a-z])/;
-        while ((m = halfRe.exec(work))) {
-            total += 1800000;
-            found = true;
-            var hs = m.index + m[0].indexOf(m[1]);
-            work = consume(work, hs, hs + m[1].length);
-        }
-        var quarterRe = new RegExp("(?:^|[^a-z0-9])((?:" + NUM + "\\s+)?(?:quarts?\\s+d'?\\s*heure|quarters?(?:\\s+of)?(?:\\s+an)?[- ]hour))(?![a-z])");
-        while ((m = quarterRe.exec(work))) {
-            var q = m[2] ? wordToNumber(m[2]) : 1;
-            if (isNaN(q))
+        comps.push({ start: start, end: end, ms: ms });
+        return end;
+    };
+    var m;
+    g.component.lastIndex = 0;
+    while ((m = g.component.exec(work))) {
+        var end = readComp(m, m.index + m[0].indexOf(m[1]), m.index + m[0].length);
+        if (end < 0)
+            continue;
+        var chained;
+        while ((chained = g.chain.exec(work.substring(end)))) {
+            var cEnd = readComp(chained, end, end + chained[0].length);
+            if (cEnd < 0)
                 break;
-            total += q * 900000;
-            found = true;
-            var qs = m.index + m[0].indexOf(m[1]);
-            work = consume(work, qs, qs + m[1].length);
+            end = cEnd;
         }
-
-        // 4. "number + unit": « 1h », « 30 min », « 2 heures et demie »,
-        //    with an implicit remainder: « 1h30 », « 2 heures 5 », « 5m30 ».
-        var compRe = new RegExp("(?:^|[^a-z0-9.,'])" + NUM + "\\s*" + UNIT + "(?![a-z])" + HALF, "g");
-        var chainRe = new RegExp("^\\s*" + NUM + "\\s*" + UNIT + "(?![a-z])" + HALF);
-        // Implicit remainder, unless it carries its own unit (« 1h 30min » is read separately).
-        var restRe = new RegExp("^\\s*(\\d{1,2})(?![\\d.,:]|\\s*" + UNIT + "(?![a-z]))");
-        var comps = [];
-        var readComp = function (mm, start, end) {
-            var value = wordToNumber(mm[1]);
-            if (isNaN(value))
-                return -1;
-            var u = unitMs(mm[2]);
-            var extra = mm[3] ? (/quart|quarter/.test(mm[3]) ? 0.25 : 0.5) : 0;
-            var ms = (value + extra) * u;
-            var after = work.substring(end);
-            // Implicit remainder: « 1h30 » → 30 min, « 5m30 » → 30 s.
-            if (u > 1000 && !mm[3] && !chainRe.test(after)) {
-                var rest = restRe.exec(after);
-                if (rest) {
-                    var rv = parseInt(rest[1]);
-                    ms += rv * (u / 60);
-                    if (u === 3600000 && value % 1 === 0 && value <= 23 && rest[1].length === 2 && rv <= 59)
-                        clockLike = { h: value, m: rv, colon: false };
-                    end += rest[0].length;
-                } else if (mm[2] === "h" && value % 1 === 0 && value <= 23) {
-                    // « 8h » alone is also a time of day
-                    clockLike = { h: value, m: 0, colon: false, bare: true };
-                }
-            }
-            comps.push({ start: start, end: end, ms: ms });
-            return end;
-        };
-        while ((m = compRe.exec(work))) {
-            var end = readComp(m, m.index + m[0].indexOf(m[1]), m.index + m[0].length);
-            if (end < 0)
-                continue;
-            // Glued components: « 1h30m20s ».
-            var chained;
-            while ((chained = chainRe.exec(work.substring(end)))) {
-                var cEnd = readComp(chained, end, end + chained[0].length);
-                if (cEnd < 0)
-                    break;
-                end = cEnd;
-            }
-            compRe.lastIndex = end;
-        }
-        for (var i = 0; i < comps.length; i++) {
-            total += comps[i].ms;
-            work = consume(work, comps[i].start, comps[i].end);
-            found = true;
-        }
-        if (clockLike && !clockLike.colon && comps.length !== 1)
-            clockLike = null;
-        if (clockLike && clockLike.colon && comps.length > 0)
-            clockLike = null;
-
-        // 5. Bare number after "timer": minutes (« timer 5 »).
-        if (!found && hasKeyword) {
-            m = /(?:^|[\s\u0000])(\d+(?:[.,]\d+)?)(?![\w:])/.exec(work);
-            if (m) {
-                total = parseFloat(m[1].replace(",", ".")) * 60000;
-                found = true;
-                var s0 = m.index + m[0].indexOf(m[1]);
-                work = consume(work, s0, s0 + m[1].length);
-            }
-        }
-
-        // 5b. Bare number closing a text, minutes: « pasta 12 ». Never a number
-        // alone, never one above MAX_BARE_MINUTES, and the text must be a label.
-        if (!found && !hasKeyword) {
-            m = /(?:^|\s)(\d{1,3})\s*$/.exec(work);
-            if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= MAX_BARE_MINUTES) {
-                var b0 = m.index + m[0].indexOf(m[1]);
-                var rest = consume(work, b0, b0 + m[1].length);
-                if (/[^\s\d\u0000!-\/:-@\[-`{-~]/.test(cleanLabel(original, rest))) {
-                    total = parseInt(m[1]) * 60000;
-                    found = true;
-                    work = rest;
-                }
-            }
-        }
+        g.component.lastIndex = end;
     }
+    for (var i = 0; i < comps.length; i++) {
+        r.total += comps[i].ms;
+        r.work = consume(r.work, comps[i].start, comps[i].end);
+        r.found = true;
+    }
+    if (r.clockLike && !r.clockLike.colon && comps.length !== 1)
+        r.clockLike = null;
+    if (r.clockLike && r.clockLike.colon && comps.length > 0)
+        r.clockLike = null;
+}
 
-    var label = cleanLabel(original, work);
-    if (hasContext)
-        label = label.replace(CONNECTOR, "");
+// Bare number after "timer": minutes (« timer 5 »).
+function readBareAfterKeyword(r) {
+    if (r.target || r.found || !r.keyword)
+        return;
+    var m = /(?:^|[\s\u0000])(\d+(?:[.,]\d+)?)(?![\w:])/.exec(r.work);
+    if (!m)
+        return;
+    r.total = parseFloat(m[1].replace(",", ".")) * 60000;
+    r.found = true;
+    var start = m.index + m[0].indexOf(m[1]);
+    r.work = consume(r.work, start, start + m[1].length);
+}
+
+// Bare number closing a text, minutes: « pasta 12 ». Never a number alone,
+// never one above MAX_BARE_MINUTES, and the text must be a label.
+function readBareClosing(r) {
+    if (r.target || r.found || r.keyword)
+        return;
+    var m = /(?:^|\s)(\d{1,3})\s*$/.exec(r.work);
+    if (!m || parseInt(m[1]) < 1 || parseInt(m[1]) > MAX_BARE_MINUTES)
+        return;
+    var start = m.index + m[0].indexOf(m[1]);
+    var rest = consume(r.work, start, start + m[1].length);
+    if (/[^\s\d\u0000!-\/:-@\[-`{-~]/.test(cleanLabel(r.original, rest, r.g))) {
+        r.total = parseInt(m[1]) * 60000;
+        r.found = true;
+        r.work = rest;
+    }
+}
+
+// « dans 1 h à peu près », « about 20 min », « 20 min-ish »: a word of
+// approximation touching the time read is dropped (elsewhere it is a word
+// of the label: « talk about cats »).
+function dropApprox(r) {
+    if (!r.target && !r.found)
+        return;
+    var m;
+    while ((m = r.g.approxAfter.exec(r.work)) || (m = r.g.approxBefore.exec(r.work))) {
+        var start = m.index + m[0].indexOf(m[1]);
+        r.work = consume(r.work, start, start + m[1].length);
+    }
+}
+
+var STAGES = [fixUnitTypos, readContext, readKeyword, readRepeat, readClock, readColon,
+              readFraction, readPhrases, readComponents, readBareAfterKeyword, readBareClosing, dropApprox];
+
+// The candidates of a reading once every stage has run
+function results(r) {
+    var label = cleanLabel(r.original, r.work, r.g);
+    if (r.context)
+        label = label.replace(r.g.connector, "");
     label = label.substring(0, MAX_LABEL).trim();
 
-    if (target)
-        return withHint([{ kind: "at", at: target, ms: target - now, label: label }], "");
-    if (!found)
-        return noResult(hasKeyword ? unknownWordHint(original, work) : "");
+    if (r.target)
+        return withHint([{ kind: "at", at: r.target, ms: r.target - r.now, label: label }], "");
+    if (!r.found)
+        return noResult(r.keyword ? unknownWordHint(r.original, r.work, r.g) : "");
 
-    var results = [];
-    total = Math.round(total);
+    var list = [];
+    var total = Math.round(r.total);
     if (total >= 1000 && total <= MAX_MS)
-        results.push({ kind: "duration", ms: total, label: label, count: count, capped: capped });
+        list.push({ kind: "duration", ms: total, label: label, count: r.count, capped: r.capped });
 
     // « 14h30 » or « 18:00 »: also offer the target time (first for
     // « 14h30 », which looks more like a time of day than a duration).
     // Under 6 h (« 1h30 », « 1:30 ») it can only be a duration.
-    if (clockLike) {
-        var at = nextOccurrence(clockLike.h, clockLike.m, now);
-        var alt = { kind: "at", at: at, ms: at - now, label: label };
-        if (clockLike.h >= 6) {
+    var c = r.clockLike;
+    if (c) {
+        var at = nextOccurrence(c.h, c.m, r.now);
+        var alt = { kind: "at", at: at, ms: at - r.now, label: label };
+        if (c.h >= 6) {
             // « 8h »: a duration first, unless it is too late in the day for one
-            if (clockLike.colon || (clockLike.bare && clockLike.h < 13))
-                results.push(alt);
+            if (c.colon || (c.bare && c.h < 13))
+                list.push(alt);
             else
-                results.unshift(alt);
+                list.unshift(alt);
         }
     }
-    return withHint(results, "");
+    return withHint(list, "");
 }
+
+// options: { keyword: the launcher's trigger was typed, grammar: another
+// grammar() than every pack's (tests) }
+function parse(input, now, options) {
+    if (!input || tooLong(input))
+        return noResult("");
+    options = options || {};
+    var r = newReading(input, now || Date.now(), options, options.grammar || GRAMMAR);
+    for (var i = 0; i < STAGES.length; i++)
+        STAGES[i](r);
+    return results(r);
+}
+
 
 // ---------------------------------------------------------------------------
 // Formatting

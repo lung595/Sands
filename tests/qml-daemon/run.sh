@@ -26,7 +26,7 @@ trap 'rm -rf "$dir"' EXIT
 mkdir -p "$dir/tree" "$dir/bin" "$dir/user/config" "$dir/user/data" "$dir/user/state" "$dir/run" "$dir/log"
 chmod 700 "$dir/run"
 cp "$root"/*.qml "$root"/*.js "$root/plugin.json" "$dir/tree/"
-cp -r "$root/components" "$root/diagnostics" "$root/sounds" "$dir/tree/"
+cp -r "$root/components" "$root/diagnostics" "$root/lang" "$root/sounds" "$dir/tree/"
 cp -r "$preview/imports/qs/." "$dir/tree/"
 cp "$here/shell.qml" "$dir/tree/shell.qml"
 # One output, not muted: what the alarm checks before it rings

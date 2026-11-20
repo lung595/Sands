@@ -119,6 +119,7 @@ Type in English or French, words or digits, in any order:
 | `1h30m20s`, `5m30`, `90s`, `1:30`, `1:02:03` | Exact durations (`1:30` = 1 min 30 s) |
 | `half an hour`, `an hour and a half`, `twenty five minutes` | Spelled-out durations |
 | `une demi-heure`, `trois quarts d'heure`, `2 heures et quart` | Same in French |
+| `dans 1/4 d'heure`, `1/2 h`, `3/4 of an hour` | Fractions of an hour (15, 30, 45 min) |
 | `12 min pasta`, `pasta 12 min`, `pasta for 12 min` | A named timer |
 | `4x 1h`, `4* 1h`, `1h x4` | Four timers of one hour (up to 20); they count once in your recents |
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
@@ -144,13 +145,16 @@ Sands also reads sentences, in English or French. These all work with or without
 | `tomorrow at 8`, `demain 8h` | An alarm at 08:00 on the next calendar day |
 | `noon`, `midi`, `midnight`, `minuit` | An alarm at 12:00 or 00:00 |
 | `7 du soir`, `7 in the morning`, `9 du matin` | An alarm at 19:00, 07:00, 09:00 |
+| `6:15pm`, `ce soir 20h`, `demain 7h` | An alarm at 18:15, 20:00, 07:00 |
+| `dans 1h à peu près`, `about 20 min`, `20 min-ish` | The approximation is dropped: 1 h, 20 min |
+| `rappelle-moi dans 10 min de sortir le linge` | *Sortir le linge*, 10 minutes |
 | `8h`, `timer 14h30` | Ambiguous: both readings are listed (see below) |
 
 **Clock times.** A bare hour after `at` / `à` is the next time that hour comes round within 24 hours: at 21:47, `at 7` is tomorrow 07:00. `tomorrow` always means the next calendar day.
 
 **Both readings, never a guess.** `8h` can be an 8-hour timer or 08:00. Sands lists the two, the likelier first, and nothing starts until you press <kbd>Enter</kbd> on the one you pick.
 
-**Typos.** A unit one letter off is still read: `20 mni`, `1 heur`, `20 minuts pasta`, `10 secnds tea`. Names are never corrected: `20 min pasat` keeps *pasat*. Real words near a unit stay words: `3 jours`, `4 cours` and `2 hors` are not hours.
+**Typos.** A unit one letter off is still read: `20 mni`, `1 heur`, `20 minuts pasta`, `10 secnds tea`. Names are never corrected: `20 min pasat` keeps *pasat*. Real words near a unit stay words: `3 jours`, `4 cours` and `2 hors` are not hours. Accents, capitals and punctuation do not matter (`RAPPELLE MOI A 18H`, `Timer: 10 min, pâtes !`), and emoji are left out of the name.
 
 **A bare number.** When you type without the word `timer`, a number counts as minutes only right after a word and up to 180: `pasta 12` is 12 min, `pasta 181` and `12` alone are not timers, and after a preposition (`dans 12`) it is left alone. With `timer` in front the number is yours to give: `timer 12` is 12 min and `timer pasta 181` is 181 min.
 
