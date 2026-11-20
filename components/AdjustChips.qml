@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Common
+import "daemon/Lifecycle.js" as Lifecycle
 
 // −1 / +1 / +5 minutes on the shown timer.
 Row {
@@ -13,8 +14,8 @@ Row {
     spacing: Theme.spacingS
 
     Chip {
-        // Never takes a timer below its last minute
-        visible: root.timerState !== "ringing" && root.remaining > 61000
+        // Stops at 0:10 (the daemon's floor): shown while there is more
+        visible: root.timerState !== "ringing" && root.remaining > Lifecycle.FLOOR_MS
         text: "−1 min"
         onClicked: root.daemon.adjust(root.timer.id, -60000)
     }

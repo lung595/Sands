@@ -151,7 +151,8 @@ dms ipc call smartTimer toggle                 # pause/resume the next timer, or
 dms ipc call smartTimer pause                  # pause every running timer
 dms ipc call smartTimer resume                 # resume every paused timer
 dms ipc call smartTimer stop                   # stop the alarm, or cancel the next timer
-dms ipc call smartTimer add 5                  # +5 min to the next timer
+dms ipc call smartTimer undo                   # bring back the timer cancelled in the last 5 s
+dms ipc call smartTimer add 5                  # +5 min to the next timer (add -5: never below 0:10)
 dms ipc call smartTimer snooze 10              # snooze the ringing timer 10 min (0: 5 min), JSON answer
 dms ipc call smartTimer list                   # list running timers
 dms ipc call smartTimer status                 # timers as JSON for scripts (remaining seconds, phase)

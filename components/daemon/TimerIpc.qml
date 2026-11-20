@@ -46,14 +46,20 @@ IpcHandler {
         return "OK";
     }
 
+    // Every running timer paused (every paused one resumed), in one save
     function pause(): string {
-        engine.timers.filter(t => t.state === "running").forEach(t => engine.pause(t.id));
+        engine.pauseAll();
         return "OK";
     }
 
     function resume(): string {
-        engine.timers.filter(t => t.state === "paused").forEach(t => engine.resume(t.id));
+        engine.resumeAll();
         return "OK";
+    }
+
+    // Brings back the timer stopped last, within 5 s of its stop
+    function undo(): string {
+        return engine.undoRemove(-1) ? Replies.undone() : Replies.nothingToUndo();
     }
 
     // Stops whatever is ringing, otherwise cancels the nearest timer.

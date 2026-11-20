@@ -74,3 +74,32 @@ function freeHue(timers, hueCount) {
     }
     return timers.length % hueCount;
 }
+
+// Emoji in a name: the pictographs (U+1F000..1FAFF, which holds flags and
+// skin tones too, and the symbol blocks drawn as emoji) with what joins or
+// dresses them (zero-width joiner, variation selector, keycap, tags). The
+// interface shows Material Symbols only, never emoji. The `u` flag with
+// \u{…} code points is what the QML engine accepts (it has no \p{…}).
+var EMOJI_RE = new RegExp("(?:[\\u{1F000}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{2B00}-\\u{2BFF}\\u{231A}\\u{231B}\\u{23E9}-\\u{23FA}\\u{3030}\\u{303D}\\u{3297}\\u{3299}][\\u{FE0F}\\u{20E3}\\u{E0020}-\\u{E007F}]*)(?:\\u{200D}[\\u{1F000}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{2B00}-\\u{2BFF}][\\u{FE0F}\\u{20E3}\\u{E0020}-\\u{E007F}]*)*|[\\u{FE0F}\\u{20E3}]", "gu");
+
+// `s` without its emoji, spaces collapsed, at most `maxLabel` characters
+// (never cutting a surrogate pair), trimmed. "" when nothing is left.
+function stripEmoji(s, maxLabel) {
+    let out = String(s === undefined || s === null ? "" : s).replace(EMOJI_RE, " ").replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim();
+    if (maxLabel > 0 && out.length > maxLabel)
+        out = out.slice(0, /[\ud800-\udbff]/.test(out.charAt(maxLabel - 1)) ? maxLabel - 1 : maxLabel);
+    return out.trim();
+}
+
+// The name a timer gets when its own was nothing but emoji, in the shell's
+// language ("fr_FR" -> "Minuteur", anything else -> "Timer")
+function fallbackName(locale) {
+    return /^fr/i.test(String(locale || "")) ? "Minuteur" : "Timer";
+}
+
+// A saved or typed name, cleaned: emoji gone; a name that was only emoji
+// becomes `fallback`; an empty name stays empty (the timer shows its kind)
+function cleanName(s, maxLabel, fallback) {
+    const out = stripEmoji(s, maxLabel);
+    return out === "" && String(s || "").trim() !== "" ? fallback : out;
+}

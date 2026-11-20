@@ -124,7 +124,7 @@ Type in English or French, words or digits, in any order:
 | `at 18:30`, `at 6pm`, `at noon`, `à 18h` | An alarm at a time of day (tomorrow if already past) |
 | `timer 14h30` | Offers both: *alarm at 14:30* first, *14 h 30 timer* second |
 
-**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together (`4x 1h` with two places left starts two and says *Started 2 of 4*), a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit.
+**Limits.** A timer lasts between 1 second and 100 hours, `4x` goes up to 20 timers at once (`99x 1h` starts 20 and says so), at most 50 timers run together (`4x 1h` with two places left starts two and says *Started 2 of 4*), a query is read up to 200 characters and a label keeps its first 60. Anything outside these limits, or a query Sands can't read, shows a short message with a link back to this section: nothing is refused silently. `dms ipc call smartTimer add` follows the same 100-hour limit, and taking time off (`add -5`, the −1 min button) stops at 0:10 rather than ending the timer by mistake.
 
 The interface is in English. Want Sands to understand another language? [Open an issue](https://github.com/lung595/Sands/issues).
 
@@ -172,6 +172,10 @@ Nothing starts before <kbd>Enter</kbd>. Everything is read on your machine; Sand
 ## Snoozing from a keybind
 
 `dms ipc call smartTimer snooze 10` restarts the ringing timer for 10 minutes. A length outside 1 to 120 minutes is clamped; `0` gives 5 minutes (the length is required: Quickshell has no optional IPC arguments). The answer is always JSON: `{"snoozed":true,"minutes":10}`, or `{"snoozed":false,"reason":"nothing is ringing"}` when no timer rings, in which case nothing changes. `start`, `stop` and `status` cover starting, stopping and reading the time left.
+
+## Undoing a stop
+
+`dms ipc call smartTimer stop` (or the stop button) cancels a timer at once, without asking. For 5 seconds, `dms ipc call smartTimer undo` brings it back exactly as it was, its end time unchanged. A stopped alarm (a timer that was ringing) is not kept: stopping it was the answer.
 
 ## Reading the timers from a script
 

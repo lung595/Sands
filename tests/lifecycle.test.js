@@ -44,12 +44,25 @@ eq(t.remaining, 0, "pausing after the end keeps 0, not a negative time");
 t = run(1, 11000);
 eq(L.adjust(t, 1000, 60000, MAX), true, "+1 min on a running timer");
 eq([t.endAt, t.total], [71000, 70000], "moves the end and grows the total");
-t = { state: "paused", remaining: 5000, total: 8000, kind: "duration" };
+t = { state: "paused", remaining: 50000, total: 80000, kind: "duration" };
 eq(L.adjust(t, 0, -4000, MAX), true, "-4 s on a paused timer");
-eq([t.remaining, t.total], [1000, 8000], "keeps the total");
-t = { state: "paused", remaining: 5000, total: 8000, kind: "duration" };
-eq(L.adjust(t, 0, -4500, MAX), false, "can't go under 1 s");
-eq(t.remaining, 5000, "and is left alone");
+eq([t.remaining, t.total], [46000, 80000], "keeps the total");
+// The 10 s floor: "pasta -5" with 3 min left gives 0:10, so does -1 min
+t = run(1, 180000);
+eq(L.adjust(t, 0, -300000, MAX), true, "-5 min with 3 min left is accepted");
+eq([t.endAt, t.total], [10000, 10000], "and stops at 0:10");
+t = run(1, 40000);
+eq(L.adjust(t, 0, -60000, MAX), true, "-1 min with 40 s left");
+eq(t.endAt, 10000, "gives 0:10 too");
+t = { state: "paused", remaining: 30000, total: 80000, kind: "duration" };
+eq(L.adjust(t, 0, -60000, MAX), true, "the floor holds for a paused timer");
+eq(t.remaining, L.FLOOR_MS, "left at 10 s");
+t = { state: "paused", remaining: 8000, total: 8000, kind: "duration" };
+eq(L.adjust(t, 0, -4000, MAX), false, "already under the floor: nothing to take off");
+eq(t.remaining, 8000, "and is left alone");
+t = run(1, 10000);
+eq(L.adjust(t, 0, -60000, MAX), false, "exactly at the floor: nothing changes");
+eq(L.adjust(run(1, 10000), 0, 0, MAX), false, "a zero step changes nothing");
 t = { state: "paused", remaining: MAX - 1000, total: 8000, kind: "duration" };
 eq(L.adjust(t, 0, 2000, MAX), false, "can't go over the maximum");
 t = { state: "ringing", total: 500, endAt: 1, finishedAt: 1, kind: "at" };
@@ -58,6 +71,42 @@ eq([t.state, t.endAt, t.total, t.finishedAt, t.kind], ["running", 305000, 300000
 t = { state: "ringing" };
 eq(L.adjust(t, 0, -1000, MAX), false, "a ringing timer can't lose time");
 eq(L.adjust(t, 0, MAX + 1, MAX), false, "or restart beyond the maximum");
+
+// Pause all, resume all: one new list, untouched timers kept as they are
+const mixed = [run(1, 11000), { id: 2, state: "paused", remaining: 3000 }, run(3, 21000), { id: 4, state: "ringing", finishedAt: 5 }];
+let all = L.pauseAll(mixed, 1000);
+eq(all.changed, 2, "pauseAll pauses the two running timers");
+eq(all.list.map(x => [x.id, x.state, x.remaining]), [[1, "paused", 10000], [2, "paused", 3000], [3, "paused", 20000], [4, "ringing", undefined]], "each keeps what was left");
+eq([all.list[1] === mixed[1], all.list[3] === mixed[3], mixed[0].state], [true, true, "running"], "the others are the same objects, the input is untouched");
+all = L.resumeAll(all.list, 5000);
+eq(all.changed, 3, "resumeAll resumes every paused timer");
+eq(all.list.map(x => [x.state, x.endAt]), [["running", 15000], ["running", 8000], ["running", 25000], ["ringing", undefined]], "from now on");
+eq(L.pauseAll([], 0), { list: [], changed: 0 }, "nothing to pause");
+
+// Stop, then undo within 5 s
+const four = [run(1, 60000), { id: 2, state: "paused", remaining: 3000 }, { id: 3, state: "ringing", finishedAt: 5 }];
+let out = L.takeOut(four, [], 1, 1000);
+eq([out.list.map(x => x.id), out.kept.map(r => [r.timer.id, r.at])], [[2, 3], [[1, 1000]]], "a stopped timer is kept with its time of stop");
+eq(out.kept[0].timer, four[0], "as it was");
+eq(L.takeOut(four, [], 3, 1000).kept, [], "a stopped ring is not kept");
+eq(L.takeOut(four, [], 9, 1000).list, null, "an unknown id stops nothing");
+out = L.takeOut(out.list, out.kept, 2, 2000);
+eq(out.kept.map(r => r.timer.id), [1, 2], "several can wait");
+let back5 = L.putBack(out.list, out.kept, 1, 5999, 50);
+eq([back5.list.map(x => x.id), back5.kept.map(r => r.timer.id)], [[3, 1], [2]], "undo within 5 s brings it back");
+eq(back5.list[1], four[0], "with its end time untouched");
+eq(L.putBack(out.list, out.kept, 1, 6000, 50).list, null, "5 s later it is gone");
+eq(L.putBack(out.list, out.kept, 1, 6000, 50).kept.map(r => r.timer.id), [2], "and forgotten");
+eq(L.putBack(out.list, out.kept, -1, 3000, 50).list.map(x => x.id), [3, 2], "-1 brings back the last one stopped");
+eq(L.putBack(back5.list, out.kept, 1, 3000, 50).list, null, "never twice");
+eq(L.putBack(out.list, out.kept, 2, 3000, 1).list, null, "not when the list is full");
+eq(L.putBack([], [], -1, 0, 50).list, null, "nothing to undo");
+eq(L.pruneRemoved([{ timer: {}, at: 0 }, { timer: {}, at: 4000 }], 5000).length, 1, "prune drops what is too old");
+
+// The alarm sound: only for a ringing timer that is not muted
+eq(L.audible([{ state: "ringing", muted: true }, run(2, 9)]), false, "a muted ring is silent");
+eq(L.audible([{ state: "ringing", muted: true }, { state: "ringing" }]), true, "one audible ring is enough");
+eq(L.audible([{ state: "paused" }]), false, "no ring, no sound");
 
 // Restart
 t = { state: "ringing", kind: "at", total: 500, endAt: 1, finishedAt: 1, remaining: 0 };
@@ -101,6 +150,8 @@ eq(back.nextId, 6, "the next id is past every saved id");
 eq(back.ringNow, false, "the one that ended long ago does not sound");
 eq(back.recent.map(x => x.id), [5], "only a recently finished one is announced");
 eq(L.restore([run(1, 70000)], 1, 100000).ringNow, true, "one that ended 30 s ago sounds");
+eq(L.restore([Object.assign(run(1, 70000), { muted: true })], 1, 100000).ringNow, false, "unless it is muted");
+eq(L.restore([Object.assign(run(1, 70000), { muted: true })], 1, 100000).recent.length, 1, "it is still announced");
 eq(L.restore("garbage", 4, 0), { list: [], nextId: 4, ringNow: false, recent: [] }, "an unreadable state is empty");
 eq(L.restore([run(9, 5000000)], 1, 0).nextId, 10, "the next id never goes back");
 

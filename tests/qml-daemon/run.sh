@@ -1,6 +1,6 @@
 #!/bin/sh
 # End-to-end test of the real daemon, offscreen with the real Quickshell (about
-# 13 s). Staged like scripts/preview/daemon-loop.sh: the plugin as shipped, the
+# 20 s). Staged like scripts/preview/daemon-loop.sh: the plugin as shipped, the
 # stand-ins of the DMS modules, a throw-away home, no Wayland, no session bus,
 # and stand-ins first on PATH for every program the daemon may run. Each one
 # records its arguments, so check.js can assert what the end of a timer did.
@@ -10,6 +10,9 @@
 #               ended ones ring and are notified again; each stop closes its
 #               notification, the last one (the dune's click) silences the
 #               alarm and takes the dune down
+#   3. mute:    a muted timer rings without sound (dune and notification only),
+#               rename drops emoji, a stopped timer comes back within 5 s and
+#               not after, pause all / resume all, one list change per action
 # Exit 1 on any failure, with the reasons, or on any script error in the logs.
 here=$(cd "$(dirname "$0")" && pwd)
 root=$(cd "$here/../.." && pwd)
@@ -85,4 +88,5 @@ stat -c '%a' "$dir/user/state/sands" "$dir/user/state/sands/history.json" > "$di
 sleep "$(gjs -m "$here/check.js" wait "$dir")"
 phase restore "$state"
 cp "$dir/user/state/sands/history.json" "$dir/log/restore.history" 2>/dev/null
-gjs -m "$here/check.js" verify "$dir" || { echo "--- ring"; tail -15 "$dir/log/ring.out"; echo "--- restore"; tail -15 "$dir/log/restore.out"; exit 1; }
+phase mute '{}'
+gjs -m "$here/check.js" verify "$dir" || { echo "--- ring"; tail -15 "$dir/log/ring.out"; echo "--- restore"; tail -15 "$dir/log/restore.out"; echo "--- mute"; tail -15 "$dir/log/mute.out"; exit 1; }

@@ -6,13 +6,20 @@
 // change the copy of the timer they are given, never a stored one.
 //
 // A timer is { id, label, kind: "duration" | "at", total, endAt, remaining,
-// state: "running" | "paused" | "ringing", finishedAt, hue }.
+// state: "running" | "paused" | "ringing", finishedAt, hue, muted }.
+// `muted` (absent = false) rings that timer without sound: dune and
+// notification only.
 
 // A ringing alarm that finished more than this long ago (shell off) is not
 // announced again at startup
 var STALE_MS = 60000;
 // The optional tick sounds during this last stretch of a running timer
 var TICK_WINDOW_MS = 10050;
+// Taking time off never leaves less than this: "pasta -5" with 3 min left
+// gives 0:10, never an end by mistake
+var FLOOR_MS = 10000;
+// How long a stopped timer can be brought back (the "Stopped · Undo" card)
+var UNDO_MS = 5000;
 
 // Display order: ringing first, then the soonest to finish, then paused ones
 function sortTimers(timers) {
@@ -52,8 +59,8 @@ function resume(t, now) {
 }
 
 // Adds (or removes) `deltaMs`. A ringing timer restarts for that duration
-// instead ("+1 min" = repeat). Returns false when nothing changed (out of
-// the 1 s .. maxMs range).
+// instead ("+1 min" = repeat). Taking time off stops at FLOOR_MS. Returns
+// false when nothing changed (already at the floor, or over maxMs).
 function adjust(t, now, deltaMs, maxMs) {
     if (t.state === "ringing") {
         if (deltaMs <= 0 || deltaMs > maxMs)
@@ -66,15 +73,79 @@ function adjust(t, now, deltaMs, maxMs) {
         return true;
     }
     const rem = t.state === "running" ? t.endAt - now : t.remaining;
-    const next = rem + deltaMs;
-    if (next < 1000 || next > maxMs)
+    const next = deltaMs < 0 ? Math.max(rem + deltaMs, FLOOR_MS) : rem + deltaMs;
+    if (deltaMs < 0 ? next >= rem : (deltaMs === 0 || next < 1000 || next > maxMs))
         return false;
     if (t.state === "running")
-        t.endAt += deltaMs;
+        t.endAt += next - rem;
     else
         t.remaining = next;
     t.total = Math.max(t.total + Math.max(0, deltaMs), next);
     return true;
+}
+
+// Every running timer paused (or every paused one resumed) in one new list,
+// for a single save: { list, changed: how many }
+function pauseAll(timers, now) {
+    return _each(timers, t => t.state === "running", t => pause(t, now));
+}
+
+function resumeAll(timers, now) {
+    return _each(timers, t => t.state === "paused", t => resume(t, now));
+}
+
+function _each(timers, wanted, fn) {
+    let changed = 0;
+    const list = timers.map(t => {
+        if (!wanted(t))
+            return t;
+        const copy = Object.assign({}, t);
+        fn(copy);
+        changed++;
+        return copy;
+    });
+    return { list: list, changed: changed };
+}
+
+// Stops timer `id`: { list, kept } where `kept` is `removed` (the timers
+// that can still be brought back, [{ timer, at }]) with this one added, unless
+// it was ringing (stopping a ring is the answer to it, nothing to undo).
+// `list` is null when there is no such timer.
+function takeOut(timers, removed, id, now) {
+    const t = timers.find(x => x.id === id);
+    const kept = pruneRemoved(removed, now).filter(r => r.timer.id !== id);
+    if (!t)
+        return { list: null, kept: kept };
+    return {
+        list: timers.filter(x => x.id !== id),
+        kept: t.state === "ringing" ? kept : kept.concat([{ timer: t, at: now }])
+    };
+}
+
+// What can still be brought back at `now`
+function pruneRemoved(removed, now) {
+    return (removed || []).filter(r => now - r.at < UNDO_MS);
+}
+
+// Brings timer `id` back as it was when stopped (a running one kept its end
+// time, so it may ring at once): { list, kept }, `list` null when it is too
+// late, unknown, already back or there is no room (`maxTimers`). `id` -1 is
+// the last one stopped.
+function putBack(timers, removed, id, now, maxTimers) {
+    const kept = pruneRemoved(removed, now);
+    const r = id === -1 ? kept[kept.length - 1] : kept.find(x => x.timer.id === id);
+    if (!r || timers.some(t => t.id === r.timer.id) || timers.length >= maxTimers)
+        return { list: null, kept: kept };
+    return {
+        list: timers.concat([r.timer]),
+        kept: kept.filter(x => x !== r)
+    };
+}
+
+// True when a ringing timer that is not muted is in the list: the alarm
+// sound has a reason to play
+function audible(timers) {
+    return timers.some(t => t.state === "ringing" && !t.muted);
 }
 
 // Starts the timer again for its full duration (an alarm "at" a time
@@ -133,7 +204,7 @@ function nextDelay(timers, now) {
 
 // What was saved, brought up to `now`: { list, nextId, ringNow, recent }.
 // Timers that ended while the shell was off are ringing; `ringNow` says one
-// ended less than STALE_MS ago (the alarm should sound), and `recent` lists
+// that is not muted ended less than STALE_MS ago (the alarm should sound), and `recent` lists
 // the ringing timers worth a notification.
 function restore(saved, savedNextId, now) {
     let nextId = savedNextId;
@@ -144,7 +215,7 @@ function restore(saved, savedNextId, now) {
             copy.state = "ringing";
             copy.finishedAt = copy.endAt;
             copy.remaining = 0;
-            if (now - copy.endAt < STALE_MS)
+            if (now - copy.endAt < STALE_MS && !copy.muted)
                 ringNow = true;
         }
         nextId = Math.max(nextId, copy.id + 1);

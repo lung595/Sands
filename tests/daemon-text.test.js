@@ -20,7 +20,9 @@ eq(R.started({ started: 4, count: 4, kind: "duration", label: "", ms: 3600000 },
 eq(R.started({ started: 2, count: 4, kind: "duration", label: "", ms: 3600000 }, null, 50, G, true), "Started: 2 of 4 × Timer - 1 h (at most 50 at once: " + G + "#syntax)", "partly");
 const at = new Date(2026, 0, 1, 14, 5).getTime();
 eq(R.started({ started: 1, count: 1, kind: "at", label: "", at: at }, null, 50, G, true), "Started: Alarm - at 14:05", "an alarm, 24 h clock");
-eq(R.notChanged(G), "Not changed: a timer lasts between 1 second and 100 hours. " + G + "#syntax", "not changed");
+eq(R.notChanged(G), "Not changed: taking time off stops at 0:10, and a timer lasts at most 100 hours. " + G + "#syntax", "not changed");
+eq(R.undone(), "Timer restored", "undo");
+eq(R.nothingToUndo(), "Nothing to undo: a stopped timer can be brought back for 5 s", "nothing to undo");
 
 // list
 eq(R.list([], 0), "No timer", "empty list");

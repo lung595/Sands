@@ -2,6 +2,7 @@ import QtQuick
 import qs.Common
 import "journal"
 import "favourites"
+import "daemon/Lifecycle.js" as Lifecycle
 
 // Panel content: hourglass, time, controls, other timers.
 Column {
@@ -158,9 +159,9 @@ Column {
         index: pop.index
         onSwitchTimer: step => pop.go(step)
         onPickTimer: (id, dir) => pop.showId(id, dir)
-        // One minute per wheel notch, never below the last minute.
+        // One minute per wheel notch; taking time off stops at 0:10.
         onAddMinute: step => {
-            if (step > 0 || pop.rem > 61000)
+            if (step > 0 || pop.rem > Lifecycle.FLOOR_MS)
                 pop.d.adjust(pop.t.id, step * 60000);
         }
     }

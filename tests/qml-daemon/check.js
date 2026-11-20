@@ -217,5 +217,57 @@ check("restore: saved state follows (next id 6)", same(bState.timers, left) && b
 check("restore: restore and stops add nothing to the journal", tryRead("restore.history") === journal, tryRead("restore.history"));
 check("restore: the week is unchanged", same(first(back, "week"), week), first(back, "week"));
 
+// ---------------------------------------------------------------- mute run
+const mute = lines("mute");
+const muteCalls = calls("mute");
+const mBegin = first(mute, "begin");
+const mStarted = first(mute, "started");
+const mStopBread = first(mute, "stopBread");
+const mUndoBread = first(mute, "undoBread");
+const mStopSoup = first(mute, "stopSoup");
+const mRang = mute.find(l => l.what === "ringing" && l.value.ringing);
+const mPause = first(mute, "pauseAll");
+const mResume = first(mute, "resumeAll");
+const mLate = first(mute, "lateUndo");
+const mFinal = first(mute, "final");
+check("mute: no script error in the run", scriptErrors("mute").length === 0, scriptErrors("mute"));
+check("mute: finished without the 15 s guard", mFinal !== undefined && !first(mute, "timeout"));
+if (!mStarted || !mStopBread || !mUndoBread || !mStopSoup || !mRang || !mPause || !mResume || !mLate || !mFinal)
+    System.exit(1);
+
+const [MINT, BREAD, SOUP] = mStarted.ids;
+check("mute: three timers, ids 1 to 3", same(mStarted.ids, [1, 2, 3]), mStarted.ids);
+check("mute: Mint is muted, and saved so", mStarted.muted === true && byId(mStarted.timers, MINT).muted === true, byId(mStarted.timers, MINT));
+check("mute: rename drops the emoji", mStarted.rename === true && byId(mUndoBread.timers, BREAD).label === "Pain frais", byId(mUndoBread.timers, BREAD));
+check("mute: a name of emoji only is refused", mStarted.renameEmpty === false && byId(mStopBread.timers, SOUP).label === "Soup", byId(mStopBread.timers, SOUP));
+check("mute: stopping Bread keeps it for undo", mStopBread.done === true && !byId(mStopBread.timers, BREAD) && same(mStopBread.removed, [BREAD]), mStopBread);
+check("mute: undo brings Bread back as it was, once", mUndoBread.done === true && mUndoBread.again === false && same(mUndoBread.removed, []) && byId(mUndoBread.timers, BREAD).endAt === byId(mStarted.timers, BREAD).endAt, mUndoBread);
+check("mute: Soup stopped, waiting for an undo", mStopSoup.done === true && !byId(mStopSoup.timers, SOUP) && same(mStopSoup.removed, [SOUP]), mStopSoup);
+
+const mint = byId(mRang.value.timers, MINT);
+check("mute: Mint rings on time", mint && mint.state === "ringing" && mint.muted === true && mRang.value.at - mint.endAt < 1000 && near(mint.endAt, mBegin + 2000, 30), mRang.value);
+check("mute: no sound for a muted ring", mRang.value.soundActive === false && mPause.soundActive === false, [mRang.value.soundActive, mPause.soundActive]);
+check("mute: the dune still rises, named Mint", mRang.value.alert === true && same(mRang.value.dune, { name: "Mint", reason: "Sound is muted" }), [mRang.value.alert, mRang.value.dune]);
+const mNotes = muteCalls.filter(c => c.tool === "notify-send");
+check("mute: the notification still comes", mNotes.length === 1 && same(mNotes[0].args, notifyArgs("Mint", "2 s elapsed")), mNotes.map(c => c.args));
+check("mute: no player ever runs", muteCalls.every(c => c.tool !== "pw-play" && c.tool !== "paplay"), muteCalls.map(c => c.tool));
+
+check("mute: pause all pauses Bread alone (Mint rings), then nothing", mPause.paused === 1 && mPause.again === 0 && byId(mPause.timers, BREAD).state === "paused" && byId(mPause.timers, MINT).state === "ringing", mPause);
+check("mute: resume all resumes it", mResume.resumed === 1 && byId(mResume.timers, BREAD).state === "running", mResume);
+check("mute: Soup's undo is refused after 5 s, and forgotten", mLate.done === false && !byId(mLate.timers, SOUP) && same(mLate.removed, []) && mLate.at - mStopSoup.at >= 5000, mLate);
+
+// timersChanged: one per action, none from the clock
+const changes = mute.filter(l => l.what === "changed").map(l => l.value);
+const quiet = changes.filter(at => at > mStopSoup.at + 50 && at < mRang.value.at - 50);
+check("mute: no list change while the clock runs (before the ring)", quiet.length === 0 && mRang.value.at - mStopSoup.at > 1000, changes.map(at => at - mBegin));
+const ringChanges = changes.filter(at => at >= mRang.value.at - 50 && at < mPause.at - 50);
+check("mute: one list change at the ring, none during the ring", ringChanges.length === 1, changes.map(at => at - mBegin));
+const actionChanges = changes.filter(at => at <= mStopSoup.at + 50);
+// Mint, mute, Bread, Soup, rename, stop Bread, undo; the refused rename and undo change nothing
+check("mute: one list change per accepted action", actionChanges.length === 8, actionChanges.length);
+const pauseChanges = changes.filter(at => at >= mPause.at - 50 && at <= mLate.at + 50);
+check("mute: pause all and resume all change the list once each", pauseChanges.length === 2, changes.map(at => at - mBegin));
+check("mute: the muted state is saved", (savedState(mute).timers || []).some(t => t.id === MINT && t.muted === true), savedState(mute).timers);
+
 print(failed === 0 ? "daemon e2e: all checks passed" : "daemon e2e: " + failed + " check(s) failed");
 System.exit(failed === 0 ? 0 : 1);

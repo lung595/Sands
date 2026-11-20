@@ -34,7 +34,10 @@ Item {
     property var pluginService: null
 
     // { id, label, kind: "duration"|"at", total, endAt, remaining,
-    //   state: "running"|"paused"|"ringing", finishedAt }
+    //   state: "running"|"paused"|"ringing", finishedAt, hue, muted }
+    // Replaced only when the set or a timer changes (an action, a ring),
+    // never by the clock: its `timersChanged` signal is what the launcher
+    // section listens to (at most a few times per action, not every second).
     property var timers: []
     property real now: Date.now()
 
@@ -48,6 +51,12 @@ Item {
     readonly property bool ringing: timers.some(t => t.state === "ringing")
     // The pill shakes its bell only while a sound really plays, not for a muted ring
     readonly property bool soundActive: alarm.active
+
+    // Timers stopped less than UNDO_MS ago, which undoRemove can bring back:
+    // [{ timer, at }], oldest first. Memory only: a restart forgets them.
+    // `removedChanged` tells the launcher when its "Stopped · Undo" card
+    // comes and goes.
+    property var removed: []
 
     // Durations used before, most frequent and recent first:
     // [{ ms, label, uses, last }]. Feeds a bare "timer" in the launcher.
@@ -122,6 +131,8 @@ Item {
     // Actions
     // ------------------------------------------------------------------
 
+    // Commits only when `fn` really changed the timer: no save and no
+    // `timersChanged` for pausing a paused timer
     function _update(id, fn) {
         let changed = false;
         const list = timers.map(t => {
@@ -129,7 +140,7 @@ Item {
                 return t;
             const copy = Object.assign({}, t);
             fn(copy);
-            changed = true;
+            changed = JSON.stringify(copy) !== JSON.stringify(t);
             return copy;
         });
         if (changed)
@@ -141,7 +152,8 @@ Item {
         timers = list;
         now = Date.now();
         store.saveTimers(list, _nextId);
-        if (!list.some(t => t.state === "ringing"))
+        // Nothing left that should be heard (stopped, or only muted rings)
+        if (!Lifecycle.audible(list))
             silence();
         notifier.sync(list);
         _schedule();
@@ -268,6 +280,44 @@ Item {
         return _update(id, t => Lifecycle.resume(t, t0));
     }
 
+    // Every running timer paused, or every paused one resumed, in one save;
+    // returns how many changed
+    function pauseAll() {
+        const r = Lifecycle.pauseAll(timers, Date.now());
+        if (r.changed > 0)
+            _commit(r.list);
+        return r.changed;
+    }
+
+    function resumeAll() {
+        const r = Lifecycle.resumeAll(timers, Date.now());
+        if (r.changed > 0)
+            _commit(r.list);
+        return r.changed;
+    }
+
+    // New name for timer `id`: emoji dropped, cut to MAX_LABEL. Refused
+    // (false) when nothing is left or the timer is unknown.
+    function rename(id, label) {
+        const name = Timers.stripEmoji(label, TP.MAX_LABEL);
+        if (name === "" || !find(id))
+            return false;
+        _update(id, t => t.label = name);
+        return true;
+    }
+
+    // Sound on or off for this timer alone (saved with it). A muted timer
+    // still rings: dune and notification, no sound. Muting the one that
+    // sounds now silences it.
+    function toggleMute(id) {
+        return _update(id, t => {
+            if (t.muted)
+                delete t.muted;
+            else
+                t.muted = true;
+        });
+    }
+
     function toggle(id) {
         const t = find(id);
         if (!t)
@@ -280,8 +330,9 @@ Item {
     }
 
     // Adds (or removes) time. On a ringing timer: restarts it for
-    // that duration ("+1 min" = repeat).
-    // Returns false when nothing changed (unknown id, out of range).
+    // that duration ("+1 min" = repeat). Taking time off stops at 0:10.
+    // Returns false when nothing changed (unknown id, already at 0:10,
+    // over the maximum).
     function adjust(id, deltaMs) {
         const t0 = Date.now();
         let ok = false;
@@ -296,12 +347,43 @@ Item {
         return _update(id, t => Lifecycle.restart(t, t0));
     }
 
+    // Stops timer `id`. A running or paused one can be brought back for
+    // UNDO_MS with undoRemove (the "Stopped · Undo" card, `ipc undo`).
     function remove(id) {
-        const list = timers.filter(t => t.id !== id);
-        if (list.length === timers.length)
-            return false;
-        _commit(list);
-        return true;
+        const r = Lifecycle.takeOut(timers, removed, id, Date.now());
+        if (r.list)
+            _commit(r.list);
+        _keepRemoved(r.kept);
+        return r.list !== null;
+    }
+
+    // Brings back timer `id` (-1: the last one stopped) as it was, its hue
+    // changed only if a newer timer took it. False when too late.
+    function undoRemove(id) {
+        const r = Lifecycle.putBack(timers, removed, id, Date.now(), maxTimers);
+        if (r.list) {
+            const back = r.list[r.list.length - 1];
+            const rest = r.list.slice(0, -1);
+            if (rest.some(t => t.hue === back.hue))
+                r.list[r.list.length - 1] = Object.assign({}, back, {
+                    hue: Timers.freeHue(rest, hueCount)
+                });
+            _commit(r.list);
+        }
+        _keepRemoved(r.kept);
+        return r.list !== null;
+    }
+
+    function _keepRemoved(kept) {
+        if (kept.length === 0 && removed.length === 0)
+            return;
+        removed = kept;
+        if (kept.length > 0) {
+            undoWindow.interval = Math.max(10, kept[0].at + Lifecycle.UNDO_MS - Date.now());
+            undoWindow.restart();
+        } else {
+            undoWindow.stop();
+        }
     }
 
     function dismiss(id) {
@@ -326,14 +408,17 @@ Item {
     function _tick() {
         const t0 = Date.now();
         now = t0;
-        const r = Lifecycle.expire(timers, t0);
-        // Subtle ticking during the last 10 seconds (optional).
-        if (!r.fired && setting("tick", false) && !alarm.muted() && Lifecycle.inFinalSeconds(r.list, t0))
+        const before = timers;
+        const r = Lifecycle.expire(before, t0);
+        // Subtle ticking during the last 10 seconds (optional), never for a muted timer
+        if (!r.fired && setting("tick", false) && !alarm.muted() && Lifecycle.inFinalSeconds(r.list.filter(t => !t.muted), t0))
             alarm.playTick();
         if (r.fired) {
             const newly = r.list.filter(t => t.state === "ringing" && !notifier.has(t.id));
             _commit(r.list);
-            alarm.startRinging();
+            // A muted timer rings without sound (expire keeps the others as they were)
+            if (Lifecycle.audible(r.list.filter((t, i) => t !== before[i])))
+                alarm.startRinging();
             newly.forEach(t => _notify(t));
             newly.forEach(t => _tellAlex(t));
             newly.forEach(t => _keep(t));
@@ -386,6 +471,13 @@ Item {
         }
         ticker.interval = Math.max(8, next + 4);
         ticker.restart();
+    }
+
+    // Forgets the stopped timers once their undo time is over
+    Timer {
+        id: undoWindow
+        repeat: false
+        onTriggered: root._keepRemoved(Lifecycle.pruneRemoved(root.removed, Date.now()))
     }
 
     Timer {

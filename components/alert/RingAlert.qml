@@ -4,6 +4,7 @@ import qs.Services
 import "AlertPolicy.js" as Policy
 import "DuneStyles.js" as Styles
 import "DuneMotion.js" as Motion
+import "../daemon/Lifecycle.js" as Lifecycle
 import "../daemon/Sound.js" as Sound
 
 // Wires the visual alert to the timer engine: feeds the host with the saved
@@ -80,11 +81,14 @@ Item {
         }
     }
 
-    // What the alarm would sound like now, for the "only when muted" moment
+    // What the alarm would sound like now, for the "only when muted" moment.
+    // At the ring point, a ring of muted timers only is a muted ring too.
+    // Read from the list, not from `ringing`: that binding may not be updated
+    // yet when its handler below runs, and only the ring point reads this.
     readonly property var _soundState: ({
             choice: _read("sound", ""),
             volume: Sound.volumeOf(_read("volume", 80)),
-            outputMuted: sound.muted() || AudioService.sink?.audio?.muted === true,
+            outputMuted: sound.muted() || AudioService.sink?.audio?.muted === true || !Lifecycle.audible(engine.timers),
             hasOutput: AudioService.sink !== null && AudioService.sink !== undefined
         })
 

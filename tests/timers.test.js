@@ -1,12 +1,12 @@
 // Timers.js tests — run with: gjs tests/timers.test.js (from the plugin root)
 // The pure logic TimerDaemon.qml relies on: time left, progress, names,
-// the recents ranking and colour slots.
+// the recents ranking, colour slots and emoji-free names.
 const GLib = imports.gi.GLib;
 
 const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/timers.test.js", GLib.get_current_dir())));
 const [, bytes] = GLib.file_get_contents(dir + "/Timers.js");
 const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const T = new Function(src + "; return { remainingOf, progressOf, displayLabel, rankRecents, remember, freeHue };")();
+const T = new Function(src + "; return { remainingOf, progressOf, displayLabel, rankRecents, remember, freeHue, stripEmoji, fallbackName, cleanName };")();
 
 let failures = 0, count = 0;
 
@@ -66,6 +66,22 @@ eq(T.remember(many, 999, "new", now).length, 12, "at most 12 are kept");
 eq(T.freeHue([], 6), 0, "the first slot when nothing runs");
 eq(T.freeHue([{ hue: 0 }, { hue: 1 }, { hue: 3 }], 6), 2, "the first free slot");
 eq(T.freeHue([0, 1, 2].map(h => ({ hue: h })), 3), 0, "all taken: the next in turn");
+
+// Names without emoji
+eq(T.stripEmoji("🍝 pâtes", 60), "pâtes", "an emoji before the name is dropped");
+eq(T.stripEmoji("thé 🍵 vert", 60), "thé vert", "one in the middle leaves a single space");
+eq(T.stripEmoji("👨‍👩‍👧 famille 👍🏽 ❤️ 🇫🇷 🏴󠁧󠁢󠁳󠁣󠁴󠁿", 60), "famille", "joined, toned, dressed, flag and tag sequences go whole");
+eq(T.stripEmoji("étape 1️⃣ ⏰ ⌛", 60), "étape 1", "a keycap keeps its digit, clock symbols go");
+eq(T.stripEmoji("Ça & 12 ½ — ok", 60), "Ça & 12 ½ — ok", "accents and punctuation stay");
+eq(T.stripEmoji("a\tb\n c", 60), "a b c", "control characters are spaces");
+eq(T.stripEmoji("x".repeat(80), 60).length, 60, "capped to the given length");
+eq(T.stripEmoji("x".repeat(59) + "𝄞", 60), "x".repeat(59), "never half a surrogate pair");
+eq(T.stripEmoji(undefined, 60), "", "nothing is an empty name");
+eq(T.fallbackName("fr_FR"), "Minuteur", "French fallback");
+eq(T.fallbackName("en_US"), "Timer", "any other language: Timer");
+eq(T.cleanName("🍝", 60, "Minuteur"), "Minuteur", "a name that was only an emoji gets the fallback");
+eq(T.cleanName("  ", 60, "Timer"), "", "an empty name stays empty");
+eq(T.cleanName("🍝 Pâtes", 60, "Timer"), "Pâtes", "a name with letters keeps them");
 
 print(failures === 0 ? "✓ " + count + " tests passed" : "\n" + failures + " / " + count + " failed");
 imports.system.exit(failures === 0 ? 0 : 1);

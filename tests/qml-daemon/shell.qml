@@ -13,6 +13,11 @@ import Quickshell
 //            reports what came back, starts Egg, stops Tea, then the rest of
 //            the ring through the dune's click (its stopRequested), reads the
 //            week, quits
+//   mute     empty state; Mint 2 s muted, Bread 1 h renamed with emoji,
+//            Soup 10 min; Bread stopped and brought back, Soup stopped for
+//            good; Mint rings without sound, its dune shown although the
+//            alert is set to "only when muted"; then pause all / resume all,
+//            Soup's undo once its 5 s are over, quits
 ShellRoot {
     id: scene
 
@@ -46,6 +51,7 @@ ShellRoot {
             timers: scene.daemon.timers,
             ringing: scene.daemon.ringing,
             soundActive: scene.daemon.soundActive,
+            removed: scene.daemon.removed.map(r => r.timer.id),
             alert: scene.daemon.alertShowing,
             dune: d ? {
                 name: d.name,
@@ -68,13 +74,15 @@ ShellRoot {
     // file still reads for the linter)
     property var daemon: null
 
-    // DMS's plugin settings and state: settings keep their defaults, the
-    // state starts from SANDS_E2E_STATE, and every write is reported
+    // DMS's plugin settings and state: settings keep their defaults (but the
+    // alert moment of "mute"), the state starts from SANDS_E2E_STATE, and
+    // every write is reported
     readonly property QtObject service: QtObject {
         signal pluginDataChanged(string pluginId)
 
+        // mute: the dune only for a ring that cannot be heard
         function loadPluginData(id, key, fallback) {
-            return fallback;
+            return key === "alertWhen" && scene.phase === "mute" ? "muted" : fallback;
         }
         function savePluginData(id, key, value) {
             scene.say("data", {
@@ -109,6 +117,42 @@ ShellRoot {
             scene.say("ringing", scene.snapshot());
             if (scene.phase === "ring" && scene.daemon.ringing)
                 afterRing.start();
+            if (scene.phase === "mute" && scene.daemon.ringing)
+                afterMute.start();
+        }
+        // The launcher's cue: once per change of the list, never per second
+        function onTimersChanged() {
+            scene.say("changed", Date.now());
+        }
+    }
+
+    // mute: lets the silent ring go on, then pause all and resume all
+    Timer {
+        id: afterMute
+        interval: 1500
+        onTriggered: {
+            const paused = scene.daemon.pauseAll();
+            const pausedAgain = scene.daemon.pauseAll();
+            scene.say("pauseAll", Object.assign(scene.snapshot(), {
+                paused: paused,
+                again: pausedAgain
+            }));
+            scene.say("resumeAll", Object.assign({
+                resumed: scene.daemon.resumeAll()
+            }, scene.snapshot()));
+            lateUndo.start();
+        }
+    }
+
+    // mute: Soup's undo after its 5 s
+    Timer {
+        id: lateUndo
+        interval: 2500
+        onTriggered: {
+            scene.say("lateUndo", Object.assign({
+                done: scene.daemon.undoRemove(3)
+            }, scene.snapshot()));
+            scene.finish();
         }
     }
 
@@ -183,6 +227,30 @@ ShellRoot {
             scene.daemon.start(3600000, "Bread", "duration", 0, true);
             scene.daemon.pause(scene.daemon.start(600000, "Soup", "duration", 0, true));
             say("started", snapshot());
+        } else if (phase === "mute") {
+            say("begin", Date.now());
+            const mint = scene.daemon.start(2000, "Mint", "duration", 0, true);
+            const muted = scene.daemon.toggleMute(mint);
+            const bread = scene.daemon.start(3600000, "Bread", "duration", 0, true);
+            const soup = scene.daemon.start(600000, "Soup", "duration", 0, true);
+            say("started", Object.assign(snapshot(), {
+                ids: [mint, bread, soup],
+                muted: muted,
+                rename: scene.daemon.rename(bread, "\uD83C\uDF5E Pain  frais \uD83D\uDC4D\uD83C\uDFFD"),
+                renameEmpty: scene.daemon.rename(soup, "\uD83C\uDF72\uFE0F")
+            }));
+            const stopped = scene.daemon.remove(bread);
+            say("stopBread", Object.assign(snapshot(), {
+                done: stopped
+            }));
+            const back = scene.daemon.undoRemove(bread);
+            say("undoBread", Object.assign(snapshot(), {
+                done: back,
+                again: scene.daemon.undoRemove(bread)
+            }));
+            say("stopSoup", Object.assign({
+                done: scene.daemon.remove(soup)
+            }, snapshot()));
         } else {
             say("restored", snapshot());
             stopTea.start();

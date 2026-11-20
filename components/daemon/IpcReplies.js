@@ -27,7 +27,16 @@ function started(r, refusal, maxTimers, guideUrl, use24h) {
 }
 
 function notChanged(guideUrl) {
-    return "Not changed: a timer lasts between 1 second and 100 hours. " + guideUrl + "#syntax";
+    return "Not changed: taking time off stops at 0:10, and a timer lasts at most 100 hours. " + guideUrl + "#syntax";
+}
+
+// `smartTimer undo`: the timer stopped last is back, or it is too late
+function undone() {
+    return "Timer restored";
+}
+
+function nothingToUndo() {
+    return "Nothing to undo: a stopped timer can be brought back for 5 s";
 }
 
 // One line per timer, "label<TAB>mm:ss", already in display order
