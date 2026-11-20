@@ -65,6 +65,7 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 - `KnownDurations.js`: usual durations for a name typed without a number (« timer pâtes »). `lookup(name, entries)` gives seconds from the user's entries, else the built-in English and French table; `matchKey` folds accents, case, emoji and plurals. Not wired yet; the launcher will call it only when `TP.parse` found nothing, in place of « No duration found »:
   - `suggest(query, { recents: daemon.recents, history, entries, lang })` → `{ ms, source, name, icon, text }` or null. `query` is the raw text, trigger word included or not. `source` is `mine` (the latest duration of that name in the recents; for a name they lack, the latest history record, skipping a record that starts within 10 min after the end of one with the same name, which is what a snooze writes; then the user's entries) or `table`. `text` is « Pâtes — 10 min (durée habituelle) » / « Pasta — 10 min (usual time) »; `lang` is `fr` / `en` or a locale (`Qt.locale().name`), else the trigger word's language, else English. `icon` is a Material Symbols name (`history` for mine, `timer` for the table).
   - The launcher item: `name: s.text`, `icon: "material:" + s.icon`; Enter starts `{ kind: "duration", ms: s.ms, label: s.name }` through `_startItem`. The history is read asynchronously (`HistoryStore.load`): add a daemon call shaped like `historyFavourites(done)`, e.g. `historyRecords(done)` → `history.load(h => done(h))` (`{ records: [{ name, start, end }] }`, a bare record list works too), call it once when the launcher opens and keep the result, never on each keystroke. Without it, the recents alone still give `mine`.
+- `Strings.js`: every sentence Sands shows, in English and French, under one key (`TABLE.en`, `TABLE.fr`, templates with `%1`, `%2`…). `tr(key, lang, ...args)` fills a template and falls back to English (a key missing everywhere shows as itself); `langOf(locale)` gives `"fr"` for `fr`, `fr_FR`, `fr-CA`, `fr_FR.UTF-8`, `"en"` for anything else. No import, no QML. `tests/strings.test.js` checks that both languages have the same keys and the same placeholders, that no string holds an emoji, and that every key a source asks for (`Strings.tr("key", …)`) exists. A new language is one more table in `TABLE`. See **Languages** below for what is wired and what is left.
 - `Timers.js`: pure timer logic (time left, progress, names, recents ranking, colour slots) that `TimerDaemon.qml` calls with its clock.
 - `components/daemon/*.js`: the rules of the daemon's parts (see the table above). They import `TimeParser.js` and `Timers.js` where needed.
 - `components/alert/*.js`: the visual alert of a finished timer, `AlertPolicy.js` (which alert and when, read by `DuneAlert.qml` and the settings), `HaloMotion.js` (the Edge halo steps), `DuneMotion.js` and `DuneStyles.js` (the Rising dune), `SandTint.js` (the sand colours).
@@ -75,6 +76,12 @@ Logic that can be tested lives in **pure `.js` files** with no QML:
 - `diagnostics/*.js`: the anonymous report. `Gather.js` (the probes and how their answers are read), `Redact.js` (what is hidden), `Report.js` (the text), `Cpu.js`, `Log.js`, `Codes.js`, `Allow.js`. `scripts/diagnose.sh` builds the same report from a terminal when the shell does not answer; its cleaning rules mirror `Redact.js` and both sides are tested (`tests/diagnostics.test.js`, `tests/diagnose.test.sh`).
 - `components/settings/ReportRow.js`: every word and state of the "Copy report" row.
 - `components/settings/Sections.js`: the settings sections and every setting as one table (keys, help, synonyms, battery level); `components/settings/Search.js`: the settings search over it (copied from Orbit's engine, typo-tolerant, ranked), both used by `SettingsPage.qml`.
+
+**Languages.** The interface follows the DMS language. DMS has its own `I18n` singleton (`qs.Common`, `Common/I18n.qml`): `I18n.tr(term, context)` and `I18n.trFor(pluginId, term)` look an English term up in POEditor exports and give the term back when there is none, and `I18n.registerPluginTranslations(pluginId, table)` takes a plugin table. Sands keeps its own keyed `Strings.js` instead, because the pure modules and their gjs tests cannot reach a QML singleton, and the French is ours, not POEditor's. Only the language comes from DMS, read the way `I18n` reads it: `SessionData.locale` (the language picked in DMS settings), else `Qt.locale().name`.
+  - The pure modules take the language as an optional last argument and say English without it, so every caller that does not pass one is unchanged: `Preview.previewLine(r, now, use24, lang)`, `Preview.ringsLine(…, lang)`, `Guide.rangeNote(lang)`, `fullNote(max, lang)`, `partialNote(started, wanted, max, lang)`, `silentNote(lang)`, `previewNote(lang)`, `toastText(note, lang)`, `Commands.previewCommand(…, { lang })` (a locale name works now), `KnownDurations.suggest(…, { lang })`, `Retired.toastText(locale)`, `Notifications.body(t, use24h, lang)`, `Notifications.showCommand(label, body, lang)` (the action ids `stop` / `snooze` never change), and every `IpcReplies` sentence (`tooLong(url, lang)`, `started(…, use24h, lang)`, `list(timers, now, lang)`…). The JSON answers (`status`, `snoozed`, `notRinging`) stay English: scripts read them. The preview words of the commands moved from `lang/*.js` (`PREVIEW`) to `Strings.js` (`command.*`); the packs now hold only what the parser reads.
+  - Wiring, a later step: each view takes the language once, as it takes `use24h`: `readonly property string lang: Strings.langOf(SessionData.locale || Qt.locale().name)` (`import qs.Common`, `import "…/Strings.js" as Strings`), and passes it down; a view's own words become `Strings.tr("key", lang)` with a new key in both tables. `TimerDaemon.qml` already passes `Qt.locale().name` to `Retired.toastText`: switch it to the same `lang`. Whether `TimerIpc.qml` passes `lang` to `IpcReplies` (scripts may read those sentences) is decided at the wiring step; without it they stay English.
+  - Still to convert, views with words of their own: `TimerLauncher.qml` (items, hints, « No duration found »), `TimerDaemon.qml` (pass `lang` to `Guide` notes and toasts, `Notifications.body`), `components/daemon/TimerNotifier.qml` (`showCommand` lang), `components/daemon/TimerIpc.qml`, `components/HorizontalPill.qml` and `PillTimeLabel.qml` (« Done »), `PanelClock.qml` (« Paused », « Done »), `PanelControls.qml` (tooltips), `StopButton.qml`, `HelpNote.qml` (« Open the guide »), `components/alert/DuneBand.qml`, `RingAlert.qml` and `DuneAlert.qml` (legend, « Timer », « Pasta » of the test), `components/favourites/Favourites.qml`, `Rows.qml` and `Glasses.qml` (« Started »), `components/journal/JournalView.qml` and `JournalLink.qml`, `TimerSettings.qml` and every page of `components/settings/` (`SettingsPage`, `StartSection`, `TimersSection`, `AlertsSection`, `AppearanceSection`, `AdvancedSection`, `HelpSection`, `TestAlarmRow`, `CopyReport`, `ReportButton`). Also the launcher section of `components/launcher/` once it lands.
+  - Pure modules whose words are not in `Strings.js` yet: `Timers.js` (`displayLabel` « Timer » / « Alarm », `fallbackName`: use `name.timer` / `name.alarm`), `TimeParser.js` (the « Unknown word » hint: key `hint.unknownWord` is ready), `Plans.js` (« Focus », « Break »), `components/settings/Sections.js`, `ReportRow.js`, `Variants.js` and `Placement.js`, `components/alert/AlertPolicy.js` and `DuneStyles.js` (legend reasons, style names), `components/favourites/Pins.js`. The sound names of `Sound.js` are names, not words, and stay as they are.
 
 **Motion timers.** Nothing animates with QML animations while idle. The pill's single motion clock is `components/PillClock.qml`, driven by `HorizontalPill.qml`: 16 ms only for the bell swing, 33 ms for the final-countdown beat and the breathing; it runs only while ringing or beating and stops after the alarm duration. The panel's sand clock is `components/hourglass/MotionClock.qml` (33 ms once the sand is settled, stopped under Reduce motion).
 
@@ -91,11 +98,12 @@ Sands/
 ├── TimerSettings.qml           # settings page
 ├── TimeParser.js               # natural-language parser (tested)
 ├── TimeFormat.js               # countdowns, durations, clock times in 12/24 h (tested)
-├── lang/                       # language packs of the parser and commands: en.js, fr.js
+├── lang/                       # words the parser and the commands read: en.js, fr.js
 ├── Commands.js                 # launcher commands on running timers: intent, target, preview (tested)
 ├── Timers.js                   # pure timer logic: time left, recents ranking… (tested)
 ├── Preview.js                  # launcher preview lines: « Pasta · 12 min · ends 12:42 » (tested)
 ├── Guide.js                    # "why it can't be done" notes + guide anchors (tested)
+├── Strings.js                  # every shown sentence in English and French, tr() with %1 templates (tested)
 ├── components/
 │   ├── HorizontalPill.qml      # horizontal bar pill: state, layout (uses the Pill* parts below)
 │   ├── VerticalPill.qml        # vertical bar pill: ring + short time
@@ -142,6 +150,7 @@ Sands/
 │   ├── qml-daemon/             # the real daemon end to end: run.sh, shell.qml (scene), check.js (assertions)
 │   ├── harness.js              # shared loader for the daemon tests
 │   ├── preview.test.js
+│   ├── strings.test.js         # en/fr key and placeholder parity, no emoji, every key asked for exists
 │   └── guide.test.js
 └── docs/
     ├── GUIDE.md                # user guide
@@ -237,7 +246,7 @@ Measure before and after a change, in % of one CPU core for the whole shell (240
 
 ## Conventions
 
-- **Language**: code, comments, UI and docs in English. The launcher accepts English and French input.
+- **Language**: code, comments and docs in English. The UI is in English and French: every shown sentence is a key of `Strings.js`, in both tables (`tests/strings.test.js` fails otherwise), never a string built by concatenation. The launcher accepts English and French input.
 - **Comments**: each file starts with a short comment saying what it is and why.
 - **Privacy**: no network access and no telemetry, ever. Nothing written to disk except timers and settings through DMS.
 - **Colors**: always from the DMS theme, never hard-coded.

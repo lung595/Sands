@@ -417,11 +417,11 @@ for (const pack of TP.PACKS) {
             print("✗ pack " + pack.NAME + " lacks " + key + " (or has another type)");
         }
     }
-    for (const key of Object.keys(TP.PACKS[0].COMMANDS).concat(Object.keys(TP.PACKS[0].PREVIEW))) {
+    for (const key of Object.keys(TP.PACKS[0].COMMANDS)) {
         count++;
-        if (!(key in pack.COMMANDS) && !(key in pack.PREVIEW)) {
+        if (!(key in pack.COMMANDS)) {
             failures++;
-            print("✗ pack " + pack.NAME + " lacks command or preview " + key);
+            print("✗ pack " + pack.NAME + " lacks command " + key);
         }
     }
 }

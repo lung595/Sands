@@ -124,6 +124,8 @@ eq(show("timer +5", [{ id: 5, label: "Pasta", kind: "duration", state: "running"
     "+5 min to Pasta (ends 18:52)", "the plan's English example");
 eq(show("minuteur +5", [{ id: 5, label: "Pâtes", kind: "duration", state: "running", endAt: NOW, total: 5 * MIN, remaining: 0, finishedAt: 0 }]),
     "+5 min à Pâtes (finit à 18:47)", "the plan's French example");
+eq(show("timer +5 pâtes", null, { lang: "fr_FR" }), "+5 min à Pâtes (finit à 18:52)", "a locale name sets the language");
+eq(show("timer +5 pâtes", null, { lang: "de_DE" }), "+5 min to Pâtes (ends 18:52)", "an unknown language gives English");
 eq(show("timer +5 pâtes", null, { lang: "en", use24: false }), "+5 min to Pâtes (ends 6:52 PM)", "12 h clock");
 // The 10 s floor: -10 min on 5 min left ends 10 s from now, never at once
 eq(show("timer -10 pâtes", null, { lang: "fr" }), "−10 min à Pâtes (finit à 18:42)", "floor shown");

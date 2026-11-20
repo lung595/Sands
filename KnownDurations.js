@@ -2,6 +2,7 @@
 .import "TimeParser.js" as TP
 .import "TimeFormat.js" as TimeFormat
 .import "Timers.js" as Timers
+.import "Strings.js" as Strings
 
 // Known durations: a short built-in table (English and French, D89) plus the
 // user's own entries. Pure: no QML, no clock, no side effects. `lookup`
@@ -194,13 +195,13 @@ function suggest(text, options) {
             source = "table";
         }
     }
-    var lang = typeof o.lang === "string" && o.lang !== "" ? (/^fr/i.test(o.lang) ? "fr" : "en") : (trigger || "en");
+    var lang = typeof o.lang === "string" && o.lang !== "" ? o.lang : (trigger || "en");
     var shown = name.charAt(0).toUpperCase() + name.slice(1);
     return {
         ms: ms,
         source: source,
         name: name,
         icon: source === "mine" ? "history" : "timer",
-        text: shown + " \u2014 " + TimeFormat.formatHuman(ms) + (lang === "fr" ? " (dur\u00e9e habituelle)" : " (usual time)")
+        text: Strings.tr("known.usual", lang, shown, TimeFormat.formatHuman(ms))
     };
 }

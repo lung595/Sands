@@ -78,13 +78,3 @@ var COMMANDS = {
     rename: ["renomme[rz]?", "rebaptise[rz]?"],
     renameTo: ["en"]
 };
-
-var PREVIEW = {
-    adjust: "%2 à %1 (finit à %3)",
-    pause: "Pause %1",
-    resume: "Reprendre %1 (finit à %3)",
-    snooze: "Snooze %1 %2 (sonne à %3)",
-    rename: "%1 → %4",
-    timer: "Minuteur",
-    alarm: "Alarme"
-};
