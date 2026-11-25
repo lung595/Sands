@@ -48,7 +48,7 @@ var _RULES = [
     // Secrets first, so nothing below can cut one in half. A "key=value" or
     // "key: value" whose key says what it is, a bearer header, well-known
     // token prefixes, and any long run of hex or base64 characters.
-    [/\b(token|secret|passw(?:or)?d|passwd|pwd|authkey|auth[-_]?key|api[-_]?key|apikey|credential)s?(\s*[=:]\s*)(?:"[^"]*"|'[^']*'|\S+)/gi, "$1$2<secret>"],
+    [/\b(token|secret|passw(?:or)?d|pwd|auth[-_]?key|api[-_]?key|credential)s?(\s*[=:]\s*)(?:"[^"]*"|'[^']*'|\S+)/gi, "$1$2<secret>"],
     [/\bBearer\s+\S+/gi, "Bearer <secret>"],
     [/\b(?:tskey|ghp|gho|ghu|ghs|ghr|github_pat|glpat|xox[abprs]|sk|pk|AKIA)[-_][A-Za-z0-9_-]{8,}/g, "<secret>"],
     [/\b[0-9A-Fa-f]{32,}\b/g, "<secret>"],

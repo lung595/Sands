@@ -1,17 +1,8 @@
 // Preview.js tests — run with: gjs tests/preview.test.js (from the plugin root)
 // The one-line preview the launcher shows before Enter.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { load } = imports.harness;
+const { load, eq, done } = imports.harness;
 const P = load("Preview.js");
-
-let failures = 0, count = 0;
-function eq(got, expected, what) {
-    count++;
-    if (JSON.stringify(got) !== JSON.stringify(expected)) {
-        failures++;
-        print("✗ " + what + ": expected " + JSON.stringify(expected) + ", got " + JSON.stringify(got));
-    }
-}
 
 // Local time 12:30 on a fixed day, so « ends » is stable in any timezone.
 const now = new Date(2026, 9, 9, 12, 30, 0).getTime();
@@ -46,5 +37,4 @@ eq(P.hintOf(Object.assign([], { hint: "Unknown word" })), "Unknown word", "parse
 eq(P.hintOf([]), "", "no hint");
 eq(P.hintOf(null), "", "null results");
 
-print(failures === 0 ? "preview tests: " + count + " ok" : failures + " of " + count + " failed");
-imports.system.exit(failures === 0 ? 0 : 1);
+done();

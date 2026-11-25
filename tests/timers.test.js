@@ -1,22 +1,9 @@
 // Timers.js tests — run with: gjs tests/timers.test.js (from the plugin root)
 // The pure logic TimerDaemon.qml relies on: time left, progress, names,
 // the recents ranking, colour slots and emoji-free names.
-const GLib = imports.gi.GLib;
-
-const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/timers.test.js", GLib.get_current_dir())));
-const [, bytes] = GLib.file_get_contents(dir + "/Timers.js");
-const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const T = new Function(src + "; return { remainingOf, progressOf, savedName, displayLabel, rankRecents, remember, freeHue, stripEmoji, fallbackName, cleanName };")();
-
-let failures = 0, count = 0;
-
-function eq(got, expected, what) {
-    count++;
-    if (JSON.stringify(got) !== JSON.stringify(expected)) {
-        failures++;
-        print("✗ " + what + ": expected " + JSON.stringify(expected) + ", got " + JSON.stringify(got));
-    }
-}
+imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
+const { load, eq, done } = imports.harness;
+const T = load("Timers.js");
 
 const DAY = 86400000;
 
@@ -89,5 +76,4 @@ eq(T.cleanName("🍝", 60, "Minuteur"), "Minuteur", "a name that was only an emo
 eq(T.cleanName("  ", 60, "Timer"), "", "an empty name stays empty");
 eq(T.cleanName("🍝 Pâtes", 60, "Timer"), "Pâtes", "a name with letters keeps them");
 
-print(failures === 0 ? "✓ " + count + " tests passed" : "\n" + failures + " / " + count + " failed");
-imports.system.exit(failures === 0 ? 0 : 1);
+done();

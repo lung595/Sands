@@ -7,6 +7,7 @@ Everything needed to work on Sands or take over the project.
 - [Development setup](#development-setup)
 - [Architecture](#architecture)
 - [Project layout](#project-layout)
+- [Panel parts](#panel-parts)
 - [Tests](#tests)
 - [Offscreen previews and bench](#offscreen-previews-and-bench)
 - [Performance rules](#performance-rules)
@@ -221,7 +222,7 @@ sh scripts/preview/daemon-loop.sh report    # one anonymous report every 12 s, w
 banc-ab.sh -s scripts/preview <repo> <refA> <refB> -- sh scripts/preview/daemon-loop.sh idle
 ```
 
-It prints `sands-bench ready <mode>` on stderr once loaded (the start-up measure waits for it). `report.qml` is the report service alone with mock tools; `daemon.qml` (mock processes, `qml-qt6`) no longer loads since the alert windows need a layer shell.
+It prints `sands-bench ready <mode>` on stderr once loaded (the start-up measure waits for it). `report.qml` is the report service alone with mock tools.
 
 Useful cases: `panel-hold` (sand flowing), `panel-paused-hold` (frozen), `pill-done-hold` (alarm pill), `panel-4-hold`, `hourglass-running-hold`, plus `-reduce`. `outils/essai.sh Sands <commit>` opens `panel-hold` in a window (see `essai.conf`).
 
@@ -258,4 +259,4 @@ Measure before and after a change, in % of one CPU core for the whole shell (240
 1. Bump `version` in `plugin.json` ([Semantic Versioning](https://semver.org/)).
 2. Move the `Unreleased` entries of `CHANGELOG.md` under the new version and date.
 3. Refresh the images in `docs/images/` if the look changed.
-4. Run the tests, commit, then tag: `git tag v1.4.1 && git push --tags`.
+4. Run the tests, commit, then tag: `git tag v<version> && git push --tags` (the version from `plugin.json`).

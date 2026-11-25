@@ -155,10 +155,7 @@ eq(readme !== "" && readme === guide, true, "README and GUIDE have the same Priv
 
 const listed = new Set(listedTools(readme));
 eq([...spawned].filter(t => !listed.has(t)).sort(), [], "every program Sands starts is in the Privacy list");
-// paplay and aplay are the player fallbacks: the list may name them before
-// the code starts them (the aplay fallback is being added beside paplay).
-// Any other listed name must be a program the code really starts.
-const AHEAD = new Set(["paplay", "aplay"]);
-eq([...listed].filter(t => !spawned.has(t) && !AHEAD.has(t)).sort(), [], "the Privacy list names only programs Sands starts");
+// Any listed name must be a program the code really starts.
+eq([...listed].filter(t => !spawned.has(t)).sort(), [], "the Privacy list names only programs Sands starts");
 
 done();

@@ -1,13 +1,9 @@
 // Hourglass geometry tests — run with: gjs tests/hourglass.test.js (from the plugin root)
 // Checks the sand follows time by volume: monotonic, symmetric, conserved.
-const GLib = imports.gi.GLib;
-
-const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/hourglass.test.js", GLib.get_current_dir())));
-const [, bytes] = GLib.file_get_contents(dir + "/components/hourglass/Geometry.js");
-const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const G = new Function(src + "; return { dimensions, profile, volumes, level, sand, outline };")();
-const [, frostBytes] = GLib.file_get_contents(dir + "/components/hourglass/FrostDraw.js");
-const F = new Function(new TextDecoder().decode(frostBytes).replace(".pragma library", "") + "; return { star, rime };")();
+imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
+const { load } = imports.harness;
+const G = load("components/hourglass/Geometry.js");
+const F = load("components/hourglass/FrostDraw.js");
 
 // A 2D context that only records the calls the shapes make.
 function recorder() {

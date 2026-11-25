@@ -1,13 +1,11 @@
 // Sections.js tests — run with: gjs -m tests/settings-sections.test.js (from the plugin root)
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { load, eq, done } = imports.harness;
-const GLib = imports.gi.GLib;
+const { load, read: file, eq, done } = imports.harness;
 const S = load("components/settings/Sections.js");
 const L = load("components/settings/SectionLogos.js");
 
-const root = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
 // The rows live in the section files next to the page
-const qml = ["Timers", "Launcher", "Appearance", "Alerts"].map(n => new TextDecoder().decode(GLib.file_get_contents(root + "/components/settings/" + n + "Section.qml")[1])).join("\n");
+const qml = ["Timers", "Launcher", "Appearance", "Alerts"].map(n => file("components/settings/" + n + "Section.qml")).join("\n");
 const keys = S.SETTINGS.map(s => s.key);
 
 // Every key of the settings page is in the table, once, with its default
@@ -74,7 +72,7 @@ eq(S.settingsOf("launcher").map(s => s.key), ["launcherSection", "launcherSectio
 eq(S.settingsOf("launcher").map(s => s.default), [true, true, true, true], "launcher settings on by default");
 eq(S.SETTINGS.filter(s => s.anchor === "launcherSection").map(s => s.key), ["launcherSectionDuringSearch", "launcherSectionFavourites"], "the row switches hide behind the main one");
 // The launcher reads the same keys the page saves
-const launcher = new TextDecoder().decode(GLib.file_get_contents(root + "/TimerLauncher.qml")[1]);
+const launcher = file("TimerLauncher.qml");
 eq(["launcherSection", "launcherSectionDuringSearch", "launcherSectionFavourites"].filter(k => !launcher.includes('_flag("' + k + '")')), [], "the launcher reads every row switch");
 // Every section of the rail has its drawn logo
 for (const sec of S.SECTIONS)
@@ -97,7 +95,7 @@ const P = load("components/alert/AlertPolicy.js");
 const D = load("components/alert/DuneStyles.js");
 const alertKeys = ["alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen", "testAlarm"];
 eq(S.settingsOf("alerts").map(s => s.key).slice(0, 6), alertKeys, "the visual alert rows come first, in page order");
-const ring = new TextDecoder().decode(GLib.file_get_contents(root + "/components/alert/RingAlert.qml")[1]);
+const ring = file("components/alert/RingAlert.qml");
 const read = [...ring.matchAll(/_read\("(\w+)"/g)].map(m => m[1]);
 eq(["alertKind", "alertScreen", "duneStyle", "duneOverFullscreen", "alertWhen"].filter(k => !read.includes(k)), [], "every saved alert key is read by the daemon");
 eq(read.filter(k => !keys.includes(k)), [], "the daemon reads no alert key the page does not have");
@@ -107,7 +105,7 @@ eq(def("alertWhen"), "always", "the alert shows every time by default (owner's c
 // The screen of the alert: all by default, the same word as the pure rule, and the
 // choice reaches the dune and the halo, for a ring and for a test
 eq([def("alertScreen"), P.DEFAULT_SCREEN], ["all", "all"], "the alert shows on every screen by default, as before the setting");
-const src = n => new TextDecoder().decode(GLib.file_get_contents(root + "/components/alert/" + n)[1]);
+const src = n => file("components/alert/" + n);
 for (const n of ["DuneWindows.qml", "HaloWindows.qml"])
     eq(/model: Policy\.pickScreens\(Quickshell\.screens, root\.screenNames\)/.test(src(n)), true, n + " draws on the chosen screens only");
 eq((ring.match(/screenNames: root\._screenNames/g) || []).length, 2, "the wiring hands the chosen screens to the halo host and to the dune");

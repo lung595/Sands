@@ -1,9 +1,6 @@
 import QtQuick
-import Quickshell
 import Quickshell.Io
-import qs.Common
 import qs.Services
-import qs.Widgets
 import qs.Modules.Plugins
 import "components/daemon/Sound.js" as Sound
 import "components/settings"
@@ -38,7 +35,6 @@ PluginSettings {
     }
 
     Process {
-        id: soundScan
         running: true
         command: ["sh", "-c", "find /usr/share/sounds /usr/local/share/sounds \"$HOME/.local/share/sounds\" -type f \\( -iname '*.oga' -o -iname '*.ogg' -o -iname '*.wav' -o -iname '*.mp3' -o -iname '*.flac' \\) 2>/dev/null | sort"]
         stdout: StdioCollector {

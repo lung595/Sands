@@ -1,22 +1,9 @@
 // Guide.js tests — run with: gjs tests/guide.test.js (from the plugin root)
 // Every note must say what happened, what to do, and point to a section
 // that really exists in docs/GUIDE.md (value 10).
-const GLib = imports.gi.GLib;
-
-const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/guide.test.js", GLib.get_current_dir())));
-const read = path => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + path)[1]);
-imports.searchPath.unshift(GLib.path_get_dirname(imports.system.programPath));
-const G = imports.harness.load("Guide.js");
-
-let failures = 0, count = 0;
-
-function eq(got, expected, what) {
-    count++;
-    if (JSON.stringify(got) !== JSON.stringify(expected)) {
-        failures++;
-        print("✗ " + what + ": expected " + JSON.stringify(expected) + ", got " + JSON.stringify(got));
-    }
-}
+imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
+const { load, read, eq, done } = imports.harness;
+const G = load("Guide.js");
 
 // GitHub's anchor for a heading: lower case, spaces to dashes, punctuation dropped
 const anchors = read("docs/GUIDE.md").split("\n")
@@ -54,6 +41,4 @@ for (const a of readmeLinks)
     eq(anchors.includes(a), true, "README link #" + a + " exists in the guide");
 eq(anchors.includes("what-the-launcher-shows"), true, "the preview section exists");
 
-print(failures === 0 ? count + " tests passed" : failures + " of " + count + " tests failed");
-if (failures)
-    imports.system.exit(1);
+done();

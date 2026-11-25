@@ -3,12 +3,8 @@
 // paths, trigger word). Every name and path below is made up. The leak checks matter most:
 // whatever goes in, none of it may come out. Run: gjs tests/diagnostics.test.js
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { eq: harnessEq, done } = imports.harness;
 const GLib = imports.gi.GLib;
-
-// Plugin file as text (the harness keeps its own reader private)
-const root = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
-const read = path => new TextDecoder().decode(GLib.file_get_contents(root + "/" + path)[1]);
+const { eq: harnessEq, done, dir: root, read } = imports.harness;
 
 // The order of the shared tests (what, got, expected) over the harness's (got, expected, what)
 const eq = (what, got, expected) => harnessEq(got, expected, what);

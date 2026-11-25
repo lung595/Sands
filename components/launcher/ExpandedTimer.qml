@@ -403,7 +403,6 @@ Item {
                     text: "+" + modelData + "m"
                     iconName: index === 0 ? "snooze" : ""
                     activeFocusOnTab: true
-                    Accessible.role: Accessible.Button
                     Accessible.name: root.words.snooze + " " + modelData + " min"
                     onClicked: root.snoozed(modelData)
                 }

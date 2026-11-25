@@ -1,6 +1,5 @@
 import QtQuick
 import qs.Common
-import qs.Widgets
 import qs.Modules.Plugins
 
 // The "Timers" section: how the launcher understands what is typed.

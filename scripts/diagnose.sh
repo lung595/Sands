@@ -59,7 +59,7 @@ reduce() {
     [ -n "$host" ] || host=$(uname -n 2>/dev/null || echo "")
     replace_fixed "${HOME:-}" "~" |
         sed -E \
-            -e 's#\b(token|secret|passw(or)?d|passwd|pwd|auth[-_]?key|api[-_]?key|credential)s?([[:space:]]*[=:][[:space:]]*)("[^"]*"|'\''[^'\'']*'\''|[^[:space:]]+)#\1\3<secret>#gI' \
+            -e 's#\b(token|secret|passw(or)?d|pwd|auth[-_]?key|api[-_]?key|credential)s?([[:space:]]*[=:][[:space:]]*)("[^"]*"|'\''[^'\'']*'\''|[^[:space:]]+)#\1\3<secret>#gI' \
             -e 's#\bBearer[[:space:]]+[^[:space:]]+#Bearer <secret>#gI' \
             -e 's#\b(tskey|ghp|gho|ghu|ghs|ghr|github_pat|glpat|xox[abprs]|sk|pk|AKIA)[-_][A-Za-z0-9_-]{8,}#<secret>#g' \
             -e 's#\b[0-9A-Fa-f]{32,}\b#<secret>#g' \

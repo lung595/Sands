@@ -217,7 +217,6 @@ Item {
     // A collapsed card keeps its own height when an open one makes the row
     // higher (DMS gives every card the row's height)
     Rectangle {
-        id: bg
         x: 2
         y: 2
         width: parent.width - 4
@@ -500,7 +499,6 @@ Item {
     // While a name is typed, a press anywhere else on the card validates it
     // (the press then goes on to what is under it)
     MouseArea {
-        id: renameCatcher
         anchors.fill: parent
         z: 10
         readonly property var ex: expandedLoader.item as ExpandedTimer

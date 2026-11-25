@@ -83,7 +83,6 @@ Column {
     // Every screen, the one in use when the timer ends, or one screen by name.
     // A saved screen that is unplugged stays listed; the alert then goes to all.
     ChoiceRow {
-        id: screenSetting
         settingKey: "alertScreen"
         visible: kindSetting.value !== "none"
         label: "Show on"
@@ -95,7 +94,6 @@ Column {
     // Three styles, one card each. A style whose scene is not written yet is
     // greyed and cannot be picked; a saved one is shown as what is really drawn.
     CardChoice {
-        id: styleSetting
         settingKey: "duneStyle"
         visible: kindSetting.value === "dune"
         label: "Rising dune style"

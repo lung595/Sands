@@ -1,12 +1,8 @@
 // Motion.js tests — run with: gjs tests/motion.test.js (from the plugin root)
 // Checks that each function matches the animation it replaces: same values
 // at the key moments, continuous (no jump when a loop wraps), within range.
-const GLib = imports.gi.GLib;
-
-const dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath ?? "tests/motion.test.js", GLib.get_current_dir())));
-const [, bytes] = GLib.file_get_contents(dir + "/components/Motion.js");
-const src = new TextDecoder().decode(bytes).replace(".pragma library", "");
-const M = new Function(src + "; return { wave, bellAngle, beatScale, sparkle, drift };")();
+imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
+const M = imports.harness.load("components/Motion.js");
 
 let failures = 0, count = 0;
 

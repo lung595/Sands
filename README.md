@@ -208,7 +208,7 @@ bind = SUPER SHIFT, T, exec, dms ipc call smartTimer panel
 
 - **No network access, no telemetry.** The guide and GitHub links open in your browser only when you click them.
 - **Tools Sands runs**, short-lived and local, each with a fixed list of arguments:
-  - to ring: `pw-play`, with `paplay` and `aplay` as fallbacks;
+  - to ring: `pw-play`, with `paplay` as fallback;
   - for the notification: `notify-send`, and `gdbus` to close it;
   - for the history file: `sh` with `cat`, `mkdir`, `chmod`, `mv`, `rm` and `rmdir`;
   - while the settings page is open: `sh` with `find` and `sort`, to list the system sounds;

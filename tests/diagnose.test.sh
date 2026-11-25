@@ -40,7 +40,8 @@ echo bobs-pc
 SH
 chmod +x "$work/bin/dms" "$work/bin/id" "$work/bin/hostname"
 
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/bin:$PATH" sh "$script" 2>&1)
+run() { HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$1$work/bin:$PATH" sh "$script" 2>&1; }
+out=$(run)
 check "the plugin's report is printed" "$(echo "$out" | grep -c 'SND-E001 action=start')" 1
 check "the first call only started it: its answer is not printed" "$(echo "$out" | grep -c 'Collecting')" 0
 check "the crash folder is read: the latest one, reduced" "$(echo "$out" | grep -c 'crash at ~/.config/quickshell on host')" 1
@@ -52,7 +53,7 @@ cat >"$work/bin/dms" <<'SH'
 [ "$1" = "version" ] && { echo "dms v1.6.3"; exit 0; }
 exit 1
 SH
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/bin:$PATH" sh "$script" 2>&1)
+out=$(run)
 check "without the plugin the fallback report says so" "$(echo "$out" | grep -c 'the plugin did not answer')" 1
 check "the fallback holds the DMS version" "$(echo "$out" | grep -c 'DMS          : dms v1.6.3')" 1
 check "the fallback leaks nothing either" "$(echo "$out" | grep -ciE "bobby|bobs-pc|/$homes/")" 0
@@ -69,7 +70,7 @@ cat >"$work/odd/dms" <<'SH'
 exit 1
 SH
 chmod +x "$work/odd/hostname" "$work/odd/dms"
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/odd:$work/bin:$PATH" sh "$script" 2>&1)
+out=$(run "$work/odd:")
 check "an odd host name is hidden as written" "$(echo "$out" | grep -c 'dms v1.6.3 on host, not aXb/c&d')" 1
 
 # The journal writes the short machine name while the tool gives the full one;
@@ -101,7 +102,7 @@ SH
 chmod +x "$work/full/hostname" "$work/full/journalctl" "$work/full/dms"
 long=$(printf '%0300d' 0 | tr 0 x)
 printf 'api_key = sk123\nbell\007here\n%s\n' "$long" >"$work/$homes/bobby/.cache/quickshell/crashes/new/log.txt"
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/full:$work/bin:$PATH" sh "$script" 2>&1)
+out=$(run "$work/full:")
 check "the journal is asked for the message alone" "$(grep -c -- '-o cat' "$work/full/journal.args")" 1
 check "a line that still has its prefix loses it whole" "$(echo "$out" | grep -c '^  \[sands\] SND-I001 ready$')" 1
 check "a French and a Japanese date are cut too" "$(echo "$out" | grep -cE '^  \[sands\] SND-(W010 tool=pw_play|E003 tool=pw_play code=1)$')" 2
@@ -132,7 +133,7 @@ cat >"$work/tiny/journalctl" <<'SH'
 echo '[sands] SND-W010 tool=pw_play'
 SH
 chmod +x "$work/tiny/hostname" "$work/tiny/dms" "$work/tiny/journalctl"
-out=$(HOMES="$homes" HOME="$work/$homes/bobby" XDG_CACHE_HOME="$work/$homes/bobby/.cache" PATH="$work/tiny:$work/bin:$PATH" sh "$script" 2>&1)
+out=$(run "$work/tiny:")
 check "a two-character host name is hidden as a whole word only" "$(echo "$out" | grep -c 'dms v1.6.3 on host, not pcx nor a-pc')" 1
 check "no launcher row line without SND-W012" "$(echo "$out" | grep -c '^Launcher row')" 0
 

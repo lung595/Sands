@@ -1,5 +1,4 @@
 import QtQuick
-import Quickshell.Io
 import qs.Common
 import qs.Services
 import "TimeParser.js" as TP
@@ -566,7 +565,6 @@ Item {
 
     // Silent for now: the views listen to `noticeDue` in their own stories
     NoticeRunner {
-        id: noticeRunner
         timers: root.timers
         // Read with every change of the list (the settings are not observable here)
         minutes: root.timers ? root.setting("noticeMinutes", undefined) : undefined
