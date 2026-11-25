@@ -6,7 +6,7 @@ const { load, eq, done } = imports.harness;
 const M = load("components/Motion.js");
 
 function near(got, expected, what) {
-    eq(!(Math.abs(got - expected) > 1e-6), true, what + ": expected " + expected + ", got " + got);
+    eq(Math.abs(got - expected) <= 1e-6, true, what + ": expected " + expected + ", got " + got);
 }
 
 // Largest step between two frames 1 ms apart over a whole cycle: a jump
@@ -18,14 +18,14 @@ function continuous(f, cycle, maxStep, what) {
         worst = Math.max(worst, Math.abs(v - prev));
         prev = v;
     }
-    eq(!(worst > maxStep), true, what + " jumps by " + worst);
+    eq(worst <= maxStep, true, what + " jumps by " + worst);
 }
 
 function within(f, cycle, lo, hi, what) {
     let bad = null;
     for (let t = 0; t <= cycle && bad === null; t += 7) {
         const v = f(t);
-        if (v < lo - 1e-9 || v > hi + 1e-9)
+        if (!(v >= lo - 1e-9 && v <= hi + 1e-9))
             bad = t + ": " + v;
     }
     eq(bad, null, what + " out of range");
