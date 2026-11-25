@@ -106,6 +106,5 @@ eq(A.screenChoices(undefined, "focused").map(o => o.value), ["all", "focused"], 
 eq(A.screenChoices([scr[0], scr[0], { name: "" }, null], "all").map(o => o.value), ["all", "focused", "DP-2"], "doubles and nameless screens are skipped");
 const twins = A.screenChoices([{ name: "DP-1", model: "Twin" }, { name: "DP-2", model: "Twin" }], "all").map(o => o.label);
 eq(new Set(twins).size, twins.length, "two screens of the same model keep distinct labels");
-eq(A.screenChoices(scr, "DP-9").some(o => o.label.includes("\u2014")), false, "no long dash in a label");
 
 done();

@@ -8,7 +8,6 @@ import "SandTint.js" as Tint
 // loose grains ride the sand, so the last ones slide down the steep face.
 // Nothing here repaints by itself: one paint per state handed by the band.
 GrainsScene {
-    id: scene
 
     duneState: Motion.posed("wind")
     thread: false

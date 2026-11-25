@@ -4,7 +4,6 @@ import "Texture.js" as Texture
 
 // The 16 px legend square of one layer, with the same texture as the layer.
 Canvas {
-    id: root
 
     required property int kind
     // Only listed so that a theme change triggers a repaint

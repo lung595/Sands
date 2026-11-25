@@ -4,7 +4,6 @@ import QtQuick
 // canvas sized on the sphere and centered on the hourglass body. Repainted
 // only on resize, when it appears, or on a freeze step.
 Canvas {
-    id: root
 
     required property var dim
     required property GotPalette gotColors

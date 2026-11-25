@@ -41,10 +41,7 @@ Column {
     // Timer shown large: the one picked, otherwise the nearest.
     property int selectedId: -1
     readonly property var d: pop.daemon
-    readonly property var t: {
-        const sel = d ? d.find(selectedId) : null;
-        return sel || (d ? d.primary : null);
-    }
+    readonly property var t: d ? (d.find(selectedId) || d.primary) : null
     readonly property string st: t ? t.state : "idle"
     readonly property real rem: (t && d) ? d.remainingOf(t) : 0
     readonly property var others: (d && t) ? d.sorted.filter(x => x.id !== t.id) : []

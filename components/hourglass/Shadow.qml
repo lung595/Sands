@@ -3,7 +3,6 @@ import "Colors.js" as Colors
 
 // Ground shadow: tightens and fades when the hourglass rises.
 Canvas {
-    id: root
 
     required property real hgW
     required property real hgH

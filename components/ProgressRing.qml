@@ -9,7 +9,6 @@ Item {
     property real thickness: 2
     property color color: "white"
     property color trackColor: "transparent"
-    property bool animated: true
 
     implicitWidth: 16
     implicitHeight: 16
@@ -18,7 +17,7 @@ Item {
     // Only real jumps are animated (+1 min, short timers): an
     // invisible step (< 0.4%) is applied as is, without repainting 20 frames.
     Behavior on _shown {
-        enabled: root.animated && Math.abs(root.progress - root._shown) > 0.004
+        enabled: Math.abs(root.progress - root._shown) > 0.004
         NumberAnimation {
             duration: 320
             easing.type: Easing.OutCubic

@@ -56,7 +56,7 @@ eq(N.nextDueAt([], 2 * MIN, [], 0), -1, "no timers: no wake-up");
 eq(N.nextDueAt([t, run("c", 5 * MIN, 5 * MIN)], 2 * MIN, [], 0), 3 * MIN, "soonest mark");
 eq(N.nextDueAt([t], 2 * MIN, ["a"], 0), -1, "all notified: no wake-up");
 
-// Bounded list and pruning
+// Bounded list
 let ids = [];
 for (let i = 0; i < 100; i++)
     ids = N.markNotified(ids, "t" + i);

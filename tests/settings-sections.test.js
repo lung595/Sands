@@ -1,4 +1,4 @@
-// Sections.js tests — run with: gjs -m tests/settings-sections.test.js (from the plugin root)
+// Sections.js tests — run with: gjs tests/settings-sections.test.js (from the plugin root)
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
 const { load, read: file, eq, done } = imports.harness;
 const S = load("components/settings/Sections.js");

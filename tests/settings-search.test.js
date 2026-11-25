@@ -1,4 +1,4 @@
-// Search.js tests — run with: gjs -m tests/settings-search.test.js (from the plugin root)
+// Search.js tests — run with: gjs tests/settings-search.test.js (from the plugin root)
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
 const { load, eq, done } = imports.harness;
 const Se = load("components/settings/Search.js");

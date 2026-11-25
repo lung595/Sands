@@ -5,14 +5,12 @@ import "FrostDraw.js" as FrostDraw
 // Glass of Time, in front of the glass: the gold band, the gold caps with
 // their mint rim, the sphere rim and, when frozen, its rime crown.
 GotLayer {
-    // Length (px) of a bulb: the caps sit at its two ends.
-    required property real bulbL
-
     onPaint: {
         const ctx = getContext("2d");
         ctx.reset();
         ctx.translate(width / 2, height / 2);
-        const S = dim.sphereR, L = bulbL;
+        // L: length (px) of a bulb: the caps sit at its two ends.
+        const S = dim.sphereR, L = dim.bulbL;
         const cold = (c, k) => Colors.mix(c, frostColor, frost * k);
         const line = Colors.rgba(cold(gotColors.goldLine, 0.4), 1);
         const lw = Math.max(1.5, S * 0.012);

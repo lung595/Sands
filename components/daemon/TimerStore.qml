@@ -8,7 +8,6 @@ import "Retired.js" as Retired
 // is saved before the saved state has been read (`loaded`), so an early
 // change can't erase it.
 QtObject {
-    id: store
 
     required property var pluginService
     required property string pluginId

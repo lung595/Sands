@@ -4,7 +4,6 @@ import QtQuick
 // changes the timer: restart is the button's job), wheel = ±1 min,
 // swipe / horizontal wheel = another timer. Only reports; the panel acts.
 MouseArea {
-    id: root
 
     // Without a timer to act on, the wheel does nothing.
     property bool active: true

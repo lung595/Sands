@@ -22,7 +22,7 @@ QtObject {
     signal settled
 
     // One ordered queue, so an append made after an erase is written after it
-    property var _steps: []      // { kind: "append"|"read"|"erase", ... }
+    property var _steps: []      // { kind: "append"|"read"|"write"|"erase", ... }
     property bool _busy: false
 
     // Keeps a finished timer: { name, start, end } in epoch ms. Appends that

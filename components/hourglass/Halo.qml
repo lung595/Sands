@@ -3,7 +3,6 @@ import "Colors.js" as Colors
 
 // A soft radial glow, drawn once and animated through opacity.
 Canvas {
-    id: root
 
     required property color tint
     // Glass of Time: a softer, longer falloff.

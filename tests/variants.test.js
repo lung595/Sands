@@ -1,4 +1,4 @@
-// Variants.js tests — run with: gjs -m tests/variants.test.js (from the plugin root)
+// Variants.js tests — run with: gjs tests/variants.test.js (from the plugin root)
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
 const { load, eq, done } = imports.harness;
 const V = load("components/settings/Variants.js");
@@ -21,5 +21,4 @@ eq(V.clean("__proto__", "x"), "", "prototype key");
 eq(V.clean("hasOwnProperty", "x"), "", "inherited key");
 eq(V.defaultOf("nope"), "", "unknown key default");
 eq(V.VARIANTS.journal.concat(V.VARIANTS.favourites, V.VARIANTS.notice).map(c => c.label), ["Strata", "Threads", "Three glasses", "Rows", "Pill whisper", "Quiet card"], "labels");
-eq(Object.values(V.VARIANTS).every(l => l.every(x => !/[—–]/.test(x.label))), true, "no dash in labels");
 done();

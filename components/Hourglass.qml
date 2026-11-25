@@ -175,7 +175,6 @@ Item {
             sourceComponent: GotFront {
                 dim: root.dim
                 gotColors: gotPalette
-                bulbL: root.dim.bulbL
                 frost: root.frost
                 frostColor: root.frostColor
                 frostStep: root.frostStep
