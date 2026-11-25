@@ -3,6 +3,17 @@
 All notable changes to Sands are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
 
+## 1.7.1 - 2026-11-26
+
+### Fixed
+
+- **Each ring leaked a process when `notify-send` is missing.** A helper that never starts sends neither *started* nor *exited*, so the notification `Process` was never freed; it now is.
+- Two tests could not fail: the motion checks passed on `NaN`, and the `markNotified` check never tried a list that already held the id.
+
+### Changed
+
+- A cleanup pass over the whole repository, with no change to behaviour or looks: unused code, ids, options and helpers removed (about 650 lines fewer), the tests share the harness helpers instead of their own copies, and comments and docs brought up to date.
+
 ## 1.7.0 - 2026-11-20
 
 ### Added
