@@ -65,7 +65,6 @@ Rectangle {
     MouseArea {
         id: area
         anchors.fill: parent
-        enabled: root.enabled
         hoverEnabled: true
         onClicked: root.clicked()
     }

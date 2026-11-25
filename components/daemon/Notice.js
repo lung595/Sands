@@ -78,17 +78,12 @@ function markNotified(notified, id) {
     return notified.concat([id]).slice(-MAX_NOTIFIED);
 }
 
-// The notified list without the ids of timers that no longer exist
-function prune(notified, timers) {
-    return notified.filter(id => timers.some(t => t.id === id));
-}
-
 // The ids to keep as notified: gone timers are dropped, and so are timers that
 // are no longer running or whose end moved out of the notice window (restart,
 // snooze, added time), so they can be noticed again
 function forget(notified, timers, now, notice) {
-    return prune(notified, timers).filter(id => {
+    return notified.filter(id => {
         const t = timers.find(x => x.id === id);
-        return t.state === "running" && t.endAt - now <= notice;
+        return !!t && t.state === "running" && t.endAt - now <= notice;
     });
 }

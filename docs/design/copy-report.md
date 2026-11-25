@@ -1,4 +1,4 @@
-# Sands · Copy report row (NAK-535, built in NAK-474)
+# Sands · Copy report row
 
 Page to judge: `docs/design/copy-report/index.html` (one self-contained file, no network, no image). Switches: theme (stock, green, wallpaper-generated), light / dark, panel width (518 wide, 436 narrow, 360 stress), Reduce motion, clipboard tool present / missing, state shown in the panel. Every state is also drawn side by side under the panel, with live motion, contrast and copy tables.
 
@@ -6,7 +6,7 @@ Idea: the report is poured into the clipboard. On success a heap of sand settles
 
 ## Place
 
-Help section of the settings with the left rail (NAK-502 / NAK-505), last row, after the examples, the command line and "Open the guide on GitHub". It uses Sands' own wrapping setting row (NAK-425). Nothing else in the section changes.
+Help section of the settings with the left rail, last row, after the examples, the command line and "Open the guide on GitHub". It uses Sands' own wrapping setting row. Nothing else in the section changes.
 
 ## Anatomy, sizes, tokens
 
@@ -93,7 +93,7 @@ All are one-shot `Behavior`s. Nothing moves at rest. The only `Timer` (4000 ms, 
 | GitHub mark beside the button, label on hover or focus | Open an issue on GitHub |
 | GitHub mark in the guided message, accessible name | Open the guide: Report a problem |
 
-## Contrast (WCAG formula, tints composited on `surface`; same six palettes as NAK-502)
+## Contrast (WCAG formula, tints composited on `surface`; same six palettes as the settings mockup)
 
 | Pair | Need | stock dark | stock light | green dark | green light | wall dark | wall light |
 |---|---|---|---|---|---|---|---|
@@ -108,9 +108,9 @@ All are one-shot `Behavior`s. Nothing moves at rest. The only `Timer` (4000 ms, 
 | GitHub mark (variant) / high | 3:1 | 7.20 | 7.21 | 7.22 | 7.21 | 7.27 | 7.21 |
 | GitHub mark hover (primary) / high | 3:1 | 7.20 | 4.97 | 7.23 | 4.94 | 7.26 | 5.00 |
 
-No failure. The page recomputes this table live for the palette shown. The page draws the note fill with the palette's `high` value (the NAK-502 palettes have no separate `surfaceContainerHighest`); on a real theme `HelpNote` uses `surfaceContainerHighest`, to be re-measured on the build.
+No failure. The page recomputes this table live for the palette shown. The page draws the note fill with the palette's `high` value (the mockup palettes have no separate `surfaceContainerHighest`); on a real theme `HelpNote` uses `surfaceContainerHighest`, to be re-measured on the build.
 
-## What the engineer builds in NAK-474
+## What the engineer builds
 
 1. One component for the row (for example `components/settings/ReportRow.qml`), added as the last row of Help; the button, the label swap and the heap in it or in one small button component. Colours from `Theme` only.
 2. The report is collected on press only; nothing runs before. Copy with `wl-copy --sensitive`, data on standard input, never on the command line.
@@ -121,8 +121,8 @@ No failure. The page recomputes this table live for the palette shown. The page 
 
 ## Assumptions (conservative, not asked)
 
-- The command line call is `dms ipc call smartTimer diagnostics` and the guide anchor is `report-a-problem`, as in Orbit. NAK-474 owns the real names; the copy follows them.
-- No clipboard-history sentence (Orbit adds one when DMS history is on): `--sensitive` keeps the report out of the history. If NAK-474 finds it is kept, add Orbit's sentence to the copied help line.
+- The command line call is `dms ipc call smartTimer diagnostics` and the guide anchor is `report-a-problem`, as in Orbit. The real names win; the copy follows them.
+- No clipboard-history sentence (Orbit adds one when DMS history is on): `--sensitive` keeps the report out of the history. If the report turns out to be kept, add Orbit's sentence to the copied help line.
 - Battery pill (D419): none. The row costs nothing until pressed, so a pill would be decorative.
 
 ## Verification

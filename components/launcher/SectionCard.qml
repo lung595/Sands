@@ -291,7 +291,7 @@ Item {
                         id: nameLbl
                         objectName: "nameLabel"
                         width: Math.min(implicitWidth, parent.width - timeLbl.implicitWidth)
-                        text: root.kind === "favourite" ? (root.entry.name || "") : (root.daemon && root.timer ? root.daemon.displayLabel(root.timer) + Card.SEP : "")
+                        text: root.kind === "favourite" ? (root.entry.name || "") : (root.timer ? root.daemon.displayLabel(root.timer) + Card.SEP : "")
                         font.pixelSize: Theme.fontSizeMedium
                         font.weight: Font.Medium
                         color: root.ringing ? Theme.error : Theme.surfaceText

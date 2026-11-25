@@ -4,8 +4,6 @@ import qs.Modules.Plugins
 
 // The "Timers" section: how the launcher understands what is typed.
 Column {
-    id: root
-
     width: parent.width
     spacing: Theme.spacingM
 

@@ -152,18 +152,12 @@ Column {
         text: "Preview"
         iconName: "play_arrow"
         enabled: root.daemon !== null
-        onClicked: {
-            if (!root.daemon)
-                return;
-            root.daemon.previewSound(root.daemon.soundPath(soundSetting.value, customSetting.value));
-        }
+        onClicked: root.daemon.previewSound(root.daemon.soundPath(soundSetting.value, customSetting.value))
     }
 
     TestAlarmRow {
         ready: root.daemon !== null && root.daemon.alertShowing !== true
         onTestRequested: {
-            if (!root.daemon)
-                return;
             root.daemon.previewSound(root.daemon.soundPath(soundSetting.value, customSetting.value));
             root.daemon.testAlert();
         }

@@ -8,7 +8,7 @@ Ideas, not promises, and no dates. Sands stays a simple timer: no network, nothi
 
 ### Reliability
 
-- **Sound fallback**: when `pw-play` is missing, try `paplay`, then `aplay`. If no player works, the visual alert shows anyway, a toast says « No audio player found » once per session, and the report gets a code (`SND-E004`; `SND-E003` when `notify-send` is missing).
+- **Sound fallback**: when `pw-play` is missing, try `paplay`, then `aplay`. If no player works, the visual alert shows anyway, a toast says « No audio player found » once per session, and the report gets a code (`SND-E004`; `SND-W010` when `notify-send` is missing).
 - **Saved timers checked on load**: a broken entry is skipped and logged (`SND-E002 bad_timer`), the others are kept, and the file is written back clean. Emoji are removed from saved names; a name that was only an emoji becomes « Timer ». The code exists but has not been reviewed yet.
 
 ### Wiring the 1.7.0 groundwork

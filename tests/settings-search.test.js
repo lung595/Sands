@@ -41,7 +41,7 @@ eq(keys("snooze"), [], "pending setting not found");
 eq([keys(""), keys("   "), keys(null), keys("zzzzqq")], [[], [], [], []], "empty, blank, bad and no result");
 eq(Se.find("a".repeat(500)), [], "very long query is cut, no crash");
 
-// The visual alert rows (NAK-681, NAK-663) are found by what the user would type
+// The visual alert rows are found by what the user would type
 eq(first("visual alert"), "alertKind", "the kind row by its name");
 eq(keys("halo").includes("alertKind"), true, "the kind row by one of its cards");
 eq(first("test the alarm"), "testAlarm", "the test button by its name");

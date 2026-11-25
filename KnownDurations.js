@@ -3,6 +3,7 @@
 .import "TimeFormat.js" as TimeFormat
 .import "Timers.js" as Timers
 .import "Strings.js" as Strings
+.import "Commands.js" as Commands
 
 // Known durations: a short built-in table (English and French, D89) plus the
 // user's own entries. Pure: no QML, no clock, no side effects. `lookup`
@@ -139,25 +140,6 @@ function lastOwn(k, recents, history) {
     return best;
 }
 
-// The language of a launcher trigger word (« minuteur » → "fr"), "" when
-// both packs have it (« timer ») or none does
-var KEYWORD_RES = null;
-function keywordLang(work) {
-    if (KEYWORD_RES === null)
-        KEYWORD_RES = TP.PACKS.map(function (p) {
-            return { lang: p.NAME, re: new RegExp("^\\s*(?:" + p.KEYWORDS.join("|") + ")(?![a-z])") };
-        });
-    var found = "";
-    for (var i = 0; i < KEYWORD_RES.length; i++) {
-        if (!KEYWORD_RES[i].re.test(work))
-            continue;
-        if (found !== "")
-            return "";
-        found = KEYWORD_RES[i].lang;
-    }
-    return found;
-}
-
 // What the launcher proposes for a name typed without any number:
 // « timer pâtes » → { ms: 600000, source: "table", name: "pâtes",
 // text: "Pâtes — 10 min (durée habituelle)", icon: "timer" }.
@@ -177,7 +159,9 @@ function suggest(text, options) {
     var o = options || {};
     var work = TP.normalize(text);
     var m = TP.GRAMMAR.keyword.exec(work);
-    var trigger = m ? keywordLang(work) : "";
+    // The language of a launcher trigger word (« minuteur » → "fr"), "" when
+    // both packs have it (« timer ») or none does
+    var trigger = m ? Commands.langOf(work, "keyword") : "";
     var name = Timers.stripEmoji(m ? text.substring(m[0].length) : text, 0).replace(/^[\s:,;.-]+|[\s:,;.!?-]+$/g, "");
     var k = matchKey(name);
     if (k === "")

@@ -592,9 +592,7 @@ function readComponents(r) {
         r.work = consume(r.work, comps[i].start, comps[i].end);
         r.found = true;
     }
-    if (r.clockLike && !r.clockLike.colon && comps.length !== 1)
-        r.clockLike = null;
-    if (r.clockLike && r.clockLike.colon && comps.length > 0)
+    if (r.clockLike && (r.clockLike.colon ? comps.length > 0 : comps.length !== 1))
         r.clockLike = null;
 }
 

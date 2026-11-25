@@ -5,7 +5,7 @@ import "../../components/settings/Sections.js" as Sections
 
 // Every settings section is built inside the page, in the same kind of host as DMS
 // (a Flickable column), and walking the rail repeatedly shows exactly one at a time.
-// NAK-708: building a section on demand crashed Quickshell, so none may be built late.
+// Building a section on demand crashed Quickshell, so none may be built late.
 // Run: tests/qml-page/run.sh
 Item {
     id: root

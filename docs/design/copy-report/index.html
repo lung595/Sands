@@ -1,6 +1,6 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sands · NAK-535 · Copy report row</title>
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sands · Copy report row</title>
 <style>
-/* Every colour below is a DMS Theme role; the palettes are fictitious theme data set from JS (same as NAK-502). */
+/* Every colour below is a DMS Theme role; the palettes are fictitious theme data set from JS (same as the settings mockup). */
 :root{--r:12px;--ease:cubic-bezier(.33,1,.68,1)}
 *{box-sizing:border-box}
 body{margin:0;padding:24px;background:var(--bg);color:var(--text);font:14px/1.4 Inter,'Noto Sans',sans-serif}
@@ -19,7 +19,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .search{flex:1 1 160px;min-width:0;height:44px;border-radius:var(--r);border:1px solid var(--outline);background:none;color:var(--text);font:inherit;padding:0 12px}
 .search::placeholder{color:var(--variant);opacity:1}
 .body{display:flex;align-items:flex-start}
-/* D414 rail, drawn as approved in NAK-505 (A · Dune). Static here: the rail is not the subject of this page. */
+/* D414 rail, drawn as approved (A · Dune). Static here: the rail is not the subject of this page. */
 .rail{position:relative;flex:0 0 176px;width:176px;padding:0 8px;display:flex;flex-direction:column;gap:4px}
 .ent{position:relative;z-index:1;width:160px;height:40px;border-radius:var(--r);color:var(--variant);font-size:14px;line-height:16px;display:flex;align-items:center;gap:8px;padding:0 12px}
 .ent svg{flex:0 0 16px}.ent span{min-width:0;overflow-wrap:anywhere}
@@ -31,7 +31,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 .content{flex:1 1 0;min-width:0;padding-left:16px;display:flex;flex-direction:column;gap:16px}
 .content h3{margin:0;font-size:16px;font-weight:600;line-height:24px}
 .note{font-size:12px;line-height:16px;color:var(--variant);overflow-wrap:anywhere;margin:0}
-/* Sands' own wrapping row (NAK-425): the title wraps before its control, the control drops under the text when room is missing. */
+/* Sands' own wrapping row: the title wraps before its control, the control drops under the text when room is missing. */
 .rowi{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
 .txt{flex:1 1 160px;min-width:0}
 .txt b{display:block;font-weight:500;line-height:20px;overflow-wrap:anywhere}.txt small{display:block;font-size:12px;line-height:16px;color:var(--variant);overflow-wrap:anywhere}
@@ -82,7 +82,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 table{border-collapse:collapse;font-size:14px;max-width:100%}th,td{text-align:left;padding:8px 16px 8px 0;border-bottom:1px solid var(--outline);vertical-align:top}th{color:var(--variant);font-weight:500}
 </style>
 <body>
-<h1>Sands · NAK-535 · The "Copy report" row in Help</h1>
+<h1>Sands · The "Copy report" row in Help</h1>
 <p>The anonymous diagnostics report, as the last row of the Help section of the approved settings (rail A · Dune). Press the button: the report is poured into the clipboard and a heap of sand settles at the foot of the button, then leaves by itself. Beside the button, the GitHub mark is always there: it opens a new issue for Sands, where the report is pasted. Once the report is copied the mark takes the primary colour, so the next step shows itself. Switch "Clipboard tool" to "Missing" to see the guided message. Every state is also drawn side by side under the panel.</p>
 <p>Why it is not generic: the confirmation is not a toast nor a green tick. It is the same settling heap as the rail marker, so "done" reads as sand that has landed.</p>
 <div class="switches" id="sw"></div>
@@ -95,7 +95,7 @@ table{border-collapse:collapse;font-size:14px;max-width:100%}th,td{text-align:le
 <h2>Exact copy</h2><div id="copy"></div>
 <script>
 "use strict";
-// Fictitious DMS themes (same data as NAK-502): stock, one coloured, one wallpaper-generated. Keys are Theme roles.
+// Fictitious DMS themes (same data as the settings mockup): stock, one coloured, one wallpaper-generated. Keys are Theme roles.
 const TH={stock:{dark:{bg:"#141218",surface:"#211F26",high:"#36343B",text:"#E6E0E9",variant:"#CAC4D0",outline:"#938F99",primary:"#D0BCFF",onprimary:"#381E72"},
 light:{bg:"#E7E0EC",surface:"#FEF7FF",high:"#E6E0E9",text:"#1D1B20",variant:"#49454F",outline:"#79747E",primary:"#6750A4",onprimary:"#FFFFFF"}},
 green:{dark:{bg:"#10140F",surface:"#1C211B",high:"#313630",text:"#E0E4DB",variant:"#C2C8BC",outline:"#8C9387",primary:"#A1D39A",onprimary:"#0A390F"},

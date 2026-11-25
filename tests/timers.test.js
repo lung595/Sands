@@ -50,9 +50,7 @@ eq(rec.length, 1, "same duration, other case: not a new entry");
 eq(rec[0].uses, 2, "…it counts one more use");
 eq(rec[0].label, "tea", "…with the latest spelling");
 eq(T.remember(rec, 120000, "tea", now).length, 2, "another duration is another entry");
-const many = [];
-for (let i = 0; i < 20; i++)
-    many.push({ ms: i, label: "", uses: 1, last: now - i * DAY });
+const many = Array.from({ length: 20 }, (_, i) => ({ ms: i, label: "", uses: 1, last: now - i * DAY }));
 eq(T.remember(many, 999, "new", now).length, 12, "at most 12 are kept");
 
 // Colour slots

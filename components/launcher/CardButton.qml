@@ -65,6 +65,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
+        onContainsMouseChanged: if (!containsMouse) tip.hide()
     }
 
     DankTooltipV2 {
@@ -75,13 +76,5 @@ Rectangle {
         interval: 600
         running: mouse.containsMouse && root.tooltip !== ""
         onTriggered: tip.show(root.tooltip, root, 0, 0, "bottom")
-    }
-
-    Connections {
-        target: mouse
-        function onContainsMouseChanged() {
-            if (!mouse.containsMouse)
-                tip.hide();
-        }
     }
 }

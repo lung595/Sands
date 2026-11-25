@@ -16,7 +16,7 @@ Item {
     //   PluginsTab.qml:494    plugin card margins, 2 x spacingL           -> 436
     //   PluginListItem.qml:402 settings Loader margins, 2 x spacingL       -> 404
     // The side navigation of SettingsModal also takes room from the window, so 404 is an
-    // upper bound of the real page. The section rail of the approved mockups (NAK-502)
+    // upper bound of the real page. The section rail of the approved mockups
     // is 176 px: 404 - 176 = 228, the narrowest case. 360 is the mockups' own narrow form.
     readonly property var widths: [228, 360, 404]
 

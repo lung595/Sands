@@ -20,7 +20,7 @@ Column {
 
     readonly property var service: daemon ? daemon.report : null
     readonly property var copier: service ? service.clipboard : null
-    readonly property var view: Words.view(Words.phaseOf(service ? service.busy : false, copier ? copier.result : "idle"), copier ? copier.inHistory === true : false)
+    readonly property var view: Words.view(Words.phaseOf(service ? service.busy : false, copier ? copier.result : "idle"), copier && copier.inHistory)
     // The mark, for the tests that focus it
     readonly property Item markControl: mark
     readonly property bool copied: view.state === "copied"

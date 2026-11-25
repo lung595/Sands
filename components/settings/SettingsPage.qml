@@ -258,7 +258,7 @@ Item {
 
                 // Built once with the page and only shown or hidden. Building a section on
                 // demand (Loader) crashed Quickshell inside Qt's deferred Popup background
-                // when the Alerts section was opened (NAK-708). Cause not proven: a Loader
+                // when the Alerts section was opened. Cause not proven: a Loader
                 // plus a deferred Popup is only suspected; building everything up front,
                 // as before the rail, did not crash.
                 Item {

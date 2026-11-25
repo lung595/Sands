@@ -64,7 +64,7 @@ Item {
         glassColor: Theme.surfaceText
         capColor: Theme.surfaceContainerHighest
         bare: true
-        style: root.daemon && root.daemon.hourglassStyle ? root.daemon.hourglassStyle : "classic"
+        style: root.daemon ? root.daemon.hourglassStyle : "classic"
     }
 
     // A restart turns it over (also when the time does not jump: a short one)

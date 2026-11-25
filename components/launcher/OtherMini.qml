@@ -44,7 +44,7 @@ Rectangle {
         daemon: root.daemon
         timer: root.tm
         animate: root.animate
-        accent: root.daemon && root.tm ? root.daemon.colorFor(root.tm) : Theme.primary
+        accent: root.tm ? root.daemon.colorFor(root.tm) : Theme.primary
     }
 
     DankIcon {
@@ -64,7 +64,7 @@ Rectangle {
         anchors.right: time.left
         anchors.rightMargin: Theme.spacingXS
         anchors.verticalCenter: parent.verticalCenter
-        text: root.daemon && root.tm ? root.daemon.displayLabel(root.tm) : ""
+        text: root.tm ? root.daemon.displayLabel(root.tm) : ""
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.surfaceText
         elide: Text.ElideRight

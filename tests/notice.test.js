@@ -62,7 +62,6 @@ for (let i = 0; i < 100; i++)
     ids = N.markNotified(ids, "t" + i);
 eq(ids.length, 64, "capped");
 eq(ids[63], "t99", "keeps the newest");
-eq(N.prune(["a", "z"], [t]), ["a"], "prune drops gone timers");
 // Default and explicit off
 eq(N.noticeFromSetting(undefined), 2 * MIN, "absent: 2 min default");
 eq(N.noticeFromSetting(null), 2 * MIN, "null: 2 min default");

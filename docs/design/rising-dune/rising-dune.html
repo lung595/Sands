@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sands - Rising dune as real sand: Today, options A, B and C (NAK-555, NAK-637)</title>
+<title>Sands - Rising dune as real sand: Today, options A, B and C</title>
 <style>
-/* Stand-ins for DMS Theme roles (dark and light violet, dark green, light amber are the NAK-395 values). In the plugin every value comes from Theme.*. */
+/* Stand-ins for DMS Theme roles (dark and light violet, dark green, light amber are the approved values). In the plugin every value comes from Theme.*. */
 body{--bg:#141218;--surface:#211F26;--high:#36343B;--text:#E6E0E9;--variant:#CAC4D0;--outline:#938F99;--primary:#D0BCFF;--onprimary:#381E72}
 body[data-mode=light]{--bg:#E7E0EC;--surface:#FEF7FF;--high:#E6E0E9;--text:#1D1B20;--variant:#49454F;--outline:#79747E;--primary:#6750A4;--onprimary:#FFFFFF}
 body[data-colour=green]{--bg:#101510;--surface:#1A211A;--high:#2B322B;--text:#DFE4DB;--variant:#C1C9BE;--outline:#8B9389;--primary:#A1D39A;--onprimary:#0A390F}
@@ -53,14 +53,14 @@ body[data-width=narrow] .panel{width:360px}
 .btn.main::after{background:var(--onprimary)}
 .btn:hover::after{opacity:.08}
 .btn:active::after{opacity:.16}
-/* Battery pill, as approved in NAK-395; level is carried by the dots, not by colour. */
+/* Battery pill, as approved; level is carried by the dots, not by colour. */
 .pill{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 .pill>i{display:inline-flex;align-items:center;gap:6px;font-style:normal;font-size:12px;line-height:16px;font-weight:500;color:var(--text);background:var(--high);border-radius:12px;padding:4px 10px 4px 8px;white-space:nowrap}
 .pill>i u{display:inline-flex;gap:2px;text-decoration:none}
 .pill>i u s{width:6px;height:6px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--text)}
 .pill>i u s.on{background:var(--text)}
 .pill>span{flex:1 1 200px;color:var(--variant);font-size:12px;line-height:16px}
-/* Preview stage of the settings page (NAK-395) and a whole screen, both with the alert at the bottom edge. */
+/* Preview stage of the settings page and a whole screen, both with the alert at the bottom edge. */
 .stage,.screen{position:relative;border-radius:12px;background:var(--surface);overflow:hidden;box-shadow:inset 0 0 0 1px var(--outline)}
 .stage{aspect-ratio:16/10}
 .screen{aspect-ratio:16/9;background:var(--bg)}
@@ -76,7 +76,7 @@ code{font:12px/16px ui-monospace,monospace;color:var(--text)}
 /* The sand caption waits until sand is behind it, then fades in. */
 canvas~.cap{opacity:0;transition:opacity var(--out) var(--ease)}
 canvas~.cap.show{opacity:1;transition-duration:var(--in)}
-/* Today: the flat wave of NAK-395, unchanged. */
+/* Today: the approved flat wave, unchanged. */
 .dune{position:absolute;left:0;right:0;bottom:0;height:34%;transform:translateY(100%);opacity:0;transition:transform var(--out) var(--ease),opacity var(--out) var(--ease)}
 .screen .dune{height:22%}
 .dune svg{position:absolute;inset:0;width:100%;height:100%}
@@ -120,7 +120,7 @@ th{color:var(--variant);width:168px}
 <body data-mode="dark" data-colour="violet" data-width="wide" data-rm="off" data-name="short">
 <header class="board">
   <div><h1>Sands - Rising dune as real sand</h1>
-    <p class="note">NAK-555 · NAK-617 · NAK-637 · D457 · D480. A is the default, B and C are choices. Only the dune changes: the Edge halo, the cards and the rest of the settings page stay as approved in NAK-395. Fictitious data.</p></div>
+    <p class="note">A is the default, B and C are choices. Only the dune changes: the Edge halo, the cards and the rest of the settings page stay as approved. Fictitious data.</p></div>
   <div class="sw"><span id="l-mode">Theme</span><div class="seg" role="radiogroup" aria-labelledby="l-mode"><label><input type="radio" name="mode" value="dark" checked>Dark</label><label><input type="radio" name="mode" value="light">Light</label></div></div>
   <div class="sw"><span id="l-colour">Theme colour</span><div class="seg" role="radiogroup" aria-labelledby="l-colour"><label><input type="radio" name="colour" value="violet" checked>Violet</label><label><input type="radio" name="colour" value="green">Green</label><label><input type="radio" name="colour" value="amber">Amber</label></div></div>
   <div class="sw"><span id="l-width">Settings panel</span><div class="seg" role="radiogroup" aria-labelledby="l-width"><label><input type="radio" name="width" value="wide" checked>640</label><label><input type="radio" name="width" value="narrow">360</label></div></div>
@@ -235,7 +235,7 @@ th{color:var(--variant);width:168px}
 </section>
 
 <section class="opt" id="setrow">
-  <div class="head"><div><h2>Settings - the Rising dune row</h2><p>One row with the three choices, Last grains by default. Only the choice names and the preview stage change; the rest of the NAK-395 page stays as approved.</p>
+  <div class="head"><div><h2>Settings - the Rising dune row</h2><p>One row with the three choices, Last grains by default. Only the choice names and the preview stage change; the rest of the page stays as approved.</p>
     <p class="note">Stored value: <code id="dval">grains</code> (one of <code>grains</code>, <code>wind</code>, <code>wave</code>).</p></div></div>
   <div class="ctx">
     <figure><div class="panel"><h3>Visual alert</h3>

@@ -40,7 +40,7 @@ const inQml = [...qml.matchAll(/settingKey:\s*"(\w+)"/g)].map(m => m[1]);
 eq(inQml.length > 0, true, "the QML page has setting keys");
 eq(inQml.filter(k => !keys.includes(k)), [], "every QML settingKey is in the table");
 
-// Decided on NAK-395 / D423: present and held back until merged
+// Decided: present and held back until merged
 for (const k of ["lookPreset", "snooze", "noticeBefore"])
     eq(S.SETTINGS.find(s => s.key === k).pending, true, "pending: " + k);
 eq(S.visibleSettings().some(s => s.pending), false, "pending settings are not visible");
@@ -87,7 +87,7 @@ eq(Pl.inBar([{ futureWidgets: ["smartTimer"] }], "smartTimer"), true, "any *Widg
 eq(Pl.inBar([{ rightWidgets: ["clock"], island: "smartTimer" }], "smartTimer"), false, "only widget sections are read");
 eq([Pl.inBar(undefined, "smartTimer"), Pl.inBar([], "smartTimer"), Pl.inBar("smartTimer", "smartTimer")], [false, false, false], "no bars, no widget");
 
-// Visual alert rows (NAK-681, NAK-663): visible, filed under Alerts & sounds, with
+// Visual alert rows: visible, filed under Alerts & sounds, with
 // the keys the daemon reads (RingAlert.qml) and the defaults of the pure rules
 const P = load("components/alert/AlertPolicy.js");
 const D = load("components/alert/DuneStyles.js");

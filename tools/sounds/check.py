@@ -17,7 +17,7 @@ MAX_SECONDS, MAX_BYTES, EDGE_LIMIT = 6.0, 60 * 1024, 0.005
 
 def probe(path):
     out = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name,sample_rate,channels:format=duration",
+        ["ffprobe", "-v", "error", "-show_entries", "stream=codec_name:format=duration",
          "-of", "json", path], check=True, capture_output=True, text=True).stdout
     data = json.loads(out)
     return data["streams"][0], float(data["format"]["duration"])

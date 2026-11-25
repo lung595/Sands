@@ -20,7 +20,7 @@ Item {
     // Name of the timer named in the legend, and the reason part after the dot
     property string name: ""
     // The name as drawn: a typed em or en dash becomes a plain hyphen
-    readonly property string shownName: PlainText.plain(name) !== "" ? PlainText.plain(name) : "Timer"
+    readonly property string shownName: PlainText.plain(name) || "Timer"
     property string reason: "Sound is muted"
     property bool reduceMotion: false
     // New seed per alert, set by the host when the alert opens

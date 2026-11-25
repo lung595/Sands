@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offscreen check of rising-dune.html (NAK-555, option C added by NAK-637, retouched by NAK-642).
+"""Offscreen check of rising-dune.html (options A, B and C).
 
 The page is rendered by WebKitGTK on a private broadway display, so nothing
 appears on the live session. Each scenario sets the switches, lets the sand
@@ -50,7 +50,7 @@ ALL_THEMES = SET + ";var o={};set('rm','off');set('width','wide');set('name','sh
 SCENARIOS = [
     ("dark-640-mid", "sandsPlay()", 1200),
     ("dark-640-end", "", 3200),
-    # NAK-642: option C frozen on the 30 Hz step of its highest and of its lowest crest, for the two real-size captures.
+    # Option C frozen on the 30 Hz step of its highest and of its lowest crest, for the two real-size captures.
     ("c-overshoot", "sandsWaveAt('up')", 300),
     ("c-squash", "sandsWaveAt('dn')", 300),
     ("light-amber-360-long", SET + ";set('mode','light');set('colour','amber');set('width','narrow');set('name','long');sandsPlay()", 4200),
@@ -63,7 +63,7 @@ if DPR2:
 
 
 def verdict(name, text):
-    """Option C (NAK-637): end time, step count, caption and contrast, read from the page's own counters."""
+    """Option C: end time, step count, caption and contrast, read from the page's own counters."""
     try:
         data = json.loads(text)
     except ValueError:
@@ -87,7 +87,7 @@ def verdict(name, text):
         ratio = re.search(r"band ([\d.]+):1", s)
         if "mid" not in name and (not ratio or float(ratio.group(1)) < 4.5):
             bad.append("contrast below 4.5")
-        # NAK-642: rim against primary, and the two amplitudes the page measured on its own steps.
+        # Rim against primary, and the two amplitudes the page measured on its own steps.
         rim = re.search(r"rim 3 px at ([\d.]+):1", s)
         if not rim or float(rim.group(1)) < 3:
             bad.append("rim below 3:1")

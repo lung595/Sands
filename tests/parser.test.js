@@ -94,7 +94,7 @@ check("1h laundry", [{ ms: H, label: "laundry" }]);
 check("timer 50 min meeting", [{ ms: 50 * MIN, label: "meeting" }]);
 check("90 min", [{ ms: 90 * MIN, label: "" }]);
 
-// Natural durations (NAK-150)
+// Natural durations
 check("dans 20 minutes", [{ ms: 20 * MIN, label: "" }]);
 check("in 20 minutes", [{ ms: 20 * MIN, label: "" }]);
 check("vingt minutes", [{ ms: 20 * MIN, label: "" }]);
@@ -144,7 +144,7 @@ check("timer 3 jours", [{ ms: 3 * MIN, label: "jours" }]);
 // Labels are never corrected
 check("20 min pasat", [{ ms: 20 * MIN, label: "pasat" }]);
 
-// Natural clock times (NAK-151). NOW is Wednesday 21:47: a bare hour that has
+// Natural clock times. NOW is Wednesday 21:47: a bare hour that has
 // passed today rolls over to tomorrow, an hour still to come stays today.
 check("réveille-moi à 7h", [{ at: "7:00", label: "" }]);
 check("wake me up at 7", [{ at: "7:00", label: "" }]);
