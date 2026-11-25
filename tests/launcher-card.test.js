@@ -79,36 +79,37 @@ eq(C.UNDO_COMMAND, "dms ipc call smartTimer undo", "undo command");
 const ON = { section: true, duringSearch: true, favourites: true };
 const tea = run(1, 190000, 300000, "Tea");
 const pasta = run(2, 400000, 900000, "Pasta");
-const first = S.build({ timers: [tea, pasta], favourites: [], query: "", trigger: "", settings: ON });
+const build = o => S.build(Object.assign({ favourites: [], query: "", trigger: "", settings: ON }, o));
+const first = build({ timers: [tea, pasta] });
 eq(first.items.map(i => i.id), ["timer:1", "timer:2"], "two cards");
 const removed = [{ timer: tea, at: T0 }];
-const after = S.build({ timers: [pasta], favourites: [], query: "", trigger: "", settings: ON, prev: first.order, removed: removed, now: T0 + 1000 });
+const after = build({ timers: [pasta], prev: first.order, removed: removed, now: T0 + 1000 });
 eq(after.items.map(i => i.kind + ":" + i.id), ["stopped:timer:1", "timer:timer:2"], "stopped card in place");
 eq(after.items[0].action, "undo:1", "Enter undoes");
 eq(after.items[0].at, T0, "the card knows when it stopped");
 eq([after.items[0].keepOpen, after.items[0].expandable], [true, false], "undo keeps the launcher open");
-const again = S.build({ timers: [pasta], favourites: [], query: "", trigger: "", settings: ON, prev: after.order, removed: removed, now: T0 + 2000 });
+const again = build({ timers: [pasta], prev: after.order, removed: removed, now: T0 + 2000 });
 eq(again.items.map(i => i.kind), ["stopped", "timer"], "kept on the next refresh");
-const late = S.build({ timers: [pasta], favourites: [], query: "", trigger: "", settings: ON, prev: again.order, removed: removed, now: T0 + 5000 });
+const late = build({ timers: [pasta], prev: again.order, removed: removed, now: T0 + 5000 });
 eq(late.items.map(i => i.kind), ["timer"], "gone after 5 s");
-const alone = S.build({ timers: [], favourites: [], query: "", trigger: "", settings: ON, prev: [{ id: 1, state: "running" }], removed: removed, now: T0 + 1000 });
+const alone = build({ timers: [], prev: [{ id: 1, state: "running" }], removed: removed, now: T0 + 1000 });
 eq(alone.items.map(i => i.kind), ["stopped"], "the last timer stopped still shows its undo");
 
 // A timer hidden behind "+N" stopped: "+N" counts the live ones only, and
 // the stopped one shows its undo in the "+N" place once none is hidden
 const five = [1, 2, 3, 4, 5].map(i => run(i, 60000 * i, 900000, "T" + i));
-const r5 = S.build({ timers: five, favourites: [], query: "", trigger: "", settings: ON });
+const r5 = build({ timers: five });
 eq(r5.items.map(i => i.kind), ["timer", "timer", "timer", "timer", "more"], "five: +1");
 const gone5 = [{ timer: five[4], at: T0 }];
-const a5 = S.build({ timers: five.slice(0, 4), favourites: [], query: "", trigger: "", settings: ON, prev: r5.order, removed: gone5, now: T0 + 1000 });
+const a5 = build({ timers: five.slice(0, 4), prev: r5.order, removed: gone5, now: T0 + 1000 });
 eq(a5.items.map(i => i.kind + ":" + i.timerId), ["timer:1", "timer:2", "timer:3", "timer:4", "stopped:5"], "the 5th stopped: its undo, no +N");
 eq(a5.items[4].action, "undo:5", "Enter undoes the hidden one");
 const six = [1, 2, 3, 4, 5, 6].map(i => run(i, 60000 * i, 900000, "T" + i));
-const r6 = S.build({ timers: six, favourites: [], query: "", trigger: "", settings: ON });
-const a6 = S.build({ timers: six.filter(t => t.id !== 5), favourites: [], query: "", trigger: "", settings: ON, prev: r6.order, removed: [{ timer: six[4], at: T0 }], now: T0 + 1000 });
+const r6 = build({ timers: six });
+const a6 = build({ timers: six.filter(t => t.id !== 5), prev: r6.order, removed: [{ timer: six[4], at: T0 }], now: T0 + 1000 });
 const more6 = a6.items.find(i => i.kind === "more");
 eq([more6.name, more6.timerId], ["+1", 6], "+N counts and opens a live timer");
-const l5 = S.build({ timers: five.slice(0, 4), favourites: [], query: "", trigger: "", settings: ON, prev: a5.order, removed: gone5, now: T0 + 6000 });
+const l5 = build({ timers: five.slice(0, 4), prev: a5.order, removed: gone5, now: T0 + 6000 });
 eq(l5.items.map(i => i.kind), ["timer", "timer", "timer", "timer"], "gone after the undo window");
 
 done();

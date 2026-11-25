@@ -17,13 +17,7 @@ Item {
 
     readonly property int entryHeight: 40
     readonly property int entryStep: 44
-    readonly property int currentIndex: {
-        for (let i = 0; i < sections.length; i++) {
-            if (sections[i].id === current)
-                return i;
-        }
-        return -1;
-    }
+    readonly property int currentIndex: sections.findIndex(s => s.id === current)
 
     implicitHeight: column.height
 

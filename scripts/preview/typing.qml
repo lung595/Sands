@@ -17,10 +17,7 @@ QtObject {
     readonly property int reps: rawMode.indexOf("-x") > 0 ? parseInt(rawMode.split("-x")[1]) : 1
 
     function repeatTo(unit, n) {
-        let s = "";
-        while (s.length < n)
-            s += unit;
-        return s.slice(0, n);
+        return unit.repeat(Math.ceil(n / unit.length)).slice(0, n);
     }
 
     readonly property var phrases: mode === "worst" ? [repeatTo("5 aaaa ", 200), repeatTo("vingt minuts ", 200), repeatTo("12 heurs pasta ", 200)] : (mode === "cap" ? [repeatTo("5 aaaa ", 260)] : ["rappelle-moi de sortir le linge dans vingt minutes", "pasta 12", "firefox", "12 min pasta", "remind me to call mom in half an hour", "tea 4 minuts", "at 6pm leave"])

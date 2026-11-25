@@ -75,16 +75,7 @@ Item {
 
     // A row writes its changed value under its own key, and only then
     function checkSaving(page) {
-        const row = (function find(item) {
-                for (const c of item.children) {
-                    if (c.settingKey === "tick")
-                        return c;
-                    const hit = find(c);
-                    if (hit)
-                        return hit;
-                }
-                return null;
-            })(page);
+        const row = findKey(page, "tick");
         if (!row || page.store.tick !== undefined)
             fail("the tick row is missing, or wrote its value while loading");
         else {
@@ -186,11 +177,11 @@ Item {
         }
     }
 
-    function findReportRow(item) {
+    function findKey(item, key) {
         for (const c of item.children) {
-            if (c.settingKey === "report")
+            if (c.settingKey === key)
                 return c;
-            const hit = findReportRow(c);
+            const hit = findKey(c, key);
             if (hit)
                 return hit;
         }
@@ -211,7 +202,7 @@ Item {
                 const c = cases.children[i];
                 if (!c.page)
                     continue;
-                const row = root.findReportRow(c.page);
+                const row = root.findKey(c.page, "report");
                 if (!row)
                     continue;
                 if (root.reportStep > 0) {

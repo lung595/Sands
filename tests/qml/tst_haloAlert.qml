@@ -54,11 +54,7 @@ ShellRoot {
     }
 
     function inactive(kind, when, sound, full, over, what) {
-        host.kind = kind;
-        host.when = when;
-        host.soundState = sound;
-        host.fullscreen = full;
-        host.showOverFullscreen = over;
+        setup(kind, when, sound, full, over);
         host.ring();
         check(!host.showing, what);
     }

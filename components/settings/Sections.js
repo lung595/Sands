@@ -163,27 +163,14 @@ function sectionOf(key) {
     return s ? s.section : "";
 }
 
-// The next / previous visible section for the keyboard. Stops at the ends
-// (no wrap); an unknown id starts from the first section.
-function neighbour(sectionId, step) {
+// The next visible section for the keyboard. Stops at the end (no wrap);
+// an unknown id starts from the first section.
+function nextSection(sectionId) {
     const ids = visibleSections().map(x => x.id);
     if (ids.length === 0)
         return "";
     const at = ids.indexOf(sectionId);
     if (at < 0)
         return ids[0];
-    return ids[Math.min(ids.length - 1, Math.max(0, at + step))];
-}
-
-function nextSection(sectionId) {
-    return neighbour(sectionId, 1);
-}
-
-function previousSection(sectionId) {
-    return neighbour(sectionId, -1);
-}
-
-// The visible costly settings of one battery level ("high" | "some" | "light")
-function costly(level) {
-    return visibleSettings().filter(s => s.level === level);
+    return ids[Math.min(ids.length - 1, at + 1)];
 }

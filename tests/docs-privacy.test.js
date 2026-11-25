@@ -6,8 +6,7 @@
 // literal command array or `sh -c` script of the QML files. A spawn the test
 // cannot read fails, so a new one must be listed here and in the docs.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const GLib = imports.gi.GLib;
-const { dir, read, load, eq, done } = imports.harness;
+const { read, load, eq, done, listFiles } = imports.harness;
 
 // The bullet list right under "## Privacy", up to the first blank line
 function privacyList(text) {
@@ -70,20 +69,7 @@ eq(NOTIFY.includes("notify-send") && NOTIFY.includes("gdbus"), true, "Notificati
 eq(PROBES.length > 0 && COPY.length > 0, true, "Gather.js has probes and copy tools");
 
 // Every QML file of the plugin (tests, previews and renders left out)
-function walk(rel, out) {
-    const path = dir + "/" + rel;
-    if (GLib.file_test(path, GLib.FileTest.IS_DIR)) {
-        const d = GLib.Dir.open(path, 0);
-        let name;
-        while ((name = d.read_name()) !== null)
-            if (!(rel === "." && ["tests", "scripts", "out", ".git"].includes(name)))
-                walk(rel === "." ? name : rel + "/" + name, out);
-        d.close();
-    } else if (rel.endsWith(".qml")) {
-        out.push(rel);
-    }
-    return out;
-}
+const qmlFiles = listFiles("", p => p.endsWith(".qml"), (p, n) => p === n && ["tests", "scripts", "out", ".git"].includes(n));
 
 // Each place a QML file starts a program, read to the programs it can start;
 // an unknown source of command is reported as such
@@ -97,7 +83,7 @@ function literal(src) {
         return s.match(/^'([^']*)'/)[1];
     return null;
 }
-for (const f of walk(".", [])) {
+for (const f of qmlFiles) {
     const text = read(f);
     text.split("\n").forEach((line, n) => {
         if (/^\s*\/\//.test(line))

@@ -19,9 +19,8 @@ const qmlDefault = k => {
     const m = block && block.match(/defaultValue:\s*([^\n]+)/);
     return m ? JSON.parse(m[1].trim()) : undefined;
 };
-const defaults = Object.fromEntries(existing.map(k => [k, qmlDefault(k)]));
 for (const k of existing)
-    eq(S.SETTINGS.find(s => s.key === k).default, defaults[k], "default unchanged: " + k);
+    eq(S.SETTINGS.find(s => s.key === k).default, qmlDefault(k), "default unchanged: " + k);
 
 // Label, level and cost live twice (table and row; the table help is a shorter search line, so it is not compared): a drift fails here
 const qmlField = (k, f) => {
@@ -59,13 +58,12 @@ eq(S.visibleSections().map(s => s.id), ["start", "timers", "launcher", "appearan
 eq(S.sectionOf("volume"), "alerts", "section of a key");
 eq(S.sectionOf("nope"), "", "unknown key has no section");
 eq(S.settingsOf("timers").map(s => s.key), ["noTrigger", "trigger"], "settings of a section, pending held back");
-eq([S.previousSection("start"), S.nextSection("start")], ["start", "timers"], "start of the list");
-eq([S.previousSection("timers"), S.nextSection("timers")], ["start", "launcher"], "second section");
-eq([S.previousSection("launcher"), S.nextSection("launcher")], ["timers", "appearance"], "launcher section between timers and appearance");
-eq([S.previousSection("help"), S.nextSection("help")], ["advanced", "help"], "end of the list");
+eq(S.nextSection("start"), "timers", "start of the list");
+eq(S.nextSection("timers"), "launcher", "second section");
+eq(S.nextSection("launcher"), "appearance", "launcher section between timers and appearance");
+eq(S.nextSection("help"), "help", "end of the list");
 eq(S.nextSection("bogus"), "start", "unknown section starts at the first");
-eq(S.costly("light").map(s => s.key), ["launcherAnimate", "tick"], "costly settings by level");
-eq([S.costly("high"), S.costly("some")], [[], []], "no costly setting at the other levels");
+eq(["light", "high", "some"].map(l => S.visibleSettings().filter(s => s.level === l).map(s => s.key)), [["launcherAnimate", "tick"], [], []], "costly settings by level");
 eq(S.SETTINGS.filter(s => s.level && (!s.cost || !S.LEVELS.includes(s.level))).length, 0, "a level always comes with a cost note");
 // The Launcher section: the four switches of the Timers row, all on by default
 eq(S.settingsOf("launcher").map(s => s.key), ["launcherSection", "launcherSectionDuringSearch", "launcherSectionFavourites", "launcherAnimate"], "launcher settings in page order");

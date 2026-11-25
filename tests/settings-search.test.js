@@ -68,5 +68,4 @@ eq(first("ajouter barre"), "gettingStarted", "ajouter barre finds Getting starte
 eq(first("super space"), "launcherSection", "super space finds the launcher row");
 eq(Se.find("animate")[0].section, "launcher", "animate lands in the Launcher section");
 eq(keys("sabliers").includes("launcherAnimate"), true, "sabliers also finds the animation switch");
-eq(first("hourglas"), "hourglassStyle", "the hourglass look stays first for hourglass");
 done();

@@ -3,8 +3,7 @@
 // emoji; tr() fills templates and falls back to English; langOf reads a
 // locale name the way DMS does; every key the modules ask for exists.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { load, eq, done, dir, read } = imports.harness;
-const GLib = imports.gi.GLib;
+const { load, eq, done, read, listFiles } = imports.harness;
 const S = load("Strings.js");
 
 const langs = Object.keys(S.TABLE);
@@ -62,22 +61,7 @@ delete S.TABLE.en["test.only"];
 
 // Every key asked for in the sources exists: Strings.tr("key", …) and the
 // "command." keys Commands.js builds
-const sources = sub => {
-    const d = GLib.Dir.open(dir + "/" + sub, 0);
-    const found = [];
-    let name;
-    while ((name = d.read_name()) !== null) {
-        const path = (sub === "." ? "" : sub + "/") + name;
-        if (/^(out|tests|scripts|\.git|node_modules)$/.test(name) && sub === ".")
-            continue;
-        if (GLib.file_test(dir + "/" + path, GLib.FileTest.IS_DIR))
-            found.push(...sources(path));
-        else if (/\.(qml|js)$/.test(name))
-            found.push(path);
-    }
-    return found;
-};
-const files = sources(".");
+const files = listFiles("", p => /\.(qml|js)$/.test(p), (p, n) => p === n && /^(out|tests|scripts|\.git|node_modules)$/.test(n));
 eq(files.includes("components/daemon/IpcReplies.js"), true, "the scan finds the sources");
 const asked = new Set();
 for (const f of files) {

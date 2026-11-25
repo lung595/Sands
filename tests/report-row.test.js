@@ -23,10 +23,9 @@ eq(Row.GITHUB_URL, "https://github.com/lung595/Sands/issues/new/choose", "consta
 eq(Row.MARK_NAME, "Open a new issue for Sands on GitHub", "what a screen reader says of the mark");
 eq(Row.MARK_LABEL, "Open an issue on GitHub", "label of the mark");
 
-let text = JSON.stringify([Row.view("idle"), Row.view("copied"), Row.view("none"), Row.view("collecting")]);
+const text = JSON.stringify([Row.view("idle"), Row.view("copied"), Row.view("none"), Row.view("collecting"), Row.view("copied", true)]);
 eq(Row.view("copied", true).help, "Report copied, and kept in the DMS clipboard history: delete it there once pasted.", "the fallback copy says the history holds it");
 eq(Row.view("copied", false).help, Row.view("copied").help, "a sensitive copy keeps the plain words");
 eq(Row.view("idle", true).help, Row.HELP, "an old flag changes nothing at rest");
-text += JSON.stringify(Row.view("copied", true));
 eq(/[\u2013\u2014]/.test(text), false, "no long dash of either width");
 done();

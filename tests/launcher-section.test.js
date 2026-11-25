@@ -1,6 +1,6 @@
 // components/launcher/Section.js tests — run with: gjs tests/launcher-section.test.js (from the plugin root)
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { load, eq, done } = imports.harness;
+const { load, eq, done, read } = imports.harness;
 const S = load("components/launcher/Section.js");
 
 const run = (id, endAt, label) => ({ id, label: label || "", kind: "duration", state: "running", endAt, total: 60000, remaining: 0, finishedAt: 0 });
@@ -112,15 +112,12 @@ eq([S.requestUpdate({}, "smartTimer", true), S.requestUpdate(null, "smartTimer",
 
 // Wiring: plugin.json opts in without raising the DMS floor, and the daemon
 // asks for a refresh when the timers change, never from its clock
-const GLib = imports.gi.GLib;
-const root = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename(imports.system.programPath, GLib.get_current_dir())));
-const text = f => new TextDecoder().decode(GLib.file_get_contents(root + "/" + f)[1]);
-const manifest = JSON.parse(text("plugin.json"));
+const manifest = JSON.parse(read("plugin.json"));
 eq([manifest.launcherSection, manifest.requires_dms], [true, ">=1.6.0"], "plugin.json opts in, DMS floor unchanged");
-const daemon = text("TimerDaemon.qml");
+const daemon = read("TimerDaemon.qml");
 eq(/onTimersChanged: Section\.requestUpdate\(PluginService, pluginId, liveSections\)/.test(daemon), true, "the daemon refreshes the row on timersChanged, once DMS asked for it");
 eq(/property bool liveSections: false/.test(daemon), true, "live sections off until DMS asks for the row");
-eq(/getSectionItems\(query\) \{[^}]*d\.liveSections = true/.test(text("TimerLauncher.qml")), true, "getSectionItems turns them on");
+eq(/getSectionItems\(query\) \{[^}]*d\.liveSections = true/.test(read("TimerLauncher.qml")), true, "getSectionItems turns them on");
 eq((daemon.match(/requestUpdate|requestLauncherUpdate/g) || []).length, 1, "and nowhere else (not on the clock)");
 
 done();

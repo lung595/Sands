@@ -3,7 +3,7 @@
 // the end notification, pinned because scripts and the notification daemon
 // read them.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { load, eq, done } = imports.harness;
+const { load, eq, done, read, listFiles } = imports.harness;
 const R = load("components/daemon/IpcReplies.js");
 const N = load("components/daemon/Notifications.js");
 
@@ -69,22 +69,7 @@ eq(R.started({ started: 1, count: 1, kind: "duration", label: "a \u2014 \u2014 b
 
 // No user-facing string of components/ holds an em or en dash. Scanned in JS
 // from the plugin root: independent of the working directory and the locale.
-const { dir, read } = imports.harness;
-const GLib = imports.gi.GLib;
-const sources = sub => {
-    const d = GLib.Dir.open(dir + "/" + sub, 0);
-    const found = [];
-    let name;
-    while ((name = d.read_name()) !== null) {
-        const path = sub + "/" + name;
-        if (GLib.file_test(dir + "/" + path, GLib.FileTest.IS_DIR))
-            found.push(...sources(path));
-        else if (/\.(qml|js)$/.test(name))
-            found.push(path);
-    }
-    return found;
-};
-const all = sources("components");
+const all = listFiles("components", p => /\.(qml|js)$/.test(p), () => false);
 eq(all.length > 20, true, "the scan finds the sources");
 eq(all.filter(f => /[\u2013\u2014]/.test(read(f))), [], "no em or en dash in components/");
 eq(JSON.parse(R.snoozed(5)), { snoozed: true, minutes: 5 }, "reply: snoozed is JSON");

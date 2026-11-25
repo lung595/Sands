@@ -25,7 +25,7 @@ Item {
     property real level: reduceMotion ? HaloMotion.posed() : 0
     readonly property bool running: clock.running
 
-    property var _steps: reduceMotion ? [] : HaloMotion.steps(false)
+    property var _steps: HaloMotion.steps(reduceMotion)
     property int _index: 0
     property bool _leaving: false
 

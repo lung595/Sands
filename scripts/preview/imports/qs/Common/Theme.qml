@@ -13,7 +13,6 @@ ThemeColors {
     property color onPrimaryContainer: root.light ? "#21005D" : "#EADDFF"
     property color error: root.light ? "#B3261E" : "#F2B8B5"
     property color warning: root.light ? "#8A5100" : "#FFB95C"
-    property color success: root.light ? "#1B6E2E" : "#8FD99A"
     property color outline: root.light ? "#79747E" : "#938F99"
     property color outlineVariant: root.light ? "#CAC4D0" : "#49454F"
     property color primaryText: root.light ? "#FFFFFF" : "#381E72"

@@ -6,8 +6,7 @@
 // reacting). Signal handlers in `Connections { target: daemon }` count too.
 // The walk covers every .qml of the plugin, never the preview mocks or tests.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { eq, done, dir, read } = imports.harness;
-const Gio = imports.gi.Gio;
+const { eq, done, read, listFiles } = imports.harness;
 
 // Reads that are not the TimerDaemon (a local object also named daemon or
 // engine, a member of something else), as "file:name.member" -> reason.
@@ -75,25 +74,12 @@ eq(["timers", "start", "report", "timerStarted", "ringingChanged"].every(m => de
 eq(declared.has("interval"), false, "members of TimerDaemon.qml children are not its own");
 
 // Every .qml under the plugin root, preview mocks and tests left out
-function walk(rel, found) {
-    const en = Gio.File.new_for_path(rel ? dir + "/" + rel : dir).enumerate_children("standard::name,standard::type", 0, null);
-    let info;
-    while ((info = en.next_file(null))) {
-        const name = info.get_name(), path = rel ? rel + "/" + name : name;
-        if (name.startsWith(".") || path === "scripts/preview" || path === "tests")
-            continue;
-        if (info.get_file_type() === Gio.FileType.DIRECTORY)
-            walk(path, found);
-        else if (name.endsWith(".qml") && path !== "TimerDaemon.qml")
-            found.push(path);
-    }
-    return found;
-}
+const qmlFiles = listFiles("", p => p.endsWith(".qml") && p !== "TimerDaemon.qml", (p, n) => n.startsWith(".") || p === "scripts/preview" || p === "tests");
 
 const BASES = ["daemon", "engine"];
 const used = new Map();     // "file:name.member" -> line
 const reading = new Set();  // files that read the daemon
-for (const file of walk("", []).sort()) {
+for (const file of qmlFiles.sort()) {
     const src = code(read(file));
     // Aliases: `property var d: pop.daemon` (read as `d.` or `pop.d.`) and
     // `const d = daemon;` (a bare local)

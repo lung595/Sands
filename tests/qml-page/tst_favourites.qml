@@ -49,6 +49,14 @@ Item {
         name: "Favourites"
         when: windowShown
 
+        readonly property var looks: [
+            {
+                look: "glasses"
+            },
+            {
+                look: "rows"
+            }
+        ]
         readonly property var h: [
             {
                 name: "work",
@@ -114,14 +122,7 @@ Item {
         }
 
         function test_states_data() {
-            return [
-                {
-                    look: "glasses"
-                },
-                {
-                    look: "rows"
-                }
-            ];
+            return looks;
         }
 
         function test_states(d) {
@@ -154,14 +155,7 @@ Item {
         }
 
         function test_click_data() {
-            return [
-                {
-                    look: "glasses"
-                },
-                {
-                    look: "rows"
-                }
-            ];
+            return looks;
         }
 
         function test_click(d) {
@@ -176,14 +170,7 @@ Item {
         }
 
         function test_keyboard_data() {
-            return [
-                {
-                    look: "glasses"
-                },
-                {
-                    look: "rows"
-                }
-            ];
+            return looks;
         }
 
         function test_keyboard(d) {
@@ -219,14 +206,7 @@ Item {
         }
 
         function test_markup_name_is_text_data() {
-            return [
-                {
-                    look: "glasses"
-                },
-                {
-                    look: "rows"
-                }
-            ];
+            return looks;
         }
 
         function test_markup_name_is_text(d) {
@@ -252,14 +232,7 @@ Item {
         }
 
         function test_narrow_data() {
-            return [
-                {
-                    look: "glasses"
-                },
-                {
-                    look: "rows"
-                }
-            ];
+            return looks;
         }
 
         function test_narrow(d) {

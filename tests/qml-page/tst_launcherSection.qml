@@ -74,16 +74,10 @@ Item {
     }
 
     function ring(id, label) {
-        return {
-            id: id,
-            label: label || "",
-            kind: "duration",
+        return Object.assign(run(id, 1, label), {
             state: "ringing",
-            endAt: 1,
-            total: 60000,
-            remaining: 0,
             finishedAt: 1
-        };
+        });
     }
 
     SignalSpy {

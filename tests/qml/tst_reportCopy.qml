@@ -91,7 +91,7 @@ ShellRoot {
                 look.after = t => {
                     root.check(t.indexOf("argv:--sensitive\n") >= 0, "wl-copy gets --sensitive only: " + t);
                     root.check(t.indexOf("stdin:SECRET-LINE") >= 0, "text on stdin");
-                    root.check(t.indexOf("argv:--sensitive\n") >= 0 && t.split("\n")[0].indexOf("SECRET") < 0, "text not in argv");
+                    root.check(t.split("\n")[0].indexOf("SECRET") < 0, "text not in argv");
                     root.next();
                     root.next();
                 };

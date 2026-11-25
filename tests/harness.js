@@ -28,6 +28,26 @@ function eq(got, expected, what) {
     }
 }
 
+// The files under `rel` ("" for the plugin root, or a file path) that
+// keep(path) picks; skip(path, name) prunes an entry and everything below it
+function listFiles(rel, keep, skip, out = []) {
+    const p = rel ? dir + "/" + rel : dir;
+    if (!GLib.file_test(p, GLib.FileTest.IS_DIR)) {
+        if (GLib.file_test(p, GLib.FileTest.EXISTS) && keep(rel))
+            out.push(rel);
+        return out;
+    }
+    const d = GLib.Dir.open(p, 0);
+    let n;
+    while ((n = d.read_name()) !== null) {
+        const c = rel ? rel + "/" + n : n;
+        if (!skip(c, n))
+            listFiles(c, keep, skip, out);
+    }
+    d.close();
+    return out;
+}
+
 // Prints the summary and sets the exit code
 function done() {
     print(failures === 0 ? "✓ " + count + " tests passed" : "\n" + failures + " / " + count + " failed");

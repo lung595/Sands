@@ -1,7 +1,7 @@
 // Hourglass geometry tests — run with: gjs tests/hourglass.test.js (from the plugin root)
 // Checks the sand follows time by volume: monotonic, symmetric, conserved.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const { load } = imports.harness;
+const { load, eq, done } = imports.harness;
 const G = load("components/hourglass/Geometry.js");
 const F = load("components/hourglass/FrostDraw.js");
 
@@ -17,15 +17,7 @@ function recorder() {
 }
 const countOf = (ctx, name) => ctx.calls.filter(c => c.name === name).length;
 
-let failures = 0, count = 0;
-
-function check(ok, what) {
-    count++;
-    if (!ok) {
-        failures++;
-        print("✗ " + what);
-    }
-}
+const check = (ok, what) => eq(ok, true, what);
 
 function near(got, expected, eps, what) {
     check(Math.abs(got - expected) <= eps, what + ": expected " + expected + ", got " + got);
@@ -117,5 +109,4 @@ check(mid.fallLength >= 4, "the stream is never shorter than 4 px");
     near(Math.max(...xs), widest, 1e-9, "outline reaches the widest point of the profile");
 }
 
-print(failures === 0 ? "✓ all " + count + " hourglass checks passed" : failures + " of " + count + " checks FAILED");
-imports.system.exit(failures === 0 ? 0 : 1);
+done();

@@ -13,6 +13,17 @@ Item {
     width: 404
     height: 1600
 
+    readonly property var twoScreens: [
+        {
+            "name": "DP-2",
+            "model": "Wide 27"
+        },
+        {
+            "name": "HDMI-A-1",
+            "model": ""
+        }
+    ]
+
     FakeDaemon {
         id: fake
     }
@@ -35,16 +46,7 @@ Item {
             id: section
             daemon: fake
             // Two screens, as on a desk with a second monitor
-            screens: [
-                {
-                    "name": "DP-2",
-                    "model": "Wide 27"
-                },
-                {
-                    "name": "HDMI-A-1",
-                    "model": ""
-                }
-            ]
+            screens: root.twoScreens
             soundOptions: [
                 {
                     "label": "Hourglass",
@@ -105,23 +107,13 @@ Item {
             row("alertKind").value = "dune";
             row("duneStyle").value = "grains";
             row("alertScreen").value = "all";
-            section.screens = twoScreens;
+            section.screens = root.twoScreens;
             fake.haloAvailable = true;
             fake.alertShowing = false;
             fake.alertTests = 0;
             fake.previews = [];
         }
 
-        readonly property var twoScreens: [
-            {
-                "name": "DP-2",
-                "model": "Wide 27"
-            },
-            {
-                "name": "HDMI-A-1",
-                "model": ""
-            }
-        ]
         function dropdown(key) {
             return find(row(key), c => c.dropdownWidth !== undefined && c.options !== undefined);
         }
@@ -155,16 +147,16 @@ Item {
             const d = dropdown("alertScreen");
             d.valueChanged("HDMI-A-1");
             // The saved screen is unplugged: still shown, marked, nothing rewritten
-            section.screens = [twoScreens[0]];
+            section.screens = [root.twoScreens[0]];
             compare(d.options, ["All screens", "Active screen", "Wide 27 (DP-2)", "HDMI-A-1 (not connected)"]);
             compare(d.currentValue, "HDMI-A-1 (not connected)");
             compare(host.saved.alertScreen, "HDMI-A-1");
             // Plugged again
-            section.screens = twoScreens;
+            section.screens = root.twoScreens;
             compare(d.options, ["All screens", "Active screen", "Wide 27 (DP-2)", "HDMI-A-1"]);
             compare(d.currentValue, "HDMI-A-1");
             // A third screen arrives while the page is open
-            section.screens = twoScreens.concat([
+            section.screens = root.twoScreens.concat([
                 {
                     "name": "eDP-1",
                     "model": "Laptop"

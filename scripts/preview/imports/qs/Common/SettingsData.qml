@@ -13,7 +13,4 @@ QtObject {
     function savePluginSettings() {
         pluginSettingsSaves++;
     }
-    function getPluginSettingsForPlugin(id) {
-        return pluginSettings[id] || {};
-    }
 }

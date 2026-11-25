@@ -2,44 +2,33 @@
 // Checks that each function matches the animation it replaces: same values
 // at the key moments, continuous (no jump when a loop wraps), within range.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const M = imports.harness.load("components/Motion.js");
-
-let failures = 0, count = 0;
+const { load, eq, done } = imports.harness;
+const M = load("components/Motion.js");
 
 function near(got, expected, what) {
-    count++;
-    if (Math.abs(got - expected) > 1e-6) {
-        failures++;
-        print("✗ " + what + ": expected " + expected + ", got " + got);
-    }
+    eq(!(Math.abs(got - expected) > 1e-6), true, what + ": expected " + expected + ", got " + got);
 }
 
 // Largest step between two frames 1 ms apart over a whole cycle: a jump
 // (a loop that does not wrap back to its start) would show up here.
 function continuous(f, cycle, maxStep, what) {
-    count++;
     let prev = f(0), worst = 0;
     for (let t = 1; t <= 2 * cycle; t++) {
         const v = f(t);
         worst = Math.max(worst, Math.abs(v - prev));
         prev = v;
     }
-    if (worst > maxStep) {
-        failures++;
-        print("✗ " + what + " jumps by " + worst);
-    }
+    eq(!(worst > maxStep), true, what + " jumps by " + worst);
 }
 
 function within(f, cycle, lo, hi, what) {
-    count++;
-    for (let t = 0; t <= cycle; t += 7) {
+    let bad = null;
+    for (let t = 0; t <= cycle && bad === null; t += 7) {
         const v = f(t);
-        if (v < lo - 1e-9 || v > hi + 1e-9) {
-            failures++;
-            print("✗ " + what + " out of range at " + t + ": " + v);
-            return;
-        }
+        if (v < lo - 1e-9 || v > hi + 1e-9)
+            bad = t + ": " + v;
     }
+    eq(bad, null, what + " out of range");
 }
 
 // wave: starts at lo, reaches hi at half period, back to lo
@@ -76,5 +65,4 @@ for (const h of [[0, 0, 0], [0.3, 0.7, 0.1], [0.99, 0.5, 0.9]]) {
     continuous(t => M.drift(t, h[1], h[2]), dcycle, 0.005, "drift");
 }
 
-print(failures === 0 ? "✓ " + count + " tests passed" : "\n" + failures + " / " + count + " failed");
-imports.system.exit(failures === 0 ? 0 : 1);
+done();

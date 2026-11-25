@@ -24,19 +24,9 @@ var VARIANTS = {
     ]
 };
 
-// The keys, in the order of the settings page
-function keys() {
-    return Object.keys(VARIANTS);
-}
-
 // The default value of `key`, or "" for an unknown key
 function defaultOf(key) {
     return VARIANTS.hasOwnProperty(key) ? VARIANTS[key][0].value : "";
-}
-
-// The choices of `key` as [{ value, label }], default first; [] for an unknown key
-function choices(key) {
-    return VARIANTS.hasOwnProperty(key) ? VARIANTS[key].map(c => ({ "value": c.value, "label": c.label })) : [];
 }
 
 // `raw` when it is an allowed value of `key`, else the default. Anything

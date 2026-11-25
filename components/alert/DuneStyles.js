@@ -48,16 +48,3 @@ function resolve(value) {
             return value;
     return DEFAULT;
 }
-
-function entryOf(value) {
-    const key = resolve(value);
-    return STYLES.find(s => s.value === key);
-}
-
-function labelOf(value) {
-    return entryOf(value).label;
-}
-
-function helpOf(value) {
-    return entryOf(value).help;
-}

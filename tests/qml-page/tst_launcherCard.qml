@@ -191,6 +191,13 @@ Item {
             return card;
         }
 
+        function openCard(t) {
+            make(root.timerItem(t), {
+                expanded: true
+            });
+            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+        }
+
         function child(name) {
             const c = findChild(card, name);
             verify(c !== null, "no " + name);
@@ -273,10 +280,7 @@ Item {
 
         function test_expanded() {
             fake.timers = [root.run(1, 754000, "Pâtes"), root.run(2, 250000, "Thé"), root.paused(3, 1860000, "Linge")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             compare(child("bigTime").text, "12:34");
             compare(child("othersList").count, 2, "the other timers as mini-cards");
             compare(child("pauseButton").Accessible.name, "Pause");
@@ -359,10 +363,7 @@ Item {
 
         function test_rename() {
             fake.timers = [root.run(1, 754000, "Pâtes")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             const field = child("nameField");
             mouseClick(child("nameBox"), 5, 10);
             verify(field.visible);
@@ -387,10 +388,7 @@ Item {
 
         function test_keys() {
             fake.timers = [root.run(1, 754000, "Pâtes")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             const ev = key => ({
                     key: key,
                     modifiers: Qt.NoModifier,
@@ -489,10 +487,7 @@ Item {
 
         function test_minusUnder61s() {
             fake.timers = [root.run(1, 30000, "Thé")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             const minus = root.byText(card, "−1");
             verify(minus !== null);
             compare(minus.visible, false, "30 s left: no −1");
@@ -506,10 +501,7 @@ Item {
 
         function test_spaceOnControls() {
             fake.timers = [root.run(1, 754000, "Pâtes")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             // Space pauses whatever control has the focus, it never presses it
             for (const target of ["+5", "replayButton", "closeButton", "muteButton"]) {
                 fake.calls = [];
@@ -529,10 +521,7 @@ Item {
 
         function test_spaceNeverStopsRinging() {
             fake.timers = [root.ring(1, 42000, "Pâtes")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             child("stopRinging").forceActiveFocus();
             keyClick(Qt.Key_Space);
             compare(fake.calls, [], "Space on Stop does nothing");
@@ -542,10 +531,7 @@ Item {
 
         function test_openBodyKeepsClicks() {
             fake.timers = [root.ring(1, 42000, "Pâtes")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             mouseClick(child("bigTime"));
             mouseClick(child("expandedLoader").item.glass);
             mouseClick(card, card.width - 4, card.height - 4);
@@ -608,10 +594,7 @@ Item {
 
         function test_renameClickElsewhere() {
             fake.timers = [root.run(1, 754000, "Pâtes")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             const field = child("nameField");
             mouseClick(child("nameBox"), 5, 10);
             verify(field.visible);
@@ -648,19 +631,13 @@ Item {
 
         function test_noticeDefault() {
             fake.timers = [root.run(1, 754000, "Pâtes")];
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             compare(child("noticeBit").icon, "notifications", "unset: the daemon's 2 min notice");
             compare(child("noticeBit").text, "2m");
             fake.settings = {
                 noticeMinutes: 0
             };
-            make(root.timerItem(fake.timers[0]), {
-                expanded: true
-            });
-            tryCompare(child("expandedLoader"), "status", Loader.Ready);
+            openCard(fake.timers[0]);
             compare(child("noticeBit").icon, "notifications_off");
         }
     }

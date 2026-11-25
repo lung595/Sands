@@ -3,8 +3,7 @@
 // after the plugin id: ~/.config/dms/plugins/smartTimer. Any other plugin
 // install path in the docs or the scripts is a broken install.
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const GLib = imports.gi.GLib;
-const { dir, read, eq, done } = imports.harness;
+const { read, eq, done, listFiles } = imports.harness;
 
 const INSTALL = "~/.config/dms/plugins/smartTimer";
 const CLONE = "git clone https://github.com/lung595/Sands " + INSTALL;
@@ -30,22 +29,8 @@ eq(badPaths("~/.config/niri/config.kdl"), [], "other config files are not instal
 
 // Every text file of the docs, the scripts and the tools
 const TEXT = /\.(md|sh|py|txt|yml|yaml|html|qml|js|conf|json)$/;
-function walk(rel, out) {
-    const path = dir + "/" + rel;
-    if (!GLib.file_test(path, GLib.FileTest.IS_DIR)) {
-        if (GLib.file_test(path, GLib.FileTest.EXISTS) && TEXT.test(rel)) out.push(rel);
-        return out;
-    }
-    const d = GLib.Dir.open(path, 0);
-    let name;
-    while ((name = d.read_name()) !== null)
-        if (name !== "out" && name !== "__pycache__" && name !== "node_modules")
-            walk(rel + "/" + name, out);
-    d.close();
-    return out;
-}
 const files = ["README.md", "CONTRIBUTING.md", "CHANGELOG.md", "ROADMAP.md", "docs", "scripts", "tools", ".github"]
-    .reduce((acc, f) => walk(f, acc), []);
+    .reduce((acc, f) => listFiles(f, p => TEXT.test(p), (p, n) => ["out", "__pycache__", "node_modules"].includes(n), acc), []);
 eq(files.includes("README.md") && files.includes("CONTRIBUTING.md") && files.includes("docs/GUIDE.md"), true, "the docs are read");
 for (const f of files)
     eq(badPaths(read(f)), [], "no other plugin install path in " + f);

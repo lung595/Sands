@@ -65,19 +65,13 @@ Item {
             const sp = find(host, "settingsPage");
             const field = find(sp, "searchField");
             keyClick(Qt.Key_F, Qt.ControlModifier);
-            keyClick("s");
-            keyClick("o");
-            keyClick("u");
-            keyClick("n");
-            keyClick("d");
+            for (const k of "sound")
+                keyClick(k);
             compare(sp.query, "sound");
             keyClick(Qt.Key_Escape);
             compare(sp.query, "", "Esc clears the query");
-            keyClick("s");
-            keyClick("o");
-            keyClick("u");
-            keyClick("n");
-            keyClick("d");
+            for (const k of "sound")
+                keyClick(k);
             keyClick(Qt.Key_Return);
             compare(sp.query, "", "Enter clears the query");
             compare(sp.section, "alerts", "Enter opens the first hit");

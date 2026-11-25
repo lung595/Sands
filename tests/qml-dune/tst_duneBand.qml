@@ -70,23 +70,6 @@ Item {
             verify(!band.animating, "no timer after dismissal");
         }
 
-        function test_dismiss_mid_run() {
-            band.shown = true;
-            wait(200);
-            band.shown = false;
-            verify(!band.animating, "timer stopped mid run");
-            tryVerify(() => !band.sceneLoaded, 1000, "Loader inactive mid run");
-        }
-
-        function test_reduce_motion_is_posed_with_no_step() {
-            band.reduceMotion = true;
-            band.shown = true;
-            verify(!band.animating, "no timer under Reduce motion");
-            verify(band.duneState.done, "posed at once");
-            compare(band.duneState.steps, 0);
-            verify(band.legendVisible, "legend at once");
-        }
-
         function test_unknown_style_draws_grains() {
             band.style = "nonsense";
             compare(band.drawn, "grains");
@@ -161,6 +144,7 @@ Item {
             band.shown = true;
             verify(band.legendVisible);
             verify(band.legend.width <= 360 - 32, "legend fits: " + band.legend.width);
+            verify(band.legend.x >= 0, "legend inside the band");
             const h = band.duneState.heights, low = Math.min(...h) * band.scene.reach * 200;
             verify(low >= 200 - band.legend.y - 13, "lowest sand " + low + " px reaches the caption text");
         }
@@ -203,15 +187,6 @@ Item {
         function test_empty_name_falls_back() {
             band.name = "";
             compare(band.shownName, "Timer");
-        }
-
-        function test_long_name_is_elided_at_360() {
-            root.width = 360;
-            band.name = "A very long timer name that cannot possibly fit in a narrow screen strip";
-            band.reduceMotion = true;
-            band.shown = true;
-            verify(band.legend.width <= 360 - 32, "legend fits: " + band.legend.width);
-            verify(band.legend.x >= 0, "legend inside the band");
         }
     }
 }

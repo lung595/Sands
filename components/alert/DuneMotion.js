@@ -184,8 +184,3 @@ function covers(heights, x0, x1, need) {
             return false;
     return true;
 }
-
-// D482: nothing is drawn over a full-screen app unless the user asked for it
-function shouldDraw(fullscreen, showOverFullscreen) {
-    return !fullscreen || showOverFullscreen === true;
-}

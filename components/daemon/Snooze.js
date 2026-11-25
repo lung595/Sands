@@ -45,12 +45,6 @@ function ordered(raw, last) {
     return list.indexOf(m) > 0 ? [m].concat(list.filter(x => x !== m)) : list;
 }
 
-// The value to remember after a pick, or 0 when it is not an offered choice
-function remember(raw, picked) {
-    const m = minutes(picked);
-    return clean(raw).indexOf(m) >= 0 ? m : 0;
-}
-
 // The snooze in ms for a pick, or 0 when invalid
 function toMs(picked) {
     return minutes(picked) * 60000;

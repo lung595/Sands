@@ -19,11 +19,9 @@ QtObject {
     readonly property string guideUrl: "file:///dev/null"
 
     // The report service and the clipboard, for the "Copy report" row. A press
-    // ends at once in `copyOutcome` ("copied" or "none"); `building` keeps it busy.
-    property string copyOutcome: "copied"
-    property bool building: false
+    // ends at once in "copied".
     readonly property QtObject report: QtObject {
-        readonly property bool busy: fake.building
+        readonly property bool busy: false
         readonly property QtObject clipboard: QtObject {
             property string result: "idle"
             function reset() {
@@ -31,7 +29,7 @@ QtObject {
             }
         }
         function request(via) {
-            clipboard.result = fake.copyOutcome;
+            clipboard.result = "copied";
             return true;
         }
     }

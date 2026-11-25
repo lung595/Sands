@@ -32,14 +32,17 @@ Canvas {
     property real capRight: 0
     property real capTop: height
 
+    function _rgb(c) {
+        return {
+            r: c.r,
+            g: c.g,
+            b: c.b
+        };
+    }
+
     // Four flat tints from Theme roles, plain and capped, as CSS strings
     readonly property var _sets: {
-        const rgb = c => ({
-                    r: c.r,
-                    g: c.g,
-                    b: c.b
-                });
-        const t = Tint.tints(rgb(Theme.primary), rgb(Theme.onPrimary), rgb(Theme.surfaceText));
+        const t = Tint.tints(_rgb(Theme.primary), _rgb(Theme.onPrimary), _rgb(Theme.surfaceText));
         return {
             plain: t.plain.map(Tint.css),
             capped: t.capped.map(Tint.css)
@@ -47,19 +50,7 @@ Canvas {
     }
 
     // The same colours as continuous shading, for the faces
-    readonly property var _pal: Tint.palette({
-        r: Theme.primary.r,
-        g: Theme.primary.g,
-        b: Theme.primary.b
-    }, {
-        r: Theme.onPrimary.r,
-        g: Theme.onPrimary.g,
-        b: Theme.onPrimary.b
-    }, {
-        r: Theme.surfaceText.r,
-        g: Theme.surfaceText.g,
-        b: Theme.surfaceText.b
-    })
+    readonly property var _pal: Tint.palette(_rgb(Theme.primary), _rgb(Theme.onPrimary), _rgb(Theme.surfaceText))
 
     property var _speck: []
     property string _speckKey: ""
