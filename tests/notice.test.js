@@ -39,7 +39,7 @@ const restarted = run("a", 10 * MIN, 50 * MIN);
 eq(N.dueAt(restarted, 2 * MIN, done1), -1, "restarted but still listed: no notice");
 eq(N.dueAt(restarted, 2 * MIN, []), 48 * MIN, "restarted and removed from the list: notice");
 eq(N.markNotified(done1, "a"), ["a"], "marking twice keeps one");
-eq(N.markNotified([], "a") !== N.markNotified([], "a"), true, "new array each time");
+eq(N.markNotified(done1, "a") !== done1, true, "new array each time");
 
 // Pause and resume: the mark follows endAt
 const paused = { id: "a", state: "paused", total: 10 * MIN, endAt: 0, remaining: 5 * MIN };
