@@ -55,6 +55,8 @@ Item {
             const n = _notifiers[key];
             if (n.notifId > 0)
                 Quickshell.execDetached(Notifications.closeCommand(n.notifId));
+            else if (!n.proc.running)
+                n.proc.destroy();
             const map = Object.assign({}, _notifiers);
             delete map[key];
             _notifiers = map;
