@@ -114,10 +114,10 @@ eq("every code has a sentence for the guide", Object.keys(Codes.CODES).filter(c 
 eq("no field, setting or fact is a free-text kind", [...Object.values(Codes.FIELDS), ...Object.values(Codes.SETTINGS), ...Object.values(Codes.FACTS)].filter(s => !(s === "int" || s === "bool" || Array.isArray(s))), []);
 const guide = read("docs/DEBUGGING.md");
 eq("every code is explained in docs/DEBUGGING.md", Object.keys(Codes.CODES).filter(c => guide.indexOf("`" + c + "`") < 0), []);
-eq("the personal settings are not reported", ["customSound", "trigger"].filter(k => k in Codes.SETTINGS), []);
+const OMITTED = ["customSound", "trigger"];
+eq("the personal settings are not reported", OMITTED.filter(k => k in Codes.SETTINGS), []);
 
 // The settings page and Codes.SETTINGS cannot drift apart
-const OMITTED = ["customSound", "trigger"];
 const pageKeys = [...["Timers", "Launcher", "Appearance", "Alerts"].map(n => read("components/settings/" + n + "Section.qml")).join("\n").matchAll(/settingKey: "(\w+)"/g)].map(m => m[1]);
 eq("every setting of the page is reported or left out on purpose", pageKeys.filter(k => !(k in Codes.SETTINGS) && OMITTED.indexOf(k) < 0), []);
 eq("Codes.SETTINGS holds no key the page no longer has", Object.keys(Codes.SETTINGS).filter(k => pageKeys.indexOf(k) < 0), []);

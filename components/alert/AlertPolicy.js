@@ -20,7 +20,7 @@ const DEFAULT_SCREEN = SCREEN_ALL;
 // offer it yet (soundFile("none") would still ring the default), so the story
 // that wires the host into the daemon adds it there and imports this constant
 // from one place instead of keeping a copy (Q181). Both choices are kept when the alert is
-// also "none"; the page only warns (isSilent).
+// also "none"; isSilent is the check for the page's warning, not wired yet.
 const SILENT_SOUND = "none";
 
 // Saved values come from a file the user can edit: anything unknown falls
@@ -78,10 +78,7 @@ function screensFor(setting, names, focused) {
 // ring point. A list that matches no screen any more keeps them all.
 function pickScreens(screens, names) {
     const list = screens || [];
-    const kept = [];
-    for (let i = 0; i < list.length; i++)
-        if (list[i] && (names || []).indexOf(list[i].name) >= 0)
-            kept.push(list[i]);
+    const kept = Array.prototype.filter.call(list, s => s && (names || []).indexOf(s.name) >= 0);
     return kept.length > 0 ? kept : list;
 }
 

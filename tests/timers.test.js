@@ -70,10 +70,5 @@ eq(T.stripEmoji("a\tb\n c", 60), "a b c", "control characters are spaces");
 eq(T.stripEmoji("x".repeat(80), 60).length, 60, "capped to the given length");
 eq(T.stripEmoji("x".repeat(59) + "𝄞", 60), "x".repeat(59), "never half a surrogate pair");
 eq(T.stripEmoji(undefined, 60), "", "nothing is an empty name");
-eq(T.fallbackName("fr_FR"), "Minuteur", "French fallback");
-eq(T.fallbackName("en_US"), "Timer", "any other language: Timer");
-eq(T.cleanName("🍝", 60, "Minuteur"), "Minuteur", "a name that was only an emoji gets the fallback");
-eq(T.cleanName("  ", 60, "Timer"), "", "an empty name stays empty");
-eq(T.cleanName("🍝 Pâtes", 60, "Timer"), "Pâtes", "a name with letters keeps them");
 
 done();

@@ -146,7 +146,7 @@ eq(L.settle([run(1, 1000)], 1000 + 5 * 60000, 5 * 60000).fired[0].stale, true, "
 eq(L.settle([run(1, 1000)], 1001, 0).fired[0].stale, true, "threshold 0: never rings after sleep");
 eq(L.settle([run(1, 1000)], 1000 + H8, Infinity).fired[0].stale, false, "a normal tick (Infinity) never makes one stale");
 const quiet = [run(1, 5000)];
-eq(L.settle(quiet, 10, 0).list === L.expire(quiet, 10).list || L.settle(quiet, 10, 0).list[0] === quiet[0], true, "nothing ended: same timers");
+eq(L.settle(quiet, 10, 0).list[0] === quiet[0], true, "nothing ended: same timers");
 eq(L.settle(quiet, 10, 0).fired, [], "and nothing fired");
 
 // The slider value, snapped to 0, 1, 5, 15 or 60

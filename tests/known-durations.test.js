@@ -42,12 +42,9 @@ eq(K.lookup("frac", [{ name: "frac", seconds: 90.4 }]), 90, "fractional rounded"
 eq(K.lookup("tiny", [{ name: "tiny", seconds: 4 }]), null, "duration too short");
 eq(K.lookup("huge", [{ name: "huge", seconds: 86401 }]), null, "duration too long");
 eq(K.lookup("edge", [{ name: "edge", seconds: 86400 }]), 86400, "max duration ok");
-const many = [];
-for (let i = 0; i < 50; i++) many.push({ name: "item" + i, seconds: 60 });
+const many = Array.from({ length: 50 }, (_, i) => ({ name: "item" + i, seconds: 60 }));
 eq(K.lookup("item49", many), 60, "last entry within count cap");
-const over = [];
-for (let i = 0; i < 50; i++) over.push({ name: "pad" + i, seconds: 60 });
-over.push({ name: "late", seconds: 60 });
+const over = Array.from({ length: 50 }, (_, i) => ({ name: "pad" + i, seconds: 60 })).concat([{ name: "late", seconds: 60 }]);
 eq(K.lookup("late", over), null, "entry beyond count cap ignored");
 
 // Malformed entries never throw

@@ -99,16 +99,3 @@ function stripEmoji(s, maxLabel) {
         out = out.slice(0, /[\ud800-\udbff]/.test(out.charAt(maxLabel - 1)) ? maxLabel - 1 : maxLabel);
     return out.trim();
 }
-
-// The name a timer gets when its own was nothing but emoji, in the shell's
-// language ("fr_FR" -> "Minuteur", anything else -> "Timer")
-function fallbackName(locale) {
-    return /^fr/i.test(String(locale || "")) ? "Minuteur" : "Timer";
-}
-
-// A saved or typed name, cleaned: emoji gone; a name that was only emoji
-// becomes `fallback`; an empty name stays empty (the timer shows its kind)
-function cleanName(s, maxLabel, fallback) {
-    const out = stripEmoji(s, maxLabel);
-    return out === "" && String(s || "").trim() !== "" ? fallback : out;
-}

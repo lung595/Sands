@@ -391,10 +391,7 @@ Item {
                 id: snoozeRepeater
                 model: root.ringing ? Card.snoozeChoices(root.snoozeRaw, root.snoozeLast) : []
                 function items() {
-                    const out = [];
-                    for (let i = 0; i < count; i++)
-                        out.push(itemAt(i));
-                    return out;
+                    return Array.from({ length: count }, (_, i) => itemAt(i));
                 }
                 Chip {
                     objectName: "snooze" + modelData

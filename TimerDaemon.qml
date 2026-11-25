@@ -109,11 +109,7 @@ Item {
     }
 
     function find(id) {
-        for (let i = 0; i < timers.length; i++) {
-            if (timers[i].id === id)
-                return timers[i];
-        }
-        return null;
+        return timers.find(t => t.id === id) || null;
     }
 
     function displayLabel(t) {

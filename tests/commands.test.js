@@ -83,10 +83,7 @@ eq(C.parseCommand("timer +5").lang, "", "timer is both");
 const pasta = { id: 1, label: "Pâtes", kind: "duration", state: "running", endAt: NOW + 5 * MIN, total: 10 * MIN, remaining: 0, finishedAt: 0 };
 const tea = { id: 2, label: "Green tea 🍵", kind: "duration", state: "running", endAt: NOW + 2 * MIN, total: 4 * MIN, remaining: 0, finishedAt: 0 };
 const bread = { id: 3, label: "Bread", kind: "duration", state: "paused", endAt: 0, total: 30 * MIN, remaining: 20 * MIN, finishedAt: 0 };
-const alarm = { id: 4, label: "", kind: "at", state: "ringing", endAt: NOW - 3 * S, total: H(1), remaining: 0, finishedAt: NOW - 3 * S };
-function H(n) {
-    return n * 3600000;
-}
+const alarm = { id: 4, label: "", kind: "at", state: "ringing", endAt: NOW - 3 * S, total: 60 * MIN, remaining: 0, finishedAt: NOW - 3 * S };
 const timers = [pasta, tea, bread, alarm];
 const target = (input, list) => (C.resolveTarget(C.parseCommand(input), list || timers, NOW) || {}).id;
 

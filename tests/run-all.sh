@@ -32,19 +32,9 @@ n=0
 # from the repository root, output to $work/<n>.out, then "<status>
 # <milliseconds>" to $work/<n>.res. bg <name> <command...>: the same in the
 # background. The number is taken here, in this shell, never in a subshell.
-job() {
-    n=$((n + 1))
-    printf '%s\n' "$1" > "$work/$n.name"
-    mkdir "$work/$n.tmp"
-    run "$n" "$@"
-}
-bg() {
-    n=$((n + 1))
-    printf '%s\n' "$1" > "$work/$n.name"
-    mkdir "$work/$n.tmp"
-    run "$n" "$@" &
-    pids="$pids $!"
-}
+slot() { n=$((n + 1)); printf '%s\n' "$1" > "$work/$n.name"; mkdir "$work/$n.tmp"; }
+job() { slot "$1"; run "$n" "$@"; }
+bg() { slot "$1"; run "$n" "$@" & pids="$pids $!"; }
 run() (
     i=$1; shift 2
     cd "$root" || exit 2

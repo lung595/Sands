@@ -17,7 +17,6 @@ Item {
 
     property var pluginService: null
     property string pluginId: "smartTimer"
-    property string trigger: ""
 
     signal itemsChanged
 
@@ -179,7 +178,7 @@ Item {
         });
         // Nothing understood: say so and point to the syntax (value 10),
         // but only when the query was meant for Sands.
-        if (results.length === 0 && (withTrigger || /^(timer|minuteur|minuterie|countdown)\s/i.test(q)))
+        if (results.length === 0 && (withTrigger || Section.COMMAND_WORDS.test(q)))
             return [
                 {
                     name: "No duration found in \u201c" + q + "\u201d",
@@ -330,10 +329,5 @@ Item {
             d.undoRemove(parseInt(data));
             break;
         }
-    }
-
-    Component.onCompleted: {
-        if (pluginService)
-            trigger = PluginService.getPluginTrigger(pluginId) || "";
     }
 }

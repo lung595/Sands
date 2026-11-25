@@ -132,14 +132,14 @@ var WORDS = {
         "pause": "Pause", "resume": "Resume", "restart": "Restart", "stop": "Stop",
         "collapse": "Close the card", "rename": "Rename", "mute": "Mute this timer", "unmute": "Sound on",
         "ends": "Rings at", "duration": "Duration", "notice": "Notice before the end", "noNotice": "No notice",
-        "snooze": "Snooze", "start": "Start", "skip": "Next step", "more": "More timers"
+        "snooze": "Snooze"
     },
     "fr": {
         "others": "Autres minuteurs", "stopped": "Arrêté", "undo": "Annuler",
         "pause": "Pause", "resume": "Reprendre", "restart": "Relancer", "stop": "Arrêter",
         "collapse": "Refermer la carte", "rename": "Renommer", "mute": "Couper le son de ce minuteur", "unmute": "Remettre le son",
         "ends": "Sonne à", "duration": "Durée", "notice": "Préavis avant la fin", "noNotice": "Pas de préavis",
-        "snooze": "Répéter dans", "start": "Lancer", "skip": "Étape suivante", "more": "Autres minuteurs"
+        "snooze": "Répéter dans"
     }
 };
 

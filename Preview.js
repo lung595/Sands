@@ -39,9 +39,8 @@ function ringsLine(r, now, use24, lang) {
     return r.capped ? line + " · " + Strings.tr("preview.capped", lang, TP.MAX_COUNT) : line;
 }
 
-// Short note the parser may attach to an empty result as « results.hint »
-// (e.g. an unknown word). No story sets it yet: the parser story that adds
-// unknown-word detection must use exactly this field name. Empty string when there is none.
+// The note the parser attaches to an empty result as « results.hint » (an
+// unknown word, see TimeParser.unknownWordHint); "" when there is none.
 function hintOf(results) {
     return results && typeof results.hint === "string" ? results.hint : "";
 }

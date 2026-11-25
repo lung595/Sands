@@ -1,4 +1,4 @@
-// Shared by the daemon tests: loads a pure .js module of the plugin the way
+// Shared by the gjs tests: loads a pure .js module of the plugin the way
 // QML does (without `.pragma library`), resolves its `.import "x.js" as X`
 // lines to the modules it names, and counts the checks.
 const GLib = imports.gi.GLib;
