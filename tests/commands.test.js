@@ -11,19 +11,12 @@ const MIN = 60000, S = 1000;
 const NOW = new Date(2026, 10, 20, 18, 42, 0, 0).getTime();
 
 // Only the fields a case cares about
-function pick(it, keys) {
-    if (!it)
-        return null;
-    const out = {};
-    for (const k of keys)
-        out[k] = it[k];
-    return out;
-}
+const pick = (it, keys) => it ? Object.fromEntries(keys.map(k => [k, it[k]])) : null;
 const ALL = ["kind", "delta", "name", "newName", "minutes"];
 function cmd(input, expected) {
     eq(pick(C.parseCommand(input, { now: NOW }), ALL), expected, "parseCommand " + JSON.stringify(input));
 }
-const it = (kind, more) => Object.assign({ kind, delta: 0, name: "", newName: "", minutes: 0 }, more || {});
+const it = (kind, more) => Object.assign({ kind, delta: 0, name: "", newName: "", minutes: 0 }, more);
 
 // The examples of the plan
 cmd("timer +5", it("adjust", { delta: 5 * MIN }));

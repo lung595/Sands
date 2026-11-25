@@ -7,15 +7,21 @@ var dir = GLib.path_get_dirname(GLib.path_get_dirname(GLib.canonicalize_filename
 var read = path => new TextDecoder().decode(GLib.file_get_contents(dir + "/" + path)[1]);
 
 // The module at `path` (relative to the plugin root) as an object of all
-// its top-level functions and vars
-function load(path) {
+// its top-level functions and vars; with `cache`, one instance per path is
+// shared by every module that imports it, as QML does
+function load(path, cache) {
+    if (cache && cache[path])
+        return cache[path];
     const imported = [];
     const src = read(path).replace(".pragma library", "").replace(/^\.import "([^"]+)" as (\w+)$/gm, (_, rel, name) => {
-        imported.push([name, load(GLib.path_get_dirname(path) === "." ? rel.replace(/^\.\.\/\.\.\//, "") : GLib.canonicalize_filename(rel, dir + "/" + GLib.path_get_dirname(path)).slice(dir.length + 1))]);
+        imported.push([name, load(GLib.path_get_dirname(path) === "." ? rel.replace(/^\.\.\/\.\.\//, "") : GLib.canonicalize_filename(rel, dir + "/" + GLib.path_get_dirname(path)).slice(dir.length + 1), cache)]);
         return "";
     });
     const names = [...src.matchAll(/^(?:function|var|const) (\w+)/gm)].map(m => m[1]);
-    return new Function(...imported.map(i => i[0]), src + "; return { " + names.join(", ") + " };")(...imported.map(i => i[1]));
+    const m = new Function(...imported.map(i => i[0]), src + "; return { " + names.join(", ") + " };")(...imported.map(i => i[1]));
+    if (cache)
+        cache[path] = m;
+    return m;
 }
 
 let failures = 0, count = 0;

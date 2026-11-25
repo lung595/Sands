@@ -4,7 +4,7 @@ import qs.Common
 import qs.Services
 
 // End-to-end scene of the whole daemon (TimerDaemon.qml and every part it
-// loads), run twice by run.sh with the real Quickshell offscreen. It only acts
+// loads), run three times by run.sh with the real Quickshell offscreen. It only acts
 // and reports: every fact goes to stderr as one "sands-e2e <what> <json>" line,
 // and check.js judges them with what the stand-ins on PATH recorded.
 // SANDS_E2E_PHASE:

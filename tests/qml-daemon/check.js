@@ -1,4 +1,4 @@
-// Judge of tests/qml-daemon/run.sh (gjs -m). Reads what the two daemon runs
+// Judge of tests/qml-daemon/run.sh (gjs -m). Reads what the three daemon runs
 // reported ("sands-e2e" lines), what the stand-ins on PATH recorded (one tab-
 // separated line per call) and the journal files the runs left.
 //   check.js state <dir>    the plugin state the "ring" run saved, as JSON
@@ -293,7 +293,7 @@ check("mute: no list change while the clock runs (before the ring)", quiet.lengt
 const ringChanges = changes.filter(at => at >= mRang.value.at - 50 && at < mPause.at - 50);
 check("mute: one list change at the ring, none during the ring", ringChanges.length === 1, changes.map(at => at - mBegin));
 const actionChanges = changes.filter(at => at <= mStopSoup.at + 50);
-// Mint, mute, Bread, Soup, rename, stop Bread, undo; the refused rename and undo change nothing
+// Mint, mute, Bread, Soup, rename, stop Bread, undo, stop Soup; the refused rename and undo change nothing
 check("mute: one list change per accepted action", actionChanges.length === 8, actionChanges.length);
 const pauseChanges = changes.filter(at => at >= mPause.at - 50 && at <= mLate.at + 50);
 check("mute: pause all and resume all change the list once each", pauseChanges.length === 2, changes.map(at => at - mBegin));

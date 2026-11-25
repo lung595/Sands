@@ -97,15 +97,18 @@ Item {
         }
     }
 
-    function findItem(item, name) {
+    function findBy(item, ok) {
         for (const c of item.children) {
-            if (c.objectName === name)
+            if (ok(c))
                 return c;
-            const hit = findItem(c, name);
+            const hit = findBy(c, ok);
             if (hit)
                 return hit;
         }
         return null;
+    }
+    function findItem(item, name) {
+        return findBy(item, c => c.objectName === name);
     }
 
     // Search wiring: a query finds a setting, picking it opens its section and clears
@@ -178,14 +181,7 @@ Item {
     }
 
     function findKey(item, key) {
-        for (const c of item.children) {
-            if (c.settingKey === key)
-                return c;
-            const hit = findKey(c, key);
-            if (hit)
-                return hit;
-        }
-        return null;
+        return findBy(item, c => c.settingKey === key);
     }
 
     // The "Copy report" row in its other states, on every page: copied, the

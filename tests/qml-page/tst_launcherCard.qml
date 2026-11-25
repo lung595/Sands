@@ -186,7 +186,7 @@ Item {
         function make(launcherItem, extra) {
             card = createTemporaryObject(cardComponent, root, Object.assign({
                 launcherItem: launcherItem
-            }, extra || {}));
+            }, extra));
             verify(card !== null);
             return card;
         }

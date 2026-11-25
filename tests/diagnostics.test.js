@@ -3,27 +3,15 @@
 // paths, trigger word). Every name and path below is made up. The leak checks matter most:
 // whatever goes in, none of it may come out. Run: gjs tests/diagnostics.test.js
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
-const GLib = imports.gi.GLib;
-const { eq: harnessEq, done, dir: root, read } = imports.harness;
+const harness = imports.harness;
+const { eq: harnessEq, done, read } = harness;
 
 // The order of the shared tests (what, got, expected) over the harness's (got, expected, what)
 const eq = (what, got, expected) => harnessEq(got, expected, what);
 
-// Loads a module once and hands the same instance to every module that imports it, as QML
-// does: Report.js must see the very Log and Redact the tests feed (the harness loader
-// builds a fresh copy per import)
+// One instance per path, as QML does: Report.js must see the very Log and Redact the tests feed
 const cache = {};
-function load(path) {
-    if (cache[path])
-        return cache[path];
-    const names0 = [];
-    const src = read(path).replace(".pragma library", "").replace(/^\.import "([^"]+)" as (\w+)$/gm, (_, rel, name) => {
-        names0.push([name, load(GLib.canonicalize_filename(rel, root + "/" + GLib.path_get_dirname(path)).slice(root.length + 1))]);
-        return "";
-    });
-    const names = [...src.matchAll(/^(?:function|var|const) (\w+)/gm)].map(m => m[1]);
-    return cache[path] = new Function(...names0.map(i => i[0]), src + "; return { " + names.join(", ") + " };")(...names0.map(i => i[1]));
-}
+const load = p => harness.load(p, cache);
 
 const Allow = load("diagnostics/Allow.js");
 const Redact = load("diagnostics/Redact.js");

@@ -1,7 +1,6 @@
 """Tiny synthesis toolkit for the Sands rings (standard library only).
 
-Every function is deterministic: noise comes from a seeded generator passed in
-by the caller, so the same script always renders the same samples.
+Every function is deterministic, so the same script always renders the same samples.
 """
 import math
 import struct
@@ -39,10 +38,6 @@ def tone(freq, seconds, partials, attack=0.02):
             s += amp * math.exp(-t / decay) * math.sin(2 * math.pi * freq * ratio * t)
         out.append(s * _ramp(t / attack))
     return out
-
-
-
-
 
 
 def reverb(src, wet=0.25, tail=1.5):

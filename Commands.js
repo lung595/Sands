@@ -135,7 +135,7 @@ function readAdjust(original, work, offset, lang, now) {
 }
 
 // « snooze », « snooze 10 », « snooze 10 min pâtes »
-function readSnooze(original, work, offset, now) {
+function readSnooze(original, work, offset) {
     var verb = COMMAND_GRAMMAR.all.snooze.exec(work.substring(offset));
     if (!verb)
         return null;
@@ -185,7 +185,7 @@ function parseCommand(input, options) {
     if (kw)
         offset = kw[0].length;
     var lang = kw ? langOf(work, "keyword") : "";
-    return readSnooze(original, work, offset, now)
+    return readSnooze(original, work, offset)
         || readPauseResume(original, work, offset, now)
         || readRename(original, work, offset, lang)
         || readAdjust(original, work, offset, lang, now);
