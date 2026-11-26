@@ -14,7 +14,7 @@ Rectangle {
     property bool filled: false
     property color accent: Theme.primary
     // On a filled button: dark on a light colour, white on a dark one
-    property color iconColor: filled ? (accent.hslLightness > 0.6 ? "#1D1B20" : "#FFFFFF") : Theme.surfaceText
+    property color iconColor: !filled ? Theme.surfaceText : Qt.colorEqual(accent, Theme.primary) ? Theme.onPrimary : Qt.colorEqual(accent, Theme.error) ? Theme.onError : (accent.hslLightness > 0.6 ? Qt.darker(accent, 4) : Qt.lighter(accent, 4))
     property int size: 36
 
     signal clicked
