@@ -35,7 +35,7 @@ Rectangle {
     Keys.onSpacePressed: root.clicked()
 
     // Lets the overlap test see a label cut short
-    readonly property bool truncated: label.truncated
+    readonly property bool truncated: content.implicitWidth > width
 
     Row {
         id: content

@@ -38,7 +38,7 @@ OutlineButton {
         return "M0 " + heapHeight + "V" + foot + "C" + w * 0.22 + " " + foot + " " + w * 0.3 + " 1 " + w * 0.42 + " 1S" + w * 0.66 + " " + (foot - 1) + " " + w + " " + foot + "V" + heapHeight + "Z";
     }
 
-    width: labelWidth
+    width: Math.max(labelWidth, implicitWidth)
     height: Press.TARGET
     spacing: Theme.spacingXS
     textColor: collecting ? Theme.surfaceVariantText : Theme.surfaceText
