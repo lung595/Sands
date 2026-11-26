@@ -64,7 +64,10 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.clicked()
+        onClicked: {
+            tip.hide();
+            root.clicked();
+        }
         onContainsMouseChanged: if (!containsMouse) tip.hide()
     }
 

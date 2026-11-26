@@ -1,6 +1,7 @@
 // Tooltips hide again — run with: gjs tests/tooltips.test.js (from the plugin root)
 // A DankTooltipV2 stays up until hide() is called: every QML file that shows
-// one must hide it as often as it shows it (pointer left, item gone).
+// one must hide it at least as often as it shows it (pointer left, item gone,
+// a click that changes the text).
 imports.searchPath.unshift(imports.gi.GLib.path_get_dirname(imports.system.programPath));
 const { read, eq, done, listFiles } = imports.harness;
 
@@ -9,7 +10,10 @@ eq(files.length >= 4, true, "the tooltip files are found");
 for (const f of files) {
     const src = read(f);
     const count = re => (src.match(re) || []).length;
-    eq(count(/\w+\.hide\(\)/g), count(/\w+\.show\(/g), "every shown tooltip hides in " + f);
+    eq(count(/\w+\.hide\(\)/g) >= count(/\w+\.show\(/g), true, "every shown tooltip hides in " + f);
+    // A click changes the text (Pause -> Resume) while the pointer stays: hide the stale tip
+    if (src.includes("tip.show(root.tooltip"))
+        eq(/onClicked: root\.clicked\(\)/.test(src), false, "a click hides the tooltip in " + f);
 }
 
 done();
