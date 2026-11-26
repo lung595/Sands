@@ -35,8 +35,8 @@ Column {
         anchors.horizontalCenter: parent.horizontalCenter
         text: {
             const s = Math.ceil(Math.abs(vpill.rem) / 1000);
-            if (s >= 3600)
-                return Math.floor(s / 3600) + "h";
+            if (s > 3540)
+                return Math.max(1, Math.floor(s / 3600)) + "h";
             if (s >= 60)
                 return Math.ceil(s / 60) + "m";
             return s + "s";
