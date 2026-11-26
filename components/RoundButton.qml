@@ -23,7 +23,7 @@ Rectangle {
             return mouse.pressed ? Qt.darker(accent, 1.12) : (mouse.containsMouse ? Qt.lighter(accent, 1.08) : accent);
         return mouse.pressed ? Theme.surfaceContainerHighest : (mouse.containsMouse ? Theme.withAlpha(Theme.surfaceContainerHighest, 0.8) : Theme.surfaceContainerHigh);
     }
-    scale: mouse.pressed ? 0.94 : 1
+    scale: mouse.pressed && !SettingsData.reduceMotion ? 0.94 : 1
     opacity: enabled ? 1 : 0.35
 
     Behavior on color {

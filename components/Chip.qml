@@ -15,7 +15,7 @@ Rectangle {
     implicitHeight: 36
     radius: height / 2
     color: mouse.pressed ? Theme.surfaceContainerHighest : (mouse.containsMouse ? Theme.withAlpha(Theme.surfaceContainerHighest, 0.8) : Theme.surfaceContainerHigh)
-    scale: mouse.pressed ? 0.96 : 1
+    scale: mouse.pressed && !SettingsData.reduceMotion ? 0.96 : 1
     opacity: enabled ? 1 : 0.35
 
     Behavior on color {

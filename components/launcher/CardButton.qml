@@ -24,7 +24,7 @@ Rectangle {
     radius: size / 2
     activeFocusOnTab: visible
     color: filled ? (mouse.containsMouse ? Qt.lighter(accent, 1.08) : accent) : (mouse.pressed ? Theme.surfaceContainerHighest : (mouse.containsMouse ? Theme.withAlpha(Theme.surfaceContainerHighest, 0.8) : "transparent"))
-    scale: mouse.pressed ? 0.92 : 1
+    scale: mouse.pressed && !SettingsData.reduceMotion ? 0.92 : 1
 
     Accessible.role: Accessible.Button
     Accessible.name: tooltip

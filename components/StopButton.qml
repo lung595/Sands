@@ -12,7 +12,7 @@ Rectangle {
     height: 56
     radius: height / 2
     color: mouse.pressed ? Qt.darker(Theme.error, 1.12) : (mouse.containsMouse ? Qt.lighter(Theme.error, 1.08) : Theme.error)
-    scale: mouse.pressed ? 0.96 : 1
+    scale: mouse.pressed && !SettingsData.reduceMotion ? 0.96 : 1
 
     Behavior on scale {
         NumberAnimation {
