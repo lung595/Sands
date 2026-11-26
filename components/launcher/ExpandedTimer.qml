@@ -148,7 +148,7 @@ Item {
     // Narrow (the row shares its width with other cards): the info, the
     // chips and the buttons go under the hourglass, one line each
     readonly property bool narrow: width < 400
-    readonly property real glassSize: narrow ? 76 : 112
+    readonly property real glassSize: narrow ? 76 : 100
 
     Item {
         id: main
