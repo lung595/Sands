@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Common
+import qs.Widgets
 
 // What the Edge halo draws on one screen: the 4 px rim and the legend pill.
 // Display only; HaloScene owns the window and the steps.
@@ -48,17 +49,20 @@ Item {
 
         Row {
             anchors.centerIn: parent
-            Text {
+            StyledText {
                 id: nameText
                 width: Math.min(implicitWidth, pill.width - Theme.spacingL * 2 - tailText.implicitWidth)
                 elide: Text.ElideRight
+                wrapMode: Text.NoWrap
                 text: root._name
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.Medium
             }
-            Text {
+            StyledText {
                 id: tailText
+                wrapMode: Text.NoWrap
+                elide: Text.ElideNone
                 text: root._tail
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
