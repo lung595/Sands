@@ -56,6 +56,7 @@ Item {
                 Keys.onUpPressed: root.step(-1)
                 Keys.onDownPressed: root.step(1)
                 Keys.onReturnPressed: root.picked(modelData.id)
+                Keys.onEnterPressed: root.picked(modelData.id)
                 Keys.onSpacePressed: root.picked(modelData.id)
 
                 Behavior on color {

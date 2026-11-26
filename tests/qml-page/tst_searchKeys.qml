@@ -23,6 +23,11 @@ Item {
         }
     }
 
+    SignalSpy {
+        id: spy
+        signalName: "picked"
+    }
+
     TestCase {
         name: "SettingsKeys"
         when: windowShown
@@ -89,6 +94,19 @@ Item {
             keyClick(Qt.Key_Up);
             compare(sp.section, first, "Up goes back");
             verify(second !== "", "a section id");
+        }
+
+        // Return, keypad Enter and Space all press the focused rail entry
+        function test_railPressKeys() {
+            const sp = find(host, "settingsPage");
+            sp.open("timers", "");
+            keyClick(Qt.Key_Tab);
+            spy.target = find(sp, "sectionRail");
+            spy.clear();
+            for (const k of [Qt.Key_Return, Qt.Key_Enter, Qt.Key_Space])
+                keyClick(k);
+            compare(spy.count, 3);
+            compare(spy.signalArguments[1][0], sp.section);
         }
 
         function test_revealScrolls() {

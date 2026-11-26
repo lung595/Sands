@@ -127,6 +127,7 @@ components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SectionRail.qml	unqualified	Unqualified access	root
+components/settings/SectionRail.qml	unqualified	Unqualified access	root
 components/settings/SettingsPage.qml	missing-property	Member "contentItem" not found on type "QQuickItem"	contentItem
 components/settings/SettingsPage.qml	missing-property	Member "contentY" not found on type "QQuickItem"	contentY
 components/settings/SettingsPage.qml	missing-property	Member "contentY" not found on type "QQuickItem"	contentY
