@@ -207,7 +207,7 @@ Item {
                 StyledText {
                     id: nameText
                     visible: !nameField.visible
-                    width: Math.min(implicitWidth, parent.width - collapseBtn.width)
+                    width: Math.min(implicitWidth, parent.width - collapseBtn.width - Theme.spacingS)
                     anchors.verticalCenter: parent.verticalCenter
                     text: root.daemon && root.timer ? root.daemon.displayLabel(root.timer) : ""
                     font.pixelSize: Theme.fontSizeLarge
