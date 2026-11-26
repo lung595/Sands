@@ -25,6 +25,9 @@ Item {
     property bool settled: false
 
     onTimerStateChanged: settled = false
+    // A new alarm sound (another timer finishing) re-arms the ringing limit.
+    readonly property bool soundOn: daemon?.soundActive ?? false
+    onSoundOnChanged: if (soundOn) settled = false
 
     Timer {
         interval: clock.fast ? 16 : 33

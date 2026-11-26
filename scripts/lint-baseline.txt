@@ -168,6 +168,7 @@ tests/qml/tst_historyStore.qml	signal-handler-parameters	Type QProcess::ExitStat
 tests/qml/tst_historySweep.qml	import	HistorySweep was not found. Did you add all imports and dependencies?	HistorySweep
 tests/qml/tst_historySweep.qml	signal-handler-parameters	Type QProcess::ExitStatus of parameter exitStatus in signal called exited was not found, but is required to compile onExited. Did you add all imports and dependencies?	onExited
 tests/qml/tst_noticeRunner.qml	import	NoticeRunner was not found. Did you add all imports and dependencies?	NoticeRunner
+tests/qml/tst_pillClock.qml	import	PillClock was not found. Did you add all imports and dependencies?	PillClock
 tests/qml/tst_reportCopy.qml	import	File or directory you are trying to import does not exist: tests/qml/components/daemon.	import
 tests/qml/tst_reportCopy.qml	import	ReportClipboard was not found. Did you add all imports and dependencies?	ReportClipboard
 tests/qml/tst_reportCopy.qml	import	ReportService was not found. Did you add all imports and dependencies?	ReportService
