@@ -63,7 +63,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             size: 56
             iconName: "replay"
-            tooltip: "Restart " + (root.timer ? TP.formatHuman(root.timer.total) : "")
+            tooltip: "Restart (" + (root.timer ? TP.formatHuman(root.timer.total) : "") + ")"
             onClicked: root.daemon.restart(root.timer.id)
         }
     }
