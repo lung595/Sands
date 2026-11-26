@@ -37,6 +37,9 @@ eq(TF.use24h(undefined), true, "setting not loaded yet: 24 h");
 eq(TF.formatTimeOfDay(at(18, 42), TF.use24h(false)), "6:42 PM", "helper feeds the formatter");
 eq(TF.isTomorrow(at(23, 0) + 2 * H, at(23, 0)), true, "past midnight is tomorrow");
 eq(TF.isTomorrow(at(18, 42), at(9, 0)), false, "same day");
+eq(TF.isTomorrow(at(23, 0) + 26 * H, at(23, 0)), false, "two days later is not tomorrow");
+eq(TF.isTomorrow(new Date(2026, 11, 20, 9, 0).getTime(), at(9, 0)), false, "same date next month is not tomorrow");
+eq(TF.isTomorrow(new Date(2026, 11, 1, 8, 0).getTime(), new Date(2026, 10, 30, 22, 0).getTime()), true, "month rollover is tomorrow");
 
 // TimeParser.js re-exports every formatter unchanged (temporary)
 for (const name of ["pad", "formatClock", "formatHuman", "formatRelative", "formatTimeOfDay", "isTomorrow", "widthTemplate"])

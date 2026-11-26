@@ -14,6 +14,7 @@ eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: "", count: 1 }, now, t
 eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: "Eggs", count: 3 }, now, true), "Eggs · 3 × 12 min · ends 12:42", "several at once");
 eq(P.previewLine({ kind: "duration", ms: 90 * MIN, label: "", count: 1 }, now, false), "Timer · 1 h 30 · ends 2:00 PM", "12-hour clock");
 eq(P.previewLine({ kind: "at", at: at(7, 0, 1), ms: at(7, 0, 1) - now, label: "Wake up" }, now, true), "Wake up · at 07:00 tomorrow", "alarm tomorrow");
+eq(P.previewLine({ kind: "duration", ms: 50 * 60 * MIN, label: "", count: 1 }, now, true), "Timer · 50 h · ends 14:30", "two days later is not tomorrow");
 eq(P.previewLine({ kind: "at", at: at(18, 0), ms: at(18, 0) - now, label: "" }, now, true), "Alarm · at 18:00", "label-less alarm today");
 
 eq(P.previewLine({ kind: "duration", ms: 12 * MIN, label: "pasta", count: 1 }, now, true), "Pasta · 12 min · ends 12:42", "label gets a capital");

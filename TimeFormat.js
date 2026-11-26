@@ -70,7 +70,10 @@ function formatTimeOfDay(epoch, use24) {
 }
 
 function isTomorrow(epoch, now) {
-    return new Date(epoch).getDate() !== new Date(now || Date.now()).getDate();
+    // The calendar day after today, like the parser's « tomorrow »: not merely another day.
+    var next = new Date(now || Date.now());
+    next.setDate(next.getDate() + 1);
+    return new Date(epoch).toDateString() === next.toDateString();
 }
 
 // Fixed-width template (digits replaced by 0) so the pill does not move
