@@ -160,6 +160,7 @@ Item {
                 clip: true
                 color: Theme.surfaceText
                 font.pixelSize: Theme.fontSizeMedium
+                font.family: hint.font.family
                 maximumLength: Search.MAX_QUERY
                 onTextChanged: root.query = text
                 // Typing breaks a text binding, so the page pushes its own clears back
@@ -175,6 +176,7 @@ Item {
             }
 
             StyledText {
+                id: hint
                 anchors.left: field.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: "Search settings"
