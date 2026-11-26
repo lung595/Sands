@@ -15,6 +15,9 @@ Rectangle {
     // { title, hint, anchor } from Guide.js, null when there is none; a row
     // that owns its message (settings) sets this instead of daemon.note
     property var info: daemon ? daemon.note : null
+    // Last note shown, so the fade-out still shows its text and size
+    property var shownInfo: info
+    onInfoChanged: if (info) shownInfo = info
     // Wider text wraps instead of leaving the panel
     property real maxWidth: 320
     // In a settings row: takes the whole maxWidth and stays until its owner
@@ -70,7 +73,7 @@ Rectangle {
                 id: title
                 width: parent.width
                 wrapMode: Text.WordWrap
-                text: note.info ? note.info.title : ""
+                text: note.shownInfo ? note.shownInfo.title : ""
                 font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.Bold
                 color: Theme.surfaceText
@@ -79,7 +82,7 @@ Rectangle {
                 id: hint
                 width: parent.width
                 wrapMode: Text.WordWrap
-                text: note.info ? note.info.hint : ""
+                text: note.shownInfo ? note.shownInfo.hint : ""
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.surfaceVariantText
             }
