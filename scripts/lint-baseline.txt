@@ -69,6 +69,7 @@ components/alert/RingAlert.qml	unqualified	Unqualified access	alert
 components/alert/RingAlert.qml	unqualified	Unqualified access	alert
 components/alert/RingAlert.qml	unqualified	Unqualified access	alert
 components/alert/RingAlert.qml	unqualified	Unqualified access	alert
+components/alert/RingAlert.qml	unqualified	Unqualified access	alert
 components/alert/RingAlert.qml	unqualified	Unqualified access	root
 components/alert/RingAlert.qml	unqualified	Unqualified access	root
 components/alert/RingAlert.qml	unqualified	Unqualified access	root

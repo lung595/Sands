@@ -124,7 +124,7 @@ Item {
             style: root.style
             // A test has no timer: same made-up name and reason as the halo test
             name: alert.testing ? "Pasta" : alert.timerName
-            reason: alert.testing ? "Click to stop" : Policy.legendReason(alert.kind, root.when, root._soundState)
+            reason: alert.testing ? Policy.legendReason(alert.kind, "muted", { hasOutput: false }) : Policy.legendReason(alert.kind, root.when, root._soundState)
             overFullscreen: alert.showOverFullscreen
             seed: root._seed
             screenNames: root._screenNames
