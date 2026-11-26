@@ -32,6 +32,7 @@ Row {
             opacity: current ? 1 : 0.45
 
             Behavior on width {
+                enabled: !SettingsData.reduceMotion
                 NumberAnimation {
                     duration: 220
                     easing.type: Easing.OutCubic

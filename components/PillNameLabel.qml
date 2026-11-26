@@ -19,6 +19,7 @@ Item {
     visible: width > 0.5
 
     Behavior on width {
+        enabled: !SettingsData.reduceMotion
         NumberAnimation {
             duration: 280
             easing.type: Easing.OutCubic
