@@ -293,7 +293,7 @@ Item {
                 id: bigTime
                 objectName: "bigTime"
                 text: Card.clock(root.timer, root.now)
-                font.pixelSize: root.narrow ? 28 : 36
+                font.pixelSize: Math.round(Theme.fontSizeXLarge * (root.narrow ? 1.4 : 1.8))
                 font.weight: Font.Medium
                 font.features: {
                     "tnum": 1

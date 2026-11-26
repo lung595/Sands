@@ -59,7 +59,7 @@ Column {
         }
         StyledTime {
             text: Journal.duration(Journal.sum(root.entries))
-            font.pixelSize: 32
+            font.pixelSize: Math.round(Theme.fontSizeXLarge * 1.6)
             font.weight: Font.Light
         }
     }
