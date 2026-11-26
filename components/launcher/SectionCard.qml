@@ -416,6 +416,7 @@ Item {
                 spacing: Theme.spacingXS
                 clip: true
                 DankIcon {
+                    id: stoppedIcon
                     anchors.verticalCenter: parent.verticalCenter
                     name: "timer_off"
                     size: 18
@@ -423,6 +424,7 @@ Item {
                 }
                 StyledText {
                     anchors.verticalCenter: parent.verticalCenter
+                    width: Math.min(implicitWidth, parent.width - stoppedIcon.width - parent.spacing)
                     text: (root.entry.name || "") + " · " + root.words.stopped
                     font.pixelSize: Theme.fontSizeMedium
                     color: Theme.surfaceVariantText
