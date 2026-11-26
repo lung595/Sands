@@ -10,6 +10,7 @@ Item {
     required property real frost
     required property bool reducedMotion
     required property real fxTime
+    required property color frostColor
 
     anchors.fill: parent
     opacity: frost
@@ -35,7 +36,7 @@ Item {
                 height: width
                 radius: width / 2
                 x: -width / 2
-                color: Theme.surfaceText
+                color: root.frostColor
                 // Reduce motion: the crystals stay still, dimly lit.
                 opacity: root.reducedMotion ? 0.3 : Motion.sparkle(root.fxTime * 1000, slot.h1, slot.h2, slot.h3)
                 y: root.reducedMotion ? 0 : Motion.drift(root.fxTime * 1000, slot.h2, slot.h3)

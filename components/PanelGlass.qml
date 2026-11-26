@@ -83,6 +83,7 @@ Item {
             frost: root.frost
             reducedMotion: root.reducedMotion
             fxTime: glass.fxTime
+            frostColor: root.frostColor
         }
     }
 

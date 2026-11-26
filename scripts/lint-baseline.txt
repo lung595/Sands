@@ -19,6 +19,7 @@ components/FrostDust.qml	unqualified	Unqualified access	root
 components/FrostDust.qml	unqualified	Unqualified access	root
 components/FrostDust.qml	unqualified	Unqualified access	root
 components/FrostDust.qml	unqualified	Unqualified access	root
+components/FrostDust.qml	unqualified	Unqualified access	root
 components/OtherTimers.qml	unqualified	Unqualified access	root
 components/OtherTimers.qml	unqualified	Unqualified access	root
 components/OtherTimers.qml	unqualified	Unqualified access	root
@@ -26,6 +27,7 @@ components/PanelClock.qml	unqualified	Unqualified access	root
 components/PanelClock.qml	unqualified	Unqualified access	root
 components/PanelGlass.qml	unqualified	Unqualified access	glass
 components/PanelGlass.qml	unqualified	Unqualified access	glass
+components/PanelGlass.qml	unqualified	Unqualified access	root
 components/PanelGlass.qml	unqualified	Unqualified access	root
 components/PanelGlass.qml	unqualified	Unqualified access	root
 components/PanelGlass.qml	unqualified	Unqualified access	root
