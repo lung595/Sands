@@ -24,12 +24,17 @@ Item {
     property real fxMs: 0
     property bool settled: false
 
-    onTimerStateChanged: settled = false
+    onTimerStateChanged: {
+        settled = false;
+        tick.start = Date.now();
+        fxMs = 0;
+    }
     // A new alarm sound (another timer finishing) re-arms the ringing limit.
     readonly property bool soundOn: daemon?.soundActive ?? false
     onSoundOnChanged: if (soundOn) settled = false
 
     Timer {
+        id: tick
         interval: clock.fast ? 16 : 33
         repeat: true
         running: clock.running

@@ -31,6 +31,14 @@ ShellRoot {
         timerState: "ringing"
     }
 
+    // The final-countdown beat keeps the clock running into the ring
+    PillClock {
+        id: beat
+        daemon: fake
+        timerState: "running"
+        running: true
+    }
+
     Component.onCompleted: {
         // The first alarm rang past the limit, its sound has stopped
         clock.settled = true;
@@ -39,6 +47,10 @@ ShellRoot {
         // A second timer finishes: its sound starts
         fake.soundActive = true;
         check(!clock.settled, "a new alarm sound re-arms the ringing limit");
+        // The ring starts 10 s into the beat: its limit counts from the ring
+        beat.fxMs = 10000;
+        beat.timerState = "ringing";
+        check(beat.fxMs === 0, "the ringing limit counts from the ring, not from the beat");
         console.warn(failed ? "FAIL" : "qml PASS");
         Qt.exit(failed ? 1 : 0);
     }
