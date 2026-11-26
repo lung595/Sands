@@ -480,7 +480,6 @@ Item {
             y: Theme.spacingM
             width: parent.width - Theme.spacingM * 2
             height: implicitHeight
-            opacity: active ? 1 : 0
             sourceComponent: ExpandedTimer {
                 daemon: root.daemon
                 timer: root.timer
