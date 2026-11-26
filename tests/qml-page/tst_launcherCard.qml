@@ -405,6 +405,7 @@ Item {
             // Tab goes into the controls, then through them
             compare(card.handleKey(ev(Qt.Key_Tab)), true);
             verify(child("nameBox").activeFocus);
+            verify(child("nameBox").children.some(c => c.visible && c.border && c.border.width === 2), "the focused name shows the focus ring");
             // In the order they show: name, sound, −1, +1, +5, pause
             for (const n of ["muteButton", "-1", "+1", "+5", "pauseButton"]) {
                 keyClick(Qt.Key_Tab);

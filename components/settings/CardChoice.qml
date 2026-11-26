@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.Widgets
+import ".."
 import "SettingHost.js" as SettingHost
 
 // A setting picked from a few cards. Cards wrap onto the next line below 152 px
@@ -72,7 +73,7 @@ Column {
                 height: texts.implicitHeight + Theme.spacingM * 2
                 radius: Theme.cornerRadius
                 color: mouse.pressed && usable ? Theme.surfaceContainerHighest : mouse.containsMouse && usable ? Theme.surfaceContainerHigh : Theme.surfaceContainer
-                border.width: selected ? (cards.activeFocus ? 3 : 2) : 1
+                border.width: selected ? 2 : 1
                 border.color: selected ? Theme.primary : Theme.outline
                 opacity: usable ? 1 : 0.38
 
@@ -107,6 +108,11 @@ Column {
                         cards.forceActiveFocus();
                         root.value = card.modelData.value;
                     }
+                }
+
+                FocusRing {
+                    visible: cards.activeFocus && card.selected
+                    border.color: Theme.primary
                 }
             }
         }

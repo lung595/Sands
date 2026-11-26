@@ -222,7 +222,12 @@ Item {
                     anchors.top: nameText.bottom
                     height: 1
                     color: Theme.outline
-                    visible: !nameField.visible && (nameMouse.containsMouse || nameBox.activeFocus)
+                    visible: !nameField.visible && nameMouse.containsMouse
+                }
+                FocusRing {
+                    anchors.margins: -2
+                    visible: nameBox.activeFocus && !nameField.visible
+                    border.color: Theme.primary
                 }
                 MouseArea {
                     id: nameMouse
