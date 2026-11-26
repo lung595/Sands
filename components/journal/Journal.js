@@ -50,7 +50,7 @@ function rows(entries, max) {
 // pile is built from the bottom), each at least LAYER_MIN
 function layerHeights(shown) {
     const total = sum(shown);
-    return shown.map(r => (total > 0 ? Math.max(LAYER_MIN, r.ms / total * LAYERS_HEIGHT) : LAYER_MIN));
+    return shown.map(r => (total > 0 ? LAYER_MIN + r.ms / total * (LAYERS_HEIGHT - LAYER_MIN * shown.length) : LAYER_MIN));
 }
 
 // Threads: each thread's length as a fraction of the track, the longest being 1

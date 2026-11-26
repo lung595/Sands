@@ -29,8 +29,8 @@ eq(J.rows([], 5), [], "empty");
 
 const h = J.layerHeights(J.rows(demo, 5));
 eq(h.length, 5, "one height per layer");
-eq(Math.round(h.reduce((a, x) => a + x, 0)), 83, "layers fill 80 units plus the 4 minimum of the smallest");
-eq(J.layerHeights([{ ms: 1 }, { ms: 1e9 }])[0], 4, "a tiny value keeps 4 units");
+eq(Math.round(h.reduce((a, x) => a + x, 0)), 80, "layers fill 80 units");
+eq(Math.round(J.layerHeights([{ ms: 1 }, { ms: 1e9 }])[0]), 4, "a tiny value keeps 4 units");
 eq(J.layerHeights([]), [], "no layers");
 const f = J.threadFractions(J.rows(demo, 7));
 eq(f[0], 1, "longest thread is full");
