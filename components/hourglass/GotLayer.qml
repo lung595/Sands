@@ -22,6 +22,7 @@ Canvas {
     onVisibleChanged: if (visible)
         requestPaint()
     onFrostStepChanged: requestPaint()
+    onFrostColorChanged: requestPaint()
 
     // Ring geometry, shared by both layers (sphere-centered)
     readonly property real ringRx: dim.sphereR

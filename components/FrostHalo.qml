@@ -11,6 +11,7 @@ Canvas {
     height: 90
     opacity: frost
     renderTarget: Canvas.FramebufferObject
+    onFrostColorChanged: requestPaint()
     onPaint: {
         const ctx = getContext("2d");
         ctx.reset();

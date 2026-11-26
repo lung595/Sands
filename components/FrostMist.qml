@@ -16,6 +16,7 @@ Item {
 
     anchors.fill: parent
     opacity: frost
+    onFrostColorChanged: mist.requestPaint()
 
     Canvas {
         id: mist

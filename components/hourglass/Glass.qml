@@ -37,6 +37,9 @@ Canvas {
         }
     }
     onSandColorChanged: requestPaint()
+    onFrostColorChanged: requestPaint()
+    onGlassColorChanged: requestPaint()
+    onCapColorChanged: requestPaint()
     onFrostStepChanged: requestPaint()
     onFlowingChanged: requestPaint()
     onGotStyleChanged: requestPaint()
