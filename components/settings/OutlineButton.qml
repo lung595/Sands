@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Common
 import qs.Widgets
+import "../Press.js" as Press
 
 // Quiet button of the settings rows: transparent, 1 px outline, 44 px high (the
 // touch target). Filled primary stays for the one main action of a screen.
@@ -22,7 +23,7 @@ Rectangle {
     signal clicked
 
     implicitWidth: content.implicitWidth + Theme.spacingM * 2
-    implicitHeight: 44
+    implicitHeight: Press.TARGET
     radius: Theme.cornerRadius
     color: "transparent"
     border.width: 1
