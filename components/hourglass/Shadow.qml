@@ -15,7 +15,7 @@ Canvas {
     x: (parent.width - width) / 2
     y: parent.height / 2 - 8 + hgH / 2 + 16 - height / 2
     scale: 0.9 + 0.08 * (floatY + 5) / 10
-    opacity: 0.85 - 0.25 * (floatY + 5) / 10
+    opacity: 0.6 + 0.25 * (floatY + 5) / 10
     renderTarget: Canvas.FramebufferObject
     onWidthChanged: requestPaint()
     onPaint: {
