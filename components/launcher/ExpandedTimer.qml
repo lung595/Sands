@@ -168,6 +168,7 @@ Item {
 
             HoverHandler {
                 id: glassHover
+                onHoveredChanged: if (!hovered) glassTip.hide()
             }
             DankTooltipV2 {
                 id: glassTip
@@ -520,6 +521,7 @@ Item {
         }
         HoverHandler {
             id: bitHover
+            onHoveredChanged: if (!hovered) bitTip.hide()
         }
         DankTooltipV2 {
             id: bitTip
