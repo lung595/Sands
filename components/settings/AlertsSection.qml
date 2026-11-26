@@ -8,6 +8,7 @@ import "../alert/AlertPolicy.js" as AlertPolicy
 import "../alert/DuneStyles.js" as DuneStyles
 import "../daemon/Lifecycle.js" as Lifecycle
 import "../"
+import "../Press.js" as Press
 
 // The "Alerts & sounds" section: what is drawn and what rings when a timer
 // ends, how loud, for how long. The visual alert itself lives in the daemon
@@ -69,13 +70,35 @@ Column {
             wrapMode: Text.WordWrap
         }
 
-        GitHubMark {
+        Item {
             id: mark
-            color: Theme.surfaceVariantText
+            anchors.verticalCenter: parent.verticalCenter
+            width: Press.TARGET
+            height: Press.TARGET
+            activeFocusOnTab: true
+            Accessible.role: Accessible.Link
+            Accessible.name: "Open the guide"
+            Accessible.onPressAction: mark.open()
+            function open() {
+                Qt.openUrlExternally(Guide.URL + "#" + Guide.VISUAL_ANCHOR);
+            }
+            Keys.onPressed: event => Press.onKey(event, () => mark.open())
+
+            FocusRing {
+                border.color: Theme.primary
+                visible: mark.activeFocus
+            }
+            GitHubMark {
+                anchors.centerIn: parent
+                size: Press.MARK_SIZE
+                color: area.containsMouse ? Theme.primary : Theme.surfaceVariantText
+            }
             MouseArea {
+                id: area
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: Qt.openUrlExternally(Guide.URL + "#" + Guide.VISUAL_ANCHOR)
+                onClicked: mark.open()
             }
         }
     }
