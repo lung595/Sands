@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Shapes
 import qs.Common
 import qs.Widgets
+import "../"
+import "../Press.js" as Press
 
 // The left rail: 160 x 40 entries (logo + name) with 8 px at each side. The open
 // section is marked by one heap of sand that slides to its entry, then settles
@@ -105,11 +107,9 @@ Item {
                 }
 
                 // Focus ring, drawn inside the entry so the column never clips it
-                Rectangle {
-                    anchors.fill: parent
+                FocusRing {
+                    anchors.margins: 0
                     radius: parent.radius
-                    color: "transparent"
-                    border.width: 2
                     border.color: Theme.primary
                     visible: entry.activeFocus
                 }
@@ -191,7 +191,7 @@ Item {
                 target: heap
                 property: "opacity"
                 to: 1
-                duration: 150
+                duration: Press.FADE_IN_MS
             }
         }
     }

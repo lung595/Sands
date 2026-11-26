@@ -28,7 +28,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: Theme.spacingXS
-        radius: 12
+        radius: Theme.cornerRadius
         color: area.containsMouse ? Theme.surfaceContainerHighest : "transparent"
         border.width: root.activeFocus ? 2 : 0
         border.color: Theme.primary
