@@ -105,6 +105,7 @@ Column {
                 StyledText {
                     width: parent.width
                     elide: Text.ElideRight
+                    wrapMode: Text.NoWrap
                     textFormat: Text.PlainText
                     text: line.started ? "Started" : line.modelData.startedText
                     font.pixelSize: Theme.fontSizeSmall

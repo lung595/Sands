@@ -100,6 +100,7 @@ Item {
                     font.weight: entry.open ? Font.DemiBold : Font.Normal
                     color: entry.open ? Theme.surfaceText : Theme.surfaceVariantText
                     elide: Text.ElideRight
+                    wrapMode: Text.NoWrap
                 }
 
                 // Focus ring, drawn inside the entry so the column never clips it

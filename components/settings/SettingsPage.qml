@@ -231,6 +231,7 @@ Item {
                         color: Theme.surfaceText
                         font.pixelSize: Theme.fontSizeMedium
                         elide: Text.ElideRight
+                        wrapMode: Text.NoWrap
                     }
                 }
             }
