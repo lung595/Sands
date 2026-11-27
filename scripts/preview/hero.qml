@@ -13,11 +13,14 @@ import "mock"
 // palette (a DMS theme generated from a desert wallpaper).
 // Usage: TZ=UTC QT_SCALE_FACTOR=2 QT_QPA_PLATFORM=offscreen qml-qt6 -I imports hero.qml -- <out.png>
 // (twice the size, sharp on HiDPI screens). The clock is frozen, so the
-// picture is the same on every run.
+// picture is the same on every run. "plain" (before <out.png>) leaves the
+// words out and keeps DMS's default purple, 760 x 640: the plugin registry
+// wraps the picture in its own card with the name and the description.
 Window {
     id: win
     readonly property string out: Qt.application.arguments[Qt.application.arguments.length - 1]
-    width: 1280
+    readonly property bool plain: Qt.application.arguments.indexOf("plain") >= 0
+    width: plain ? 760 : 1280
     height: 640
     visible: true
     color: Theme.surface
@@ -35,12 +38,14 @@ Window {
 
     FakeDaemon {
         id: daemon
-        accent: "#F0BF6C"
+        accent: win.plain ? "#D0BCFF" : "#F0BF6C"
         favourites: [{ "name": "Tea", "count": 14, "ms": 4 * win.mm }, { "name": "Pasta", "count": 9, "ms": 12 * win.mm }, { "name": "Focus", "count": 6, "ms": 25 * win.mm }]
     }
 
     property bool ready: false
     Component.onCompleted: {
+        if (plain)
+            return start();
         // Material dark scheme from a sand seed (#C89B4A)
         Theme.primary = "#F0BF6C";
         Theme.primaryText = "#422C00";
@@ -59,6 +64,9 @@ Window {
         Theme.surfaceVariantText = "#D4C4AE";
         Theme.widgetTextColor = "#ECE1D3";
         Theme.surfaceTextHover = Qt.rgba(0.93, 0.88, 0.83, 0.08);
+        start();
+    }
+    function start() {
         SettingsData.reduceMotion = true;
         daemon.load([["running", "Pasta", 20 * mm, 12 * mm + 34000, 0], ["running", "Laundry", 45 * mm, 31 * mm, 1]]);
         PluginService.pluginDaemonInstances = {
@@ -81,7 +89,7 @@ Window {
         radius: width / 2
         x: sheet.x + sheet.width / 2 - width / 2
         y: sheet.y + sheet.height / 2 - height / 2
-        color: "#C8862E"
+        color: win.plain ? "#6750A4" : "#C8862E"
         opacity: 0.4
         visible: false
     }
@@ -144,6 +152,7 @@ Window {
     // Left: what it is, in a few words
     Column {
         id: pitch
+        visible: !win.plain
         x: 80
         anchors.verticalCenter: parent.verticalCenter
         width: 520
@@ -327,7 +336,7 @@ Window {
     }
     Rectangle {
         id: sheet
-        x: 830
+        x: win.plain ? (win.width - width) / 2 : 830
         y: bar.y + bar.height + 12
         width: 400 * win.panelScale
         height: panelLoader.height * win.panelScale
