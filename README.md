@@ -1,13 +1,11 @@
 <div align="center">
 
-# Sands
+<img src="docs/images/cover.png" alt="Sands, a plugin for DankMaterialShell: the bar pill with 12:34 left, and below it the panel with a sand hourglass, the Pasta timer, its controls, three favourite timers and a second timer, Laundry" width="100%">
 
 **A floating hourglass timer for [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell).**
 
 Type `timer 20 min pasta` in the launcher. Watch the sand fall in your bar.
 Pause it and the whole thing freezes over.
-
-![Sands: bar pill and panel](docs/images/banner.png)
 
 [Getting started](#getting-started) · [Usage](#usage) · [Settings](#settings) · [Troubleshooting](#troubleshooting) · [User guide](docs/GUIDE.md) · [Changelog](CHANGELOG.md)
 

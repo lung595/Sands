@@ -16,6 +16,8 @@ QtObject {
     property var note: null
     property bool soundActive: false
     property string hourglassStyle: "classic"
+    // The first timer's color: the default purple, whatever the scene's theme
+    property color accent: "#D0BCFF"
     readonly property string guideUrl: "file:///dev/null"
 
     // The report service and the clipboard, for the "Copy report" row. A press
@@ -84,8 +86,8 @@ QtObject {
         return Timers.displayLabel(t);
     }
     function colorFor(t) {
-        // Same hue slots as the daemon, from the default purple
-        const base = Qt.color("#D0BCFF");
+        // Same hue slots as the daemon, from `accent`
+        const base = Qt.color(accent);
         const idx = t && t.hue !== undefined ? t.hue : 0;
         if (idx === 0)
             return base;
